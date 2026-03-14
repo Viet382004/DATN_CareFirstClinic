@@ -1,0 +1,26 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CareFirstClinic.API.DTOs
+{
+
+    public class UpdateDoctorDTO
+    {
+        [Required(ErrorMessage = "Họ tên không được để trống.")]
+        [MaxLength(100, ErrorMessage = "Họ tên tối đa 100 ký tự.")]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Chuyên khoa không được để trống.")]
+        public Guid SpecialtyId { get; set; }
+
+        [Range(0, 60, ErrorMessage = "Số năm kinh nghiệm phải từ 0 đến 60.")]
+        public int YearsOfExperience { get; set; }
+
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ.")]
+        [MaxLength(15, ErrorMessage = "Số điện thoại tối đa 15 ký tự.")]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email không được để trống.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        public string Email { get; set; } = string.Empty;
+    }
+}
