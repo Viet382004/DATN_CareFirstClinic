@@ -43,7 +43,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
-//builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 // ĐĂNG KÝ SERVICES
@@ -51,7 +51,7 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<ISpecialtyService, SpecialtyService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
-//builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 // CONTROLLERS + SWAGGER 

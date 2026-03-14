@@ -30,11 +30,14 @@ namespace CareFirstClinic.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
-            try { return Ok(await _scheduleService.GetAllAsync()); }
+            try
+            {
+                return Ok(await _scheduleService.GetAllAsync());
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll.");
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi GetAll schedule.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -45,14 +48,14 @@ namespace CareFirstClinic.API.Controllers
         {
             try
             {
-                var s = await _scheduleService.GetByIdAsync(id);
-                return s is null ? NotFound($"Không tìm thấy lịch với Id: {id}") : Ok(s);
+                var result = await _scheduleService.GetByIdAsync(id);
+                return result is null ? NotFound($"Không tìm thấy lịch Id: {id}") : Ok(result);
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetById Id: {Id}", id);
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi GetById schedule.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -63,8 +66,8 @@ namespace CareFirstClinic.API.Controllers
         {
             try
             {
-                var userId = GetUserIdFromClaim();
-                if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+                var userId = GetUserId();
+                if (userId is null) return Unauthorized();
 
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                 if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
@@ -75,7 +78,7 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi GetMySchedules.");
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -84,17 +87,20 @@ namespace CareFirstClinic.API.Controllers
         [Authorize(Roles = "Admin,Doctor,Patient")]
         public async Task<IActionResult> GetByDoctorId(Guid doctorId)
         {
-            try { return Ok(await _scheduleService.GetByDoctorIdAsync(doctorId)); }
+            try
+            {
+                return Ok(await _scheduleService.GetByDoctorIdAsync(doctorId));
+            }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetByDoctorId: {DoctorId}", doctorId);
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi GetByDoctorId.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
         // GET /api/schedule/doctor/{doctorId}/available?fromDate=2025-01-01
-        // Bệnh nhân xem slot còn trống để đặt lịch
+        // Bệnh nhân xem lịch còn slot để đặt
         [HttpGet("doctor/{doctorId:guid}/available")]
         [Authorize(Roles = "Admin,Doctor,Patient")]
         public async Task<IActionResult> GetAvailable(Guid doctorId, [FromQuery] DateTime? fromDate)
@@ -107,8 +113,8 @@ namespace CareFirstClinic.API.Controllers
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAvailable DoctorId: {DoctorId}", doctorId);
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi GetAvailable.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -128,7 +134,7 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Create schedule.");
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -139,13 +145,13 @@ namespace CareFirstClinic.API.Controllers
         {
             try
             {
-                var userId = GetUserIdFromClaim();
-                if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+                var userId = GetUserId();
+                if (userId is null) return Unauthorized();
 
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                 if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
 
-                dto.DoctorId = doctor.Id;
+                dto.DoctorId = doctor.Id; // bắt buộc là lịch của chính mình
                 var created = await _scheduleService.CreateAsync(dto);
                 return CreatedAtAction(nameof(GetById), new { id = created.Id },
                     new { message = "Tạo lịch làm việc thành công.", data = created });
@@ -155,7 +161,7 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi CreateForMe schedule.");
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -167,16 +173,17 @@ namespace CareFirstClinic.API.Controllers
             try
             {
                 var updated = await _scheduleService.UpdateAsync(id, dto);
-                if (updated is null) return NotFound($"Không tìm thấy lịch với Id: {id}");
-                return Ok(new { message = "Cập nhật lịch thành công.", data = updated });
+                return updated is null
+                    ? NotFound($"Không tìm thấy lịch Id: {id}")
+                    : Ok(new { message = "Cập nhật thành công.", data = updated });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi Update Id: {Id}", id);
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi Update schedule.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -187,26 +194,26 @@ namespace CareFirstClinic.API.Controllers
         {
             try
             {
-                var userId = GetUserIdFromClaim();
-                if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+                var userId = GetUserId();
+                if (userId is null) return Unauthorized();
 
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                 if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
 
                 var schedule = await _scheduleService.GetByIdAsync(id);
-                if (schedule is null) return NotFound($"Không tìm thấy lịch với Id: {id}");
+                if (schedule is null) return NotFound($"Không tìm thấy lịch Id: {id}");
                 if (schedule.DoctorId != doctor.Id) return Forbid();
 
                 var updated = await _scheduleService.UpdateAsync(id, dto);
-                return Ok(new { message = "Cập nhật lịch thành công.", data = updated });
+                return Ok(new { message = "Cập nhật thành công.", data = updated });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi UpdateForMe Id: {Id}", id);
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi UpdateForMe schedule.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
@@ -218,19 +225,21 @@ namespace CareFirstClinic.API.Controllers
             try
             {
                 var result = await _scheduleService.DeleteAsync(id);
-                if (!result) return NotFound($"Không tìm thấy lịch với Id: {id}");
-                return Ok(new { message = "Xóa lịch thành công." });
+                return result
+                    ? Ok(new { message = "Xóa lịch làm việc thành công." })
+                    : NotFound($"Không tìm thấy lịch Id: {id}");
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi Delete Id: {Id}", id);
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi Delete schedule.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
-        private Guid? GetUserIdFromClaim()
+        // HELPER 
+        private Guid? GetUserId()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return Guid.TryParse(claim, out var id) ? id : null;
