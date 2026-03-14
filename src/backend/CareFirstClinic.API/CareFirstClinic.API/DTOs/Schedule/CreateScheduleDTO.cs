@@ -16,6 +16,9 @@ namespace CareFirstClinic.API.DTOs
         [Required(ErrorMessage = "Giờ kết thúc không được để trống.")]
         public TimeSpan EndTime { get; set; }
 
+        [Range(10, 120, ErrorMessage = "Thời gian mỗi slot phải từ 10 đến 120 phút.")]
+        public int SlotDurationMinutes { get; set; } = 30;
+
         [MaxLength(200)]
         public string? Note { get; set; }
     }

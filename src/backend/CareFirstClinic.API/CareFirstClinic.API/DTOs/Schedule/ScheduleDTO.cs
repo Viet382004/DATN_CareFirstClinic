@@ -9,9 +9,10 @@
         public DateTime WorkDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
+        public int SlotDurationMinutes { get; set; }
+        public int TotalSlots { get; set; }
+        public int AvailableSlots { get; set; }
         public bool IsAvailable { get; set; }
         public string? Note { get; set; }
-        // Slot này đã được đặt chưa
-        public bool IsBooked { get; set; }
     }
 }
