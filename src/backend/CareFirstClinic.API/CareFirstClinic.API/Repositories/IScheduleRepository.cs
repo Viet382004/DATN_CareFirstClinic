@@ -1,4 +1,6 @@
-﻿namespace CareFirstClinic.API.Repositories
+﻿using CareFirstClinic.API.Models;
+
+namespace CareFirstClinic.API.Repositories
 {
     public interface IScheduleRepository
     {
@@ -6,7 +8,7 @@
         Task<Schedule?> GetByIdAsync(Guid id);
         Task<List<Schedule>> GetByDoctorIdAsync(Guid doctorId);
         Task<List<Schedule>> GetAvailableByDoctorIdAsync(Guid doctorId, DateTime fromDate);
-        Task<bool> HasConflictAsync(Guid doctorId, DateTime workDate, TimeSpan start, TimeSpan end, Guid? excludeId = null);
+        Task<bool> HasConflictAsync(Guid doctorId, DateTime workDate, TimeSpan startTime, TimeSpan endTime, Guid? excludeId = null);
         Task<Schedule> AddAsync(Schedule schedule);
         Task<Schedule> UpdateAsync(Schedule schedule);
         Task<bool> DeleteAsync(Guid id);
