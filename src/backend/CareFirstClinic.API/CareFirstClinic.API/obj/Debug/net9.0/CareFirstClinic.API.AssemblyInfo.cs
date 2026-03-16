@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CareFirstClinic.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7c8e11b74b6e126d98c0c4f0e970bc2e6cae822c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a528c6a7fe691490313555175299bbcb77b3acdd")]
 [assembly: System.Reflection.AssemblyProductAttribute("CareFirstClinic.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CareFirstClinic.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

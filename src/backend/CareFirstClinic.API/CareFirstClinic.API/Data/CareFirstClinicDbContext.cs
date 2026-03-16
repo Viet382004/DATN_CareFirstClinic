@@ -21,9 +21,25 @@ namespace CareFirstClinic.API.Data
         public DbSet<PrescriptionDetail> PrescriptionDetails { get; set; }
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<TimeSlot> TimeSlots { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // TIMESLOT
+            modelBuilder.Entity<TimeSlot>(e =>
+            {
+                e.HasKey(x => x.Id);
+
+                e.Property(x => x.StartTime).IsRequired();
+                e.Property(x => x.EndTime).IsRequired();
+                e.Property(x => x.IsBooked).HasDefaultValue(false);
+
+                e.HasOne(x => x.Schedule)
+                    .WithMany(s => s.TimeSlots)
+                    .HasForeignKey(x => x.ScheduleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // ROLE
             modelBuilder.Entity<Role>(e =>
@@ -118,29 +134,30 @@ namespace CareFirstClinic.API.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // APPOINTMENT
             modelBuilder.Entity<Appointment>(e =>
             {
                 e.HasKey(x => x.Id);
+
                 e.Property(x => x.Reason).HasMaxLength(500);
                 e.Property(x => x.CancelReason).HasMaxLength(500);
                 e.Property(x => x.Notes).HasMaxLength(1000);
+
                 e.Property(x => x.Status)
                     .HasConversion<string>()
                     .HasMaxLength(20);
-                e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
-                // Appointment → Patient (N-1)
+                e.Property(x => x.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
                 e.HasOne(x => x.Patient)
                     .WithMany(p => p.Appointments)
                     .HasForeignKey(x => x.PatientId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Appointment → Schedule (N-1) - Quan trọng: 1 lịch làm việc có nhiều cuộc hẹn
-                e.HasOne(x => x.Schedule)
-                    .WithMany(s => s.Appointments)
-                    .HasForeignKey(x => x.ScheduleId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.TimeSlot)
+                    .WithOne(t => t.Appointment)
+                    .HasForeignKey<Appointment>(x => x.TimeSlotId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // MEDICAL RECORD

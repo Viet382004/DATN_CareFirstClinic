@@ -907,6 +907,12 @@
             "type": "string",
             "format": "date-span"
           },
+          "slotDurationMinutes": {
+            "maximum": 120,
+            "minimum": 10,
+            "type": "integer",
+            "format": "int32"
+          },
           "note": {
             "maxLength": 200,
             "type": "string",
@@ -1073,25 +1079,8 @@
         "additionalProperties": false
       },
       "UpdateScheduleDTO": {
-        "required": [
-          "endTime",
-          "startTime",
-          "workDate"
-        ],
         "type": "object",
         "properties": {
-          "workDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "startTime": {
-            "type": "string",
-            "format": "date-span"
-          },
-          "endTime": {
-            "type": "string",
-            "format": "date-span"
-          },
           "note": {
             "maxLength": 200,
             "type": "string",

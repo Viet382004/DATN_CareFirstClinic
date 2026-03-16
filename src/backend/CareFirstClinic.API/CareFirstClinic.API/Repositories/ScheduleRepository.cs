@@ -21,13 +21,14 @@ namespace CareFirstClinic.API.Repositories
             {
                 return await _context.Schedules
                     .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
+                    .Include(s => s.TimeSlots)
                     .Where(s => s.IsAvailable)
                     .OrderBy(s => s.WorkDate).ThenBy(s => s.StartTime)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lấy danh sách lịch làm việc.");
+                _logger.LogError(ex, "Lỗi GetAllAsync schedule.");
                 throw;
             }
         }
@@ -40,12 +41,13 @@ namespace CareFirstClinic.API.Repositories
             {
                 return await _context.Schedules
                     .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
+                    .Include(s => s.TimeSlots)
                     .FirstOrDefaultAsync(s => s.Id == id && s.IsAvailable);
             }
             catch (ArgumentException) { throw; }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lấy lịch Id: {Id}", id);
+                _logger.LogError(ex, "Lỗi GetByIdAsync schedule Id: {Id}", id);
                 throw;
             }
         }
@@ -58,6 +60,7 @@ namespace CareFirstClinic.API.Repositories
             {
                 return await _context.Schedules
                     .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
+                    .Include(s => s.TimeSlots)
                     .Where(s => s.DoctorId == doctorId && s.IsAvailable)
                     .OrderBy(s => s.WorkDate).ThenBy(s => s.StartTime)
                     .ToListAsync();
@@ -65,7 +68,7 @@ namespace CareFirstClinic.API.Repositories
             catch (ArgumentException) { throw; }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lấy lịch theo DoctorId: {DoctorId}", doctorId);
+                _logger.LogError(ex, "Lỗi GetByDoctorIdAsync. DoctorId: {DoctorId}", doctorId);
                 throw;
             }
         }
@@ -78,6 +81,7 @@ namespace CareFirstClinic.API.Repositories
             {
                 return await _context.Schedules
                     .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
+                    .Include(s => s.TimeSlots)
                     .Where(s => s.DoctorId == doctorId
                              && s.WorkDate.Date >= fromDate.Date
                              && s.IsAvailable
@@ -88,12 +92,13 @@ namespace CareFirstClinic.API.Repositories
             catch (ArgumentException) { throw; }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lấy lịch trống. DoctorId: {DoctorId}", doctorId);
+                _logger.LogError(ex, "Lỗi GetAvailableByDoctorIdAsync. DoctorId: {DoctorId}", doctorId);
                 throw;
             }
         }
 
-        public async Task<bool> HasConflictAsync(Guid doctorId, DateTime workDate, TimeSpan startTime, TimeSpan endTime, Guid? excludeId = null)
+        public async Task<bool> HasConflictAsync(Guid doctorId, DateTime workDate,
+            TimeSpan startTime, TimeSpan endTime, Guid? excludeId = null)
         {
             try
             {
@@ -106,23 +111,38 @@ namespace CareFirstClinic.API.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi kiểm tra xung đột lịch.");
+                _logger.LogError(ex, "Lỗi HasConflictAsync.");
                 throw;
             }
         }
 
-        public async Task<Schedule> AddAsync(Schedule schedule)
+        // ── ADD — lưu Schedule + toàn bộ TimeSlot trong 1 transaction ──────
+        public async Task<Schedule> AddAsync(Schedule schedule, List<TimeSlot> timeSlots)
         {
             ArgumentNullException.ThrowIfNull(schedule);
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 _context.Schedules.Add(schedule);
                 await _context.SaveChangesAsync();
-                return schedule;
+
+                // Gán ScheduleId sau khi Schedule đã có Id
+                foreach (var slot in timeSlots)
+                    slot.ScheduleId = schedule.Id;
+
+                _context.TimeSlots.AddRange(timeSlots);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                // Load lại để trả về đầy đủ navigation
+                return (await GetByIdAsync(schedule.Id))!;
             }
-            catch (DbUpdateException ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi DB khi thêm lịch làm việc.");
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Lỗi AddAsync schedule — rollback.");
                 throw new InvalidOperationException("Không thể tạo lịch làm việc.", ex);
             }
         }
@@ -132,7 +152,7 @@ namespace CareFirstClinic.API.Repositories
             ArgumentNullException.ThrowIfNull(schedule);
             var exists = await _context.Schedules.AnyAsync(s => s.Id == schedule.Id && s.IsAvailable);
             if (!exists)
-                throw new KeyNotFoundException($"Không tìm thấy lịch làm việc Id: {schedule.Id}");
+                throw new KeyNotFoundException($"Không tìm thấy lịch Id: {schedule.Id}");
             try
             {
                 _context.Schedules.Update(schedule);
@@ -141,11 +161,12 @@ namespace CareFirstClinic.API.Repositories
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Lỗi DB khi cập nhật lịch Id: {Id}", schedule.Id);
+                _logger.LogError(ex, "Lỗi UpdateAsync schedule Id: {Id}", schedule.Id);
                 throw new InvalidOperationException("Không thể cập nhật lịch làm việc.", ex);
             }
         }
 
+        // ── DELETE — soft delete, chặn nếu còn TimeSlot đã được đặt ────────
         public async Task<bool> DeleteAsync(Guid id)
         {
             if (id == Guid.Empty)
@@ -156,14 +177,11 @@ namespace CareFirstClinic.API.Repositories
                     .FirstOrDefaultAsync(s => s.Id == id && s.IsAvailable);
                 if (schedule is null) return false;
 
-                // Chặn xóa nếu còn lịch hẹn chưa hoàn thành
-                var hasAppointments = await _context.Appointments.AnyAsync(a =>
-                    a.ScheduleId == id &&
-                    a.Status != AppointmentStatus.Completed &&
-                    a.Status != AppointmentStatus.Cancelled);
-
-                if (hasAppointments)
-                    throw new InvalidOperationException("Không thể xóa lịch đang có lịch hẹn chưa hoàn thành.");
+                var hasBooked = await _context.TimeSlots
+                    .AnyAsync(ts => ts.ScheduleId == id && ts.IsBooked);
+                if (hasBooked)
+                    throw new InvalidOperationException(
+                        "Không thể xóa lịch đang có slot đã được đặt.");
 
                 schedule.IsAvailable = false;
                 await _context.SaveChangesAsync();
@@ -172,7 +190,7 @@ namespace CareFirstClinic.API.Repositories
             catch (InvalidOperationException) { throw; }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi xóa lịch Id: {Id}", id);
+                _logger.LogError(ex, "Lỗi DeleteAsync schedule Id: {Id}", id);
                 throw;
             }
         }

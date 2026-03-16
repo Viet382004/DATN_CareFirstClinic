@@ -25,18 +25,15 @@ namespace CareFirstClinic.API.Controllers
             _logger = logger;
         }
 
-        // GET /api/schedule — Admin xem tất cả
+        // GET /api/schedule
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                return Ok(await _scheduleService.GetAllAsync());
-            }
+            try { return Ok(await _scheduleService.GetAllAsync()); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll schedule.");
+                _logger.LogError(ex, "Lỗi GetAll.");
                 return StatusCode(500, "Lỗi hệ thống.");
             }
         }
@@ -54,12 +51,12 @@ namespace CareFirstClinic.API.Controllers
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetById schedule.");
+                _logger.LogError(ex, "Lỗi GetById.");
                 return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
-        // GET /api/schedule/me — Bác sĩ xem lịch của mình
+        // GET /api/schedule/me — Bác sĩ xem lịch của mình (kèm TimeSlot)
         [HttpGet("me")]
         [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> GetMySchedules()
@@ -82,15 +79,12 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // GET /api/schedule/doctor/{doctorId} — Xem lịch của 1 bác sĩ
+        // GET /api/schedule/doctor/{doctorId} — Xem lịch của 1 bác sĩ (kèm TimeSlot)
         [HttpGet("doctor/{doctorId:guid}")]
         [Authorize(Roles = "Admin,Doctor,Patient")]
         public async Task<IActionResult> GetByDoctorId(Guid doctorId)
         {
-            try
-            {
-                return Ok(await _scheduleService.GetByDoctorIdAsync(doctorId));
-            }
+            try { return Ok(await _scheduleService.GetByDoctorIdAsync(doctorId)); }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
@@ -100,7 +94,7 @@ namespace CareFirstClinic.API.Controllers
         }
 
         // GET /api/schedule/doctor/{doctorId}/available?fromDate=2025-01-01
-        // Bệnh nhân xem lịch còn slot để đặt
+        // Bệnh nhân xem lịch còn slot trống để chọn đặt
         [HttpGet("doctor/{doctorId:guid}/available")]
         [Authorize(Roles = "Admin,Doctor,Patient")]
         public async Task<IActionResult> GetAvailable(Guid doctorId, [FromQuery] DateTime? fromDate)
@@ -118,7 +112,7 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // POST /api/schedule — Admin tạo lịch cho bác sĩ bất kỳ
+        // POST /api/schedule — Admin tạo lịch + sinh TimeSlot tự động
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateScheduleDTO dto)
@@ -127,7 +121,7 @@ namespace CareFirstClinic.API.Controllers
             {
                 var created = await _scheduleService.CreateAsync(dto);
                 return CreatedAtAction(nameof(GetById), new { id = created.Id },
-                    new { message = "Tạo lịch làm việc thành công.", data = created });
+                    new { message = $"Tạo lịch thành công. Đã sinh {created.TotalSlots} slot.", data = created });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
@@ -151,21 +145,21 @@ namespace CareFirstClinic.API.Controllers
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                 if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
 
-                dto.DoctorId = doctor.Id; // bắt buộc là lịch của chính mình
+                dto.DoctorId = doctor.Id;
                 var created = await _scheduleService.CreateAsync(dto);
                 return CreatedAtAction(nameof(GetById), new { id = created.Id },
-                    new { message = "Tạo lịch làm việc thành công.", data = created });
+                    new { message = $"Tạo lịch thành công. Đã sinh {created.TotalSlots} slot.", data = created });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi CreateForMe schedule.");
+                _logger.LogError(ex, "Lỗi CreateForMe.");
                 return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
-        // PUT /api/schedule/{id} — Admin cập nhật
+        // PUT /api/schedule/{id} — Chỉ update Note và IsAvailable
         [HttpPut("{id:guid}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, UpdateScheduleDTO dto)
@@ -187,7 +181,7 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // PUT /api/schedule/me/{id} — Bác sĩ tự cập nhật lịch của mình
+        // PUT /api/schedule/me/{id} — Bác sĩ tự update lịch của mình
         [HttpPut("me/{id:guid}")]
         [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> UpdateForMe(Guid id, UpdateScheduleDTO dto)
@@ -212,12 +206,12 @@ namespace CareFirstClinic.API.Controllers
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi UpdateForMe schedule.");
+                _logger.LogError(ex, "Lỗi UpdateForMe.");
                 return StatusCode(500, "Lỗi hệ thống.");
             }
         }
 
-        // DELETE /api/schedule/{id} — Admin xóa mềm
+        // DELETE /api/schedule/{id}
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
@@ -238,7 +232,7 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // HELPER 
+        // ── HELPER ──────────────────────────────────────────────────────────
         private Guid? GetUserId()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);

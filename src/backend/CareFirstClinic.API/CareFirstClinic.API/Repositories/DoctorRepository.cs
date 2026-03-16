@@ -217,10 +217,10 @@ namespace CareFirstClinic.API.Repositories
                 if (doctor is null) return false;
 
                 // Điều kiện: không xóa bác sĩ còn lịch hẹn trong tương lai
-                var hasFutureAppointments = await _context.Appointments
-                    .AnyAsync(a => a.Schedule.DoctorId == id
-                               && a.AppointmentDate > DateTime.UtcNow
-                               && a.Status != AppointmentStatus.Cancelled);
+                var hasFutureAppointments = await _context.Schedules
+                    .AnyAsync(s => s.DoctorId == id
+                               && s.IsAvailable
+                               && s.WorkDate.Date >= DateTime.UtcNow.Date);
 
                 if (hasFutureAppointments)
                     throw new InvalidOperationException(
