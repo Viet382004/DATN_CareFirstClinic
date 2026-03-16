@@ -23,5 +23,5 @@ public class Schedule
 
     // Navigation
     public Doctor? Doctor { get; set; }
-    public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    public ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
 }

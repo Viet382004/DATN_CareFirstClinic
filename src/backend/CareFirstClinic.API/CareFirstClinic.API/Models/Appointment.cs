@@ -12,26 +12,31 @@ namespace CareFirstClinic.API.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public Guid PatientId { get; set; }       
-        public Guid ScheduleId { get; set; }     
+        public Guid PatientId { get; set; }
 
-        public DateTime AppointmentDate { get; set; } 
-        public TimeSpan StartTime { get; set; }       
-        public TimeSpan EndTime { get; set; }          
+        public Guid TimeSlotId { get; set; }
 
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
 
         public string? Reason { get; set; }
-        public string? CancelReason { get; set; }  // Lý do hủy
+
+        public string? CancelReason { get; set; }
+
         public DateTime? CancelledAt { get; set; }
-        public string? Notes { get; set; }         
+
+        public string? Notes { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public DateTime? UpdatedAt { get; set; }
 
+        // Navigation
         public Patient? Patient { get; set; }
-        public Schedule? Schedule { get; set; }
+
+        public TimeSlot? TimeSlot { get; set; }
+
         public MedicalRecord? MedicalRecord { get; set; }
+
         public Payment? Payment { get; set; }
     }
 }
