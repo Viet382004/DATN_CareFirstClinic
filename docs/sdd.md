@@ -126,3 +126,215 @@ graph TD
     %% Style cho đường nối
     linkStyle default stroke:#333333,stroke-width:1.5px
 ```
+
+## 2. Biểu đồ tuần tự (Sequence Diagrams)
+
+## 2.1 UC01: Enter Patient (Nhập thông tin bệnh nhân)
+
+```mermaid
+sequenceDiagram
+    participant BN as "Bệnh nhân"
+    participant UI as "Giao diện"
+    participant XL as "Xử lý"
+    participant CSDL as "Cơ sở dữ liệu"
+    
+    BN->>UI: Nhập thông tin bệnh nhân
+    activate UI
+    UI->>XL: Gửi dữ liệu đăng ký
+    activate XL
+    XL->>XL: Kiểm tra tính hợp lệ
+    
+    alt Dữ liệu hợp lệ
+        XL->>CSDL: Lưu thông tin
+        activate CSDL
+        CSDL-->>XL: Xác nhận lưu thành công
+        deactivate CSDL
+        XL-->>UI: Trả về kết quả thành công
+        UI-->>BN: Hiển thị "Đăng ký thành công"
+    else Dữ liệu không hợp lệ
+        XL-->>UI: Báo lỗi
+        UI-->>BN: Hiển thị thông báo lỗi
+    end
+    
+    deactivate XL
+    deactivate UI
+```
+## 2.2 Manage Patient(Quản lý bệnh nhân)
+```mermaid
+    sequenceDiagram
+    participant BS as "Bác sĩ"
+    participant UI as "Giao diện"
+    participant XL as "Xử lý"
+    participant CSDL as "Cơ sở dữ liệu"
+    
+    BS->>UI: Chọn "Quản lý bệnh nhân"
+    activate UI
+    UI->>XL: Yêu cầu danh sách BN
+    activate XL
+    XL->>CSDL: Truy vấn dữ liệu
+    activate CSDL
+    CSDL-->>XL: Trả về danh sách
+    deactivate CSDL
+    XL-->>UI: Hiển thị danh sách
+    UI-->>BS: Xem danh sách bệnh nhân
+    
+    BS->>UI: Chọn bệnh nhân cần cập nhật
+    UI->>XL: Yêu cầu chi tiết BN
+    XL->>CSDL: Lấy thông tin chi tiết
+    activate CSDL
+    CSDL-->>XL: Trả về thông tin
+    deactivate CSDL
+    XL-->>UI: Hiển thị form cập nhật
+    
+    BS->>UI: Nhập thông tin cập nhật
+    UI->>XL: Gửi dữ liệu cập nhật
+    XL->>CSDL: Cập nhật thông tin
+    activate CSDL
+    CSDL-->>XL: Xác nhận cập nhật
+    deactivate CSDL
+    XL-->>UI: Thông báo thành công
+    UI-->>BS: "Cập nhật thành công"
+    
+    deactivate XL
+    deactivate UI
+
+```
+## 2.3 Login(Đăng nhập)
+```mermaid
+    sequenceDiagram
+    participant User as "Người dùng"
+    participant UI as "Giao diện"
+    participant Auth as "Xác thực"
+    participant CSDL as "Cơ sở dữ liệu"
+    
+    User->>UI: Nhập tên đăng nhập & mật khẩu
+    activate UI
+    UI->>Auth: Gửi thông tin đăng nhập
+    activate Auth
+    Auth->>CSDL: Kiểm tra thông tin
+    activate CSDL
+    CSDL-->>Auth: Trả về kết quả
+    deactivate CSDL
+    
+    alt Đăng nhập thành công
+        Auth->>Auth: Tạo session/token
+        Auth-->>UI: Xác thực thành công
+        UI-->>User: Chuyển đến trang chính
+    else Sai thông tin
+        Auth-->>UI: Lỗi xác thực
+        UI-->>User: Hiển thị "Sai tên/mật khẩu"
+    end
+    
+    deactivate Auth
+    deactivate UI
+
+```
+## 2.4 Manage Discharge(Quản lý xuất viện)
+```mermaid
+    sequenceDiagram
+    participant NV as "Nhân viên"
+    participant BS as "Bác sĩ"
+    participant UI as "Giao diện"
+    participant XL as "Xử lý"
+    participant CSDL as "Cơ sở dữ liệu"
+    
+    NV->>UI: Chọn bệnh nhân xuất viện
+    activate UI
+    UI->>XL: Yêu cầu danh sách chờ xuất viện
+    activate XL
+    XL->>CSDL: Lấy danh sách
+    activate CSDL
+    CSDL-->>XL: Trả về danh sách
+    deactivate CSDL
+    XL-->>UI: Hiển thị danh sách
+    UI-->>NV: Xem danh sách
+    
+    NV->>UI: Chọn "Xác nhận xuất viện"
+    UI->>XL: Gửi yêu cầu xác nhận
+    XL->>BS: Gửi thông báo chờ duyệt
+    
+    BS->>UI: Xem yêu cầu xuất viện
+    activate BS
+    UI->>XL: Lấy chi tiết bệnh nhân
+    XL->>CSDL: Truy vấn thông tin
+    activate CSDL
+    CSDL-->>XL: Trả về dữ liệu
+    deactivate CSDL
+    XL-->>UI: Hiển thị thông tin
+    
+    BS->>UI: Xác nhận / Từ chối
+    UI->>XL: Cập nhật trạng thái
+    
+    alt Đồng ý
+        XL->>CSDL: Cập nhật trạng thái xuất viện
+        activate CSDL
+        CSDL-->>XL: Xác nhận
+        deactivate CSDL
+        XL-->>UI: Thông báo thành công
+        UI-->>NV: "Bệnh nhân đã xuất viện"
+        UI-->>BS: "Xác nhận thành công"
+    else Từ chối
+        XL->>CSDL: Ghi lý do từ chối
+        activate CSDL
+        CSDL-->>XL: Xác nhận
+        deactivate CSDL
+        XL-->>UI: Thông báo lý do
+        UI-->>NV: "Yêu cầu bị từ chối"
+    end
+    
+    deactivate BS
+    deactivate XL
+    deactivate UI
+
+```
+## 2.5 Make Payment(Thanh toán)
+```mermaid
+    ssequenceDiagram
+    participant BN as "Bệnh nhân"
+    participant UI as "Giao diện"
+    participant XL as "Xử lý"
+    participant TT as "Cổng thanh toán"
+    participant CSDL as "Cơ sở dữ liệu"
+    participant Email as "Email"
+    
+    Note over BN,UI: Bắt đầu quy trình thanh toán
+    
+    BN->>UI: Chọn "Thanh toán"
+    UI->>XL: Yêu cầu thông tin thanh toán
+    XL->>CSDL: Lấy hóa đơn
+    CSDL-->>XL: Trả về số tiền
+    XL-->>UI: Hiển thị hóa đơn
+    UI-->>BN: Xem hóa đơn
+    
+    BN->>UI: Chọn phương thức thanh toán
+    UI->>XL: Gửi yêu cầu thanh toán
+    XL->>TT: Kết nối cổng thanh toán
+    
+    alt Thanh toán thành công
+        TT-->>XL: Xác nhận giao dịch
+        XL->>CSDL: Cập nhật trạng thái
+        CSDL-->>XL: Xác nhận cập nhật
+        XL-->>UI: Thông báo thành công
+        UI-->>BN:  Thanh toán thành công
+        
+        par Gửi email và cập nhật lịch hẹn
+            XL->>Email: Gửi hóa đơn
+            Email-->>XL: Đã gửi
+        and
+            XL->>CSDL: Cập nhật lịch hẹn
+            CSDL-->>XL: OK
+        end
+        
+    else Thanh toán thất bại
+        TT-->>XL: Báo lỗi giao dịch
+        XL-->>UI: Thông báo lỗi
+        UI-->>BN:  Thanh toán thất bại
+    end
+    
+    Note over BN,Email: Kết thúc quy trình
+
+```
+## 3. Class Diagram (Sequence Diagrams)
+```mermaid
+
+```
