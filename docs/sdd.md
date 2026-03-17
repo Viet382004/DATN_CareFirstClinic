@@ -289,7 +289,7 @@ sequenceDiagram
 ```
 ## 2.5 Make Payment(Thanh toán)
 ```mermaid
-    ssequenceDiagram
+    sequenceDiagram
     participant BN as "Bệnh nhân"
     participant UI as "Giao diện"
     participant XL as "Xử lý"
@@ -332,7 +332,6 @@ sequenceDiagram
     end
     
     Note over BN,Email: Kết thúc quy trình
-
 ```
 ## 3. Class Diagram (Sequence Diagrams)
 ```mermaid
