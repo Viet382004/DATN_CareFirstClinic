@@ -1,4 +1,4 @@
-# 🏥 Software Requirements Specification (SRS)
+#  Software Requirements Specification (SRS)
 ## Project: CareFirst Clinic — Intelligent Hospital Management System with AI Chatbot
 
 ---
