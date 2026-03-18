@@ -94,7 +94,12 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return StatusCode(500, $"Lỗi hệ thống khi tạo tài khoản: {ex.Message}");
+
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
             }
         }
 

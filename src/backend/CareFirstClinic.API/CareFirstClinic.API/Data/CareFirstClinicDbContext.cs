@@ -58,9 +58,9 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.Email).IsRequired().HasMaxLength(150);
                 e.HasIndex(x => x.Email).IsUnique();
                 e.Property(x => x.FullName).IsRequired().HasMaxLength(100);
-                e.Property(x => x.PasswordHash).IsRequired().HasColumnType("nvarchar(max)");
+                e.Property(x => x.PasswordHash).IsRequired().HasColumnType("text");
                 e.Property(x => x.IsActive).HasDefaultValue(true);
-                e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                e.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 // User → Role (N-1)
                 e.HasOne(x => x.Role)
@@ -98,8 +98,8 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.Gender).IsRequired().HasMaxLength(10);
                 e.Property(x => x.PhoneNumber).HasMaxLength(20);
                 e.Property(x => x.Address).HasMaxLength(250);
-                e.Property(x => x.MedicalHistory).HasColumnType("nvarchar(max)");
-                e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                e.Property(x => x.MedicalHistory).HasColumnType("text");
+                e.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 // Patient → User (1-1)
                 e.HasOne(x => x.User)
@@ -147,7 +147,7 @@ namespace CareFirstClinic.API.Data
                     .HasMaxLength(20);
 
                 e.Property(x => x.CreatedAt)
-                    .HasDefaultValueSql("GETUTCDATE()");
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 e.HasOne(x => x.Patient)
                     .WithMany(p => p.Appointments)
@@ -164,10 +164,10 @@ namespace CareFirstClinic.API.Data
             modelBuilder.Entity<MedicalRecord>(e =>
             {
                 e.HasKey(x => x.Id);
-                e.Property(x => x.Diagnosis).IsRequired().HasColumnType("nvarchar(max)");
-                e.Property(x => x.Symptoms).HasColumnType("nvarchar(max)");
-                e.Property(x => x.Notes).HasColumnType("nvarchar(max)");
-                e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                e.Property(x => x.Diagnosis).IsRequired().HasColumnType("text");
+                e.Property(x => x.Symptoms).HasColumnType("text");
+                e.Property(x => x.Notes).HasColumnType("text");
+                e.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 // MedicalRecord → Appointment (1-1)
                 e.HasOne(x => x.Appointment)
@@ -197,7 +197,7 @@ namespace CareFirstClinic.API.Data
                     .HasConversion<string>()
                     .HasMaxLength(20);
                 e.Property(x => x.Notes).HasMaxLength(500);
-                e.Property(x => x.IssuedAt).HasDefaultValueSql("GETUTCDATE()");
+                e.Property(x => x.IssuedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 // Prescription → MedicalRecord (1-1)
                 e.HasOne(x => x.MedicalRecord)
@@ -234,7 +234,7 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.MedicineCode).HasMaxLength(50);
                 e.Property(x => x.Unit).HasMaxLength(50);
                 e.Property(x => x.Manufacturer).HasMaxLength(200);
-                e.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
+                e.Property(x => x.UnitPrice).HasColumnType("numeric(18,2)");
                 e.Property(x => x.IsActive).HasDefaultValue(true);
             });
 
@@ -242,7 +242,7 @@ namespace CareFirstClinic.API.Data
             modelBuilder.Entity<Payment>(e =>
             {
                 e.HasKey(x => x.Id);
-                e.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+                e.Property(x => x.Amount).HasColumnType("numeric(18,2)");
                 e.Property(x => x.Method).HasConversion<string>().HasMaxLength(50);
                 e.Property(x => x.Status).HasConversion<string>().HasMaxLength(50);
                 e.Property(x => x.TransactionId).HasMaxLength(100);
