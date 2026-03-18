@@ -1,0 +1,151 @@
+// CareFirst Clinic - Database Design (ERD)
+// Created for Graduation Project / SDD Documentation
+
+Project CareFirst_Clinic {
+  database_type: 'SQL Server'
+  Note: 'Hệ thống quản lý phòng khám đa khoa'
+}
+
+// --- HỆ THỐNG TÀI KHOẢN & PHÂN QUYỀN ---
+
+Table Roles {
+  Id guid [pk]
+  Name nvarchar(50) [not null, note: 'Admin, Doctor, Patient, Staff']
+  Description ntext
+  IsActive boolean [default: true]
+}
+
+Table Users {
+  Id guid [pk]
+  UserName varchar(50) [unique, not null]
+  PasswordHash varchar(max) [not null]
+  FullName nvarchar(100)
+  Email varchar(100) [unique]
+  IsActive boolean [default: true]
+  RoleId guid [ref: > Roles.Id]
+  CreatedAt datetime [default: `now()`]
+}
+
+// --- THÔNG TIN CHI TIẾT ĐỐI TƯỢNG ---
+
+Table Patients {
+  Id guid [pk, note: 'FK to Users.Id']
+  FullName nvarchar(100)
+  DateOfBirth datetime
+  Gender nvarchar(10)
+  PhoneNumber varchar(15)
+  Address nvarchar(max)
+  MedicalHistory ntext
+}
+
+Table Doctors {
+  Id guid [pk, note: 'FK to Users.Id']
+  FullName nvarchar(100)
+  YearsOfExperience int
+  PhoneNumber varchar(15)
+  SpecialtyId guid [ref: > Specialties.Id]
+}
+
+Table Specialties {
+  Id guid [pk]
+  Name nvarchar(100)
+  Description ntext
+  IsActive boolean [default: true]
+}
+
+// --- LỊCH TRÌNH & ĐẶT LỊCH ---
+
+Table Schedules {
+  Id guid [pk]
+  DoctorId guid [ref: > Doctors.Id]
+  StartTime datetime
+  EndTime datetime
+  IsAvailable boolean [default: true]
+  Note ntext
+  WorkDate date
+  AvailableSlots int
+  SlotDurationMinutes int [default: 30]
+  TotalSlots int
+}
+
+Table TimeSlots {
+  Id guid [pk]
+  ScheduleId guid [ref: > Schedules.Id]
+  StartTime datetime
+  EndTime datetime
+  IsBooked boolean [default: false]
+}
+
+Table Appointments {
+  Id guid [pk]
+  PatientId guid [ref: > Patients.Id]
+  TimeSlotId guid [ref: - TimeSlots.Id] // 1-1: Mỗi slot chỉ cho 1 cuộc hẹn
+  Reason ntext
+  Notes ntext
+  Status int [note: '0: Pending, 1: Confirmed, 2: Completed, 3: Cancelled']
+  CreatedAt datetime [default: `now()`]
+  UpdatedAt datetime
+  CancelReason ntext
+  CancelledAt datetime
+}
+
+// --- KHÁM BỆNH & ĐƠN THUỐC ---
+
+Table MedicalRecords {
+  Id guid [pk]
+  PatientId guid [ref: > Patients.Id]
+  DoctorId guid [ref: > Doctors.Id]
+  AppointmentId guid [ref: - Appointments.Id] // 1-1: Mỗi cuộc hẹn có 1 bệnh án
+  Diagnosis ntext
+  Symptoms ntext
+  BloodPressure varchar(20)
+  HeartRate varchar(20)
+  Height decimal(5,2)
+  Notes ntext
+  FollowUpDate datetime
+  CreatedAt datetime [default: `now()`]
+}
+
+Table Prescriptions {
+  Id guid [pk]
+  MedicalRecordId guid [ref: - MedicalRecords.Id]
+  Notes ntext
+  IssuedAt datetime [default: `now()`]
+}
+
+Table PrescriptionDetails {
+  Id guid [pk]
+  PrescriptionId guid [ref: > Prescriptions.Id]
+  StockId guid [ref: > Stocks.Id]
+  Frequency nvarchar(100) [note: 'Sáng 1 viên, tối 1 viên']
+  DurationDays int
+  Quantity int
+  Instructions ntext
+}
+
+Table Stocks {
+  Id guid [pk]
+  MedicineCode varchar(50) [unique]
+  Manufacturer nvarchar(100)
+  Quantity int
+  MinQuantity int
+  UnitPrice decimal(18,2)
+  IsActive boolean [default: true]
+}
+
+// --- THANH TOÁN ---
+
+Table Payments {
+  Id guid [pk]
+  PatientId guid [ref: > Patients.Id]
+  AppointmentId guid [ref: - Appointments.Id]
+  Amount decimal(18,2)
+  Method nvarchar(50) [note: 'Cash, Transfer, Card']
+  Status int [note: '0: Unpaid, 1: Paid']
+  TransactionId varchar(100)
+  CreatedAt datetime [default: `now()`]
+}
+
+// --- QUAN HỆ KẾ THỪA (1-1) ---
+Ref: Patients.Id - Users.Id
+Ref: Doctors.Id - Users.Id
