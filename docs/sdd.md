@@ -335,5 +335,149 @@ sequenceDiagram
 ```
 ## 3. Class Diagram (Sequence Diagrams)
 ```mermaid
+classDiagram
+    class Roles {
+        +Guid Id
+        +String Name
+        +String Description
+        +Boolean IsActive
+    }
 
+    class Users {
+        +Guid Id
+        +String UserName
+        +String PasswordHash
+        +String FullName
+        +String Email
+        +Boolean IsActive
+        +Guid RoleId
+        +DateTime CreatedAt
+    }
+
+    class Patients {
+        +Guid Id
+        +String FullName
+        +DateTime DateOfBirth
+        +String Gender
+        +String PhoneNumber
+        +String Address
+        +String MedicalHistory
+    }
+
+    class Doctors {
+        +Guid Id
+        +String FullName
+        +Int YearsOfExperience
+        +String PhoneNumber
+        +Guid SpecialtyId
+    }
+
+    class Specialties {
+        +Guid Id
+        +String Name
+        +String Description
+        +Boolean IsActive
+    }
+
+    class MedicalRecords {
+        +Guid Id
+        +Guid PatientId
+        +Guid DoctorId
+        +String Diagnosis
+        +String Notes
+        +String BloodPressure
+        +String HeartRate
+        +Decimal Height
+        +String Symptoms
+        +Guid AppointmentId
+        +DateTime FollowUpDate
+        +DateTime CreatedAt
+    }
+
+    class Appointments {
+        +Guid Id
+        +Guid PatientId
+        +String Reason
+        +String Notes
+        +Int Status
+        +Guid TimeSlotId
+        +DateTime CreatedAt
+        +DateTime UpdatedAt
+        +String CancelReason
+        +DateTime CancelledAt
+    }
+
+    class Schedules {
+        +Guid Id
+        +Guid DoctorId
+        +DateTime StartTime
+        +DateTime EndTime
+        +Boolean IsAvailable
+        +DateTime WorkDate
+        +Int SlotDurationMinutes
+        +Int TotalSlots
+    }
+
+    class TimeSlots {
+        +Guid Id
+        +Guid ScheduleId
+        +DateTime StartTime
+        +DateTime EndTime
+        +Boolean IsBooked
+    }
+
+    class Prescriptions {
+        +Guid Id
+        +Guid MedicalRecordId
+        +String Notes
+        +DateTime IssuedAt
+    }
+
+    class PrescriptionDetails {
+        +Guid Id
+        +Guid PrescriptionId
+        +Guid StockId
+        +String Frequency
+        +Int DurationDays
+        +Int Quantity
+        +String Instructions
+    }
+
+    class Stocks {
+        +Guid Id
+        +String MedicineCode
+        +String Manufacturer
+        +Int Quantity
+        +Decimal UnitPrice
+        +Boolean IsActive
+    }
+
+    class Payments {
+        +Guid Id
+        +Guid PatientId
+        +Guid AppointmentId
+        +Decimal Amount
+        +String Method
+        +Int Status
+        +String TransactionId
+        +DateTime CreatedAt
+    }
+
+    %% Relationships dựa trên sơ đồ ảnh
+    Users "1" -- "*" Roles : RoleId
+    Patients "1" -- "1" Users : Id (Foreign Key)
+    Doctors "1" -- "1" Users : Id (Foreign Key)
+    Doctors "*" -- "1" Specialties : SpecialtyId
+    Schedules "*" -- "1" Doctors : DoctorId
+    TimeSlots "*" -- "1" Schedules : ScheduleId
+    Appointments "*" -- "1" Patients : PatientId
+    Appointments "1" -- "1" TimeSlots : TimeSlotId
+    MedicalRecords "*" -- "1" Patients : PatientId
+    MedicalRecords "*" -- "1" Doctors : DoctorId
+    MedicalRecords "1" -- "1" Appointments : AppointmentId
+    Prescriptions "1" -- "1" MedicalRecords : MedicalRecordId
+    PrescriptionDetails "*" -- "1" Prescriptions : PrescriptionId
+    PrescriptionDetails "*" -- "1" Stocks : StockId
+    Payments "*" -- "1" Patients : PatientId
+    Payments "1" -- "1" Appointments : AppointmentId
 ```
