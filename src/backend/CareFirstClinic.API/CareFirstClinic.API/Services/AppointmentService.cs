@@ -1,6 +1,6 @@
 ﻿using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
-using CareFirstClinic.API.Repositories;
+using CareFirstClinic.API.Repositories.AppoinmentRepo;
 
 namespace CareFirstClinic.API.Services
 {

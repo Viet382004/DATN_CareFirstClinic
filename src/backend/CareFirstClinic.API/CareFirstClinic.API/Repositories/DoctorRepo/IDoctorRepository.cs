@@ -1,6 +1,6 @@
 ﻿using CareFirstClinic.API.Models;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.DoctorRepo
 {
     public interface IDoctorRepository
     {

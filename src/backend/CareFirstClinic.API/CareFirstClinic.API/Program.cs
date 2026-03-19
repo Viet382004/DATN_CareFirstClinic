@@ -1,6 +1,12 @@
 using CareFirstClinic.API.Data;
-using CareFirstClinic.API.Repositories;
+using CareFirstClinic.API.Repositories.AppoinmentRepo;
+using CareFirstClinic.API.Repositories.DoctorRepo;
+using CareFirstClinic.API.Repositories.PatientRepo;
+using CareFirstClinic.API.Repositories.ScheduleRepo;
+using CareFirstClinic.API.Repositories.SpecialtyRepo;
 using CareFirstClinic.API.Services;
+using CareFirstClinic.API.Services.Background;
+using CareFirstClinic.API.Services.ScheduleSeeder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -53,6 +59,8 @@ builder.Services.AddScoped<ISpecialtyService, SpecialtyService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
+builder.Services.AddHostedService<ScheduleBackgroundService>();
 
 // CONTROLLERS + SWAGGER 
 builder.Services.AddControllers();
@@ -103,9 +111,11 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<CareFirstClinicDbContext>();
+        var seeder = services.GetRequiredService<IScheduleSeeder>();
         // Chờ để đảm bảo DB đã sẵn sàng nếu chạy lần đầu, 
         // ở đây ta gọi trực tiếp vì assume DB đã migration xong.
         await DbSeeder.SeedAsync(context);
+        await seeder.SeedAsync();
     }
     catch (Exception ex)
     {

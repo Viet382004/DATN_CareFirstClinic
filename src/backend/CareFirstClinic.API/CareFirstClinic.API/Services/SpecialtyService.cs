@@ -1,7 +1,7 @@
 ﻿using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.Specialty;
 using CareFirstClinic.API.Models;
-using CareFirstClinic.API.Repositories;
+using CareFirstClinic.API.Repositories.SpecialtyRepo;
 
 namespace CareFirstClinic.API.Services
 {

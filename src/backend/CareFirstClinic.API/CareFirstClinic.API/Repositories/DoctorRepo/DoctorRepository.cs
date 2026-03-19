@@ -2,7 +2,7 @@ using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.DoctorRepo
 {
     public class DoctorRepository : IDoctorRepository
     {

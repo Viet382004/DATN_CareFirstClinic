@@ -2,7 +2,7 @@
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.ScheduleRepo
 {
     public class ScheduleRepository : IScheduleRepository
     {
@@ -201,6 +201,33 @@ namespace CareFirstClinic.API.Repositories
                 _logger.LogError(ex, "Lỗi DeleteAsync schedule Id: {Id}", id);
                 throw;
             }
+        }
+
+        public async Task BulkInsertAsync(List<Schedule> schedules, List<TimeSlot> timeSlots)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                await _context.Schedules.AddRangeAsync(schedules);
+                await _context.SaveChangesAsync();
+
+                await _context.TimeSlots.AddRangeAsync(timeSlots);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<DateTime?> GetMaxDateAsync()
+        {
+            return await _context.Schedules
+                .MaxAsync(x => (DateTime?)x.WorkDate);
         }
     }
 }

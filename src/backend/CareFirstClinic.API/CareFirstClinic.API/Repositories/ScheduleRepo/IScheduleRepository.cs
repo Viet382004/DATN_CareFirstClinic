@@ -1,6 +1,6 @@
 ﻿using CareFirstClinic.API.Models;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.ScheduleRepo
 {
     public interface IScheduleRepository
     {
@@ -14,5 +14,7 @@ namespace CareFirstClinic.API.Repositories
         Task<Schedule> AddAsync(Schedule schedule, List<TimeSlot> timeSlots);
         Task<Schedule> UpdateAsync(Schedule schedule);
         Task<bool> DeleteAsync(Guid id);
+        Task BulkInsertAsync(List<Schedule> schedules, List<TimeSlot> timeSlots);
+        Task<DateTime?> GetMaxDateAsync();
     }
 }

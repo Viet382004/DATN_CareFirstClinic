@@ -2,7 +2,7 @@
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.AppoinmentRepo
 {
     public class AppointmentRepository : IAppointmentRepository
     {

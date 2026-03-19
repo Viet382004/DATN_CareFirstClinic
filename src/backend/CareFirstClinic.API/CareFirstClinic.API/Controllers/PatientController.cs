@@ -1,4 +1,5 @@
 using CareFirstClinic.API.DTOs;
+using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

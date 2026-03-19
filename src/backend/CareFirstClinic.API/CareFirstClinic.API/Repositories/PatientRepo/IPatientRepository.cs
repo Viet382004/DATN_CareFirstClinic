@@ -1,5 +1,5 @@
 ﻿using CareFirstClinic.API.Models;
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.PatientRepo
 {
     public interface IPatientRepository
     {
