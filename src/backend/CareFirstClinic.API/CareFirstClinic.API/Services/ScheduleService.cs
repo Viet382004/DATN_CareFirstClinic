@@ -68,16 +68,51 @@ namespace CareFirstClinic.API.Services
 
             try
             {
-                var schedules = await _repo.GetByDoctorAndDateAsync(doctorId, workDate);
+                var utcDate = DateTime.SpecifyKind(workDate.Date, DateTimeKind.Utc);
+
+                var schedules = await _repo.GetByDoctorAndDateAsync(doctorId, utcDate);
+
                 return schedules.Select(MapToDTO).ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetByDoctorAndDateAsync. DoctorId: {DoctorId}, Date: {Date}", doctorId, workDate);
+                _logger.LogError(ex,
+                    "Lỗi GetByDoctorAndDateAsync. DoctorId: {DoctorId}, Date: {Date}",
+                    doctorId, workDate);
+
                 throw new ApplicationException("Không thể lấy lịch theo ngày.", ex);
             }
         }
 
+        public async Task<List<ScheduleDTO>> GetAvailableByDoctorAndDateAsync(Guid doctorId, DateTime date)
+        {
+            if (doctorId == Guid.Empty)
+                throw new ArgumentException("DoctorId không được để trống.", nameof(doctorId));
+
+            // Kiểm tra ngày không ở quá khứ (tùy business rule)
+            if (date.Date < DateTime.UtcNow.Date)
+                throw new ArgumentException("Không thể xem lịch trong quá khứ.");
+
+            try
+            {
+                var schedules = await _repo.GetAvailableByDoctorAndDateAsync(doctorId, date);
+
+                // Lọc thêm ở tầng service nếu cần
+                var availableSchedules = schedules
+                    .Where(s => s.TimeSlots.Any(ts => !ts.IsBooked)) // Chỉ lấy schedule còn slot
+                    .Select(MapToDTO)
+                    .ToList();
+
+                return availableSchedules;
+            }
+            catch (ArgumentException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetAvailableByDoctorAndDateAsync. DoctorId: {DoctorId}, Date: {Date}",
+                    doctorId, date);
+                throw new ApplicationException("Không thể lấy lịch trống theo ngày.", ex);
+            }
+        }
 
         public async Task<List<ScheduleDTO>> GetAvailableByDoctorIdAsync(Guid doctorId, DateTime fromDate)
         {

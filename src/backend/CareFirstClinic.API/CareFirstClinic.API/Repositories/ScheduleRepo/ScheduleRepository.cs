@@ -98,11 +98,60 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
         }
         public async Task<List<Schedule>> GetByDoctorAndDateAsync(Guid doctorId, DateTime workDate)
         {
-            return await _context.Schedules
-                .Include(s => s.TimeSlots)
-                .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
-                .Where(s => s.DoctorId == doctorId && s.WorkDate.Date == workDate.Date)
-                .ToListAsync();
+            if (doctorId == Guid.Empty)
+                throw new ArgumentException("DoctorId không hợp lệ.", nameof(doctorId));
+
+            var date = workDate.Date;
+
+            try
+            {
+                return await _context.Schedules
+                    .Include(s => s.TimeSlots)
+                    .Include(s => s.Doctor)
+                        .ThenInclude(d => d.Specialty)
+                    .Where(s => s.DoctorId == doctorId
+                             && s.IsAvailable
+                             && s.WorkDate.Date == date) 
+                    .OrderBy(s => s.StartTime)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetByDoctorAndDateAsync. DoctorId: {DoctorId}, Date: {Date}",
+                    doctorId, workDate);
+                throw;
+            }
+        }
+
+        public async Task<List<Schedule>> GetAvailableByDoctorAndDateAsync(Guid doctorId, DateTime date)
+        {
+            if (doctorId == Guid.Empty)
+                throw new ArgumentException("DoctorId không hợp lệ.", nameof(doctorId));
+
+            var targetDate = date.Date;
+            var nextDay = targetDate.AddDays(1);
+
+            try
+            {
+                return await _context.Schedules
+                    .Include(s => s.Doctor)
+                        .ThenInclude(d => d.Specialty)
+                    .Include(s => s.TimeSlots
+                        .Where(ts => !ts.IsBooked))  // Chỉ lấy TimeSlot còn trống
+                    .Where(s => s.DoctorId == doctorId
+                             && s.IsAvailable
+                             && s.WorkDate >= targetDate
+                             && s.WorkDate < nextDay
+                             && s.AvailableSlots > 0)  // Chỉ lấy schedule còn slot
+                    .OrderBy(s => s.StartTime)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetAvailableByDoctorAndDateAsync. DoctorId: {DoctorId}, Date: {Date}",
+                    doctorId, date);
+                throw;
+            }
         }
 
         public async Task<bool> HasConflictAsync(Guid doctorId, DateTime workDate,
@@ -124,7 +173,7 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
             }
         }
 
-        // ── ADD — lưu Schedule + toàn bộ TimeSlot trong 1 transaction ──────
+        //  ADD — lưu Schedule + toàn bộ TimeSlot trong 1 transaction 
         public async Task<Schedule> AddAsync(Schedule schedule, List<TimeSlot> timeSlots)
         {
             ArgumentNullException.ThrowIfNull(schedule);
@@ -174,7 +223,7 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
             }
         }
 
-        // ── DELETE — soft delete, chặn nếu còn TimeSlot đã được đặt ────────
+        // DELETE — soft delete, chặn nếu còn TimeSlot đã được đặt
         public async Task<bool> DeleteAsync(Guid id)
         {
             if (id == Guid.Empty)

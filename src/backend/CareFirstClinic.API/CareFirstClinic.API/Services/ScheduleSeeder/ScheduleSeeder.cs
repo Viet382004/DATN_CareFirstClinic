@@ -33,7 +33,7 @@ public class ScheduleSeeder : IScheduleSeeder
 
         if (maxDate != null && maxDate >= endDate)
         {
-            _logger.LogInformation("Schedule đã đủ 6 tháng, skip seed.");
+            _logger.LogInformation("Schedule đã đủ 3 tháng, skip seed.");
             return;
         }
 
@@ -46,11 +46,11 @@ public class ScheduleSeeder : IScheduleSeeder
         {
             for (var date = startDate; date <= endDate; date = date.AddDays(1))
             {
-                // ❗ bỏ chủ nhật nếu muốn
+                // Bỏ qua ngày làm chủ nhật
                 if (date.DayOfWeek == DayOfWeek.Sunday)
                     continue;
 
-                // ===== CA SÁNG =====
+                //  CA SÁNG 
                 CreateScheduleWithSlots(
                     doctor.Id,
                     date,
@@ -60,7 +60,7 @@ public class ScheduleSeeder : IScheduleSeeder
                     timeSlots
                 );
 
-                // ===== CA CHIỀU =====
+                //  CA CHIỀU 
                 CreateScheduleWithSlots(
                     doctor.Id,
                     date,
@@ -78,7 +78,7 @@ public class ScheduleSeeder : IScheduleSeeder
             schedules.Count, timeSlots.Count);
     }
 
-    // 🔥 Hàm tạo schedule + slot
+    //  Hàm tạo schedule + slot
     private void CreateScheduleWithSlots(
         Guid doctorId,
         DateTime date,
@@ -107,7 +107,7 @@ public class ScheduleSeeder : IScheduleSeeder
         slots.AddRange(slotList);
     }
 
-    // 🔥 Generate TimeSlot
+    // Generate TimeSlot
     private List<TimeSlot> GenerateSlots(
         Guid scheduleId,
         TimeSpan start,

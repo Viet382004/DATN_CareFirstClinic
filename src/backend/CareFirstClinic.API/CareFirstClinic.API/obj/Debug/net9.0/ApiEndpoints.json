@@ -527,6 +527,27 @@
   },
   {
     "ContainingType": "CareFirstClinic.API.Controllers.ScheduleController",
+    "Method": "GetAvailableByDoctorAndDate",
+    "RelativePath": "api/Schedule/doctor/{doctorId}/available/date/{date}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "doctorId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "date",
+        "Type": "System.DateTime",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.ScheduleController",
     "Method": "GetByDoctorAndDate",
     "RelativePath": "api/Schedule/doctor/{doctorId}/date/{date}",
     "HttpMethod": "GET",

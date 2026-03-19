@@ -131,6 +131,29 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
+        // GET /api/schedule/doctor/{doctorId}/available/date/{date}
+        // Xem lịch còn slot trống của bác sĩ theo ngày cụ thể
+        [HttpGet("doctor/{doctorId:guid}/available/date/{date}")]
+        [Authorize(Roles = "Admin,Doctor,Patient")]
+        public async Task<IActionResult> GetAvailableByDoctorAndDate(Guid doctorId, DateTime date)
+        {
+            try
+            {
+                var schedules = await _scheduleService.GetAvailableByDoctorAndDateAsync(doctorId, date);
+                return Ok(schedules);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetAvailableByDoctorAndDate. DoctorId: {DoctorId}, Date: {Date}",
+                    doctorId, date);
+                return StatusCode(500, new { message = "Lỗi hệ thống." });
+            }
+        }
+
         // POST /api/schedule — Admin tạo lịch + sinh TimeSlot tự động
         [HttpPost]
         [Authorize(Roles = "Admin")]

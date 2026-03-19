@@ -1,4 +1,5 @@
 ﻿using CareFirstClinic.API.Models;
+using System.Threading.Tasks;
 
 namespace CareFirstClinic.API.Repositories.ScheduleRepo
 {
@@ -9,6 +10,7 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
         Task<List<Schedule>> GetByDoctorIdAsync(Guid doctorId);
         Task<List<Schedule>> GetAvailableByDoctorIdAsync(Guid doctorId, DateTime fromDate);
         Task<List<Schedule>> GetByDoctorAndDateAsync(Guid doctorId, DateTime workDate);
+        Task<List<Schedule>> GetAvailableByDoctorAndDateAsync(Guid doctorId, DateTime date);
 
         Task<bool> HasConflictAsync(Guid doctorId, DateTime workDate, TimeSpan startTime, TimeSpan endTime, Guid? excludeId = null);
         Task<Schedule> AddAsync(Schedule schedule, List<TimeSlot> timeSlots);
