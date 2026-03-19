@@ -96,6 +96,14 @@ namespace CareFirstClinic.API.Repositories
                 throw;
             }
         }
+        public async Task<List<Schedule>> GetByDoctorAndDateAsync(Guid doctorId, DateTime workDate)
+        {
+            return await _context.Schedules
+                .Include(s => s.TimeSlots)
+                .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
+                .Where(s => s.DoctorId == doctorId && s.WorkDate.Date == workDate.Date)
+                .ToListAsync();
+        }
 
         public async Task<bool> HasConflictAsync(Guid doctorId, DateTime workDate,
             TimeSpan startTime, TimeSpan endTime, Guid? excludeId = null)

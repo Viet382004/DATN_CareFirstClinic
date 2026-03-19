@@ -61,6 +61,24 @@ namespace CareFirstClinic.API.Services
             }
         }
 
+        public async Task<List<ScheduleDTO>> GetByDoctorAndDateAsync(Guid doctorId, DateTime workDate)
+        {
+            if (doctorId == Guid.Empty)
+                throw new ArgumentException("DoctorId không được để trống.", nameof(doctorId));
+
+            try
+            {
+                var schedules = await _repo.GetByDoctorAndDateAsync(doctorId, workDate);
+                return schedules.Select(MapToDTO).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetByDoctorAndDateAsync. DoctorId: {DoctorId}, Date: {Date}", doctorId, workDate);
+                throw new ApplicationException("Không thể lấy lịch theo ngày.", ex);
+            }
+        }
+
+
         public async Task<List<ScheduleDTO>> GetAvailableByDoctorIdAsync(Guid doctorId, DateTime fromDate)
         {
             if (doctorId == Guid.Empty)
@@ -147,6 +165,7 @@ namespace CareFirstClinic.API.Services
                 throw new ApplicationException("Không thể tạo lịch làm việc.", ex);
             }
         }
+
 
         public async Task<ScheduleDTO?> UpdateAsync(Guid id, UpdateScheduleDTO dto)
         {

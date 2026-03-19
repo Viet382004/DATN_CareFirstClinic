@@ -93,6 +93,25 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
+        // GET /api/schedule/doctor/{doctorId}/date/{date}
+        // Xem lịch của bác sĩ theo ngày, để bệnh nhân chọn đặt lịch cho ngày đó
+        [HttpGet("doctor/{doctorId:guid}/date/{date}")]
+        [Authorize(Roles = "Admin,Doctor,Patient")]
+        public async Task<IActionResult> GetByDoctorAndDate(Guid doctorId, DateTime date)
+        {
+            try
+            {
+                var schedules = await _scheduleService.GetByDoctorAndDateAsync(doctorId, date);
+                return Ok(schedules);
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetByDoctorAndDate.");
+                return StatusCode(500, "Lỗi hệ thống.");
+            }
+        }
+
         // GET /api/schedule/doctor/{doctorId}/available?fromDate=2025-01-01
         // Bệnh nhân xem lịch còn slot trống để chọn đặt
         [HttpGet("doctor/{doctorId:guid}/available")]
@@ -232,7 +251,7 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // ── HELPER ──────────────────────────────────────────────────────────
+        //  HELPER 
         private Guid? GetUserId()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
