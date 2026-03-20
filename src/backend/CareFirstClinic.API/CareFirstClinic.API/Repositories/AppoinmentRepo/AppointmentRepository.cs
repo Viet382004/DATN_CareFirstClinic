@@ -113,20 +113,56 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
         }
 
         // ADD
-        public async Task<Appointment> AddAsync(Appointment appointment)
+        // Nhận timeslot để update IsBooked trong cùng 1 transaction,
+        // tránh trường hợp tạo appointment thành công nhưng update timeslot bị lỗi
+        // => timeslot vẫn bị khóa nhưng không có appointment nào
+        public async Task<Appointment> AddAsync(Appointment appointment, TimeSlot timeSlot)
         {
             ArgumentNullException.ThrowIfNull(appointment, nameof(appointment));
+            ArgumentNullException.ThrowIfNull(timeSlot, nameof(timeSlot));
+
+            //Dùng transaction - Tạo Appoinment và đánh dấu slot đã được đặt là 1 atomic aperation
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
+                //Re-check slot trong transaction để tránh race condition
+                var slot = await _context.TimeSlots
+                    .FirstOrDefaultAsync(ts => ts.Id == timeSlot.Id);
+
+                if (slot == null)
+                    throw new KeyNotFoundException($"Không tìm thấy TimeSlot với id: {timeSlot.Id}");
+
+                if (slot.IsBooked)
+                    throw new InvalidOperationException("TimeSlot đã được đặt. Vui lòng chọn slot khác.");
+
+                slot.IsBooked = true;
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 return appointment;
+            }
+            catch(KeyNotFoundException) 
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch(InvalidOperationException) 
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
             catch (DbUpdateException ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Lỗi DB khi thêm appointment mới.");
                 throw new InvalidOperationException("Không thể tạo lịch hẹn , vui lòng thử lại.", ex);
+            }
+            catch (Exception ex)
+            {
+                 await transaction.RollbackAsync();
+                 _logger.LogError(ex, "Lỗi không xác định khi thêm appointment mới.");
+                 throw new ApplicationException("Đã xảy ra lỗi khi tạo lịch hẹn.", ex);
             }
         }
 
@@ -134,8 +170,10 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
         public async Task<Appointment> UpdateAsync(Appointment appointment)
         {
             ArgumentNullException.ThrowIfNull(appointment, nameof(appointment));
+            
             var exists = await _context.Appointments
                 .AnyAsync(a => a.Id == appointment.Id);
+
             if (!exists)
                 throw new KeyNotFoundException($"Không tìm thấy appointment với id: {appointment.Id}");
             try

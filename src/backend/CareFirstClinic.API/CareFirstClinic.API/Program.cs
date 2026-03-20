@@ -1,4 +1,5 @@
 using CareFirstClinic.API.Data;
+using CareFirstClinic.API.Repositories;
 using CareFirstClinic.API.Repositories.AppoinmentRepo;
 using CareFirstClinic.API.Repositories.DoctorRepo;
 using CareFirstClinic.API.Repositories.PatientRepo;

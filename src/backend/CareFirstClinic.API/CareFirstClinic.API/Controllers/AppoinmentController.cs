@@ -51,9 +51,21 @@ namespace CareFirstClinic.API.Controllers
                 var a = await _appointmentService.GetByIdAsync(id);
                 if (a is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
 
-                // Patient chỉ xem được lịch của mình
-                if (IsRole("Patient") && a.PatientId != GetUserProfileId())
-                    return Forbid();
+                // ✅ FIX: Query đúng patient từ UserId thay vì đọc claim "ProfileId"
+                if (User.IsInRole("Patient"))
+                {
+                    var userId = GetUserIdFromClaim();
+                    var patient = await _patientService.GetByUserIdAsync(userId!.Value);
+                    if (patient is null || a.PatientId != patient.Id) return Forbid();
+                }
+
+                // Doctor chỉ xem được lịch của mình
+                if (User.IsInRole("Doctor"))
+                {
+                    var userId = GetUserIdFromClaim();
+                    var doctor = await _doctorService.GetByUserIdAsync(userId!.Value);
+                    if (doctor is null || a.DoctorId != doctor.Id) return Forbid();
+                }
 
                 return Ok(a);
             }
@@ -143,6 +155,7 @@ namespace CareFirstClinic.API.Controllers
                     new { message = "Đặt lịch hẹn thành công.", data = created });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
@@ -166,11 +179,10 @@ namespace CareFirstClinic.API.Controllers
 
                 var updated = await _appointmentService.UpdateAsync(id, patient.Id, dto);
                 if (updated is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
-
                 return Ok(new { message = "Cập nhật lịch hẹn thành công.", data = updated });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
-            catch (UnauthorizedAccessException ex) { return Forbid(); }
+            catch (UnauthorizedAccessException) { return Forbid(); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
@@ -206,11 +218,19 @@ namespace CareFirstClinic.API.Controllers
         {
             try
             {
-                var updated = await _appointmentService.CompleteAsync(id);
+                var userId = GetUserIdFromClaim();
+                if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+
+                // ✅ FIX: Truyền doctorId vào để Service verify ownership
+                var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
+                if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
+
+                var updated = await _appointmentService.CompleteAsync(id, doctor.Id);
                 if (updated is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
                 return Ok(new { message = "Hoàn thành lịch hẹn thành công.", data = updated });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (UnauthorizedAccessException) { return Forbid(); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
@@ -232,15 +252,24 @@ namespace CareFirstClinic.API.Controllers
                 var role = GetRole();
                 Guid requesterId;
 
-                if (role == "Patient")
+                switch (role)
                 {
-                    var patient = await _patientService.GetByUserIdAsync(userId.Value);
-                    if (patient is null) return NotFound("Không tìm thấy hồ sơ bệnh nhân.");
-                    requesterId = patient.Id;
-                }
-                else
-                {
-                    requesterId = userId.Value;
+                    case "Patient":
+                        var patient = await _patientService.GetByUserIdAsync(userId.Value);
+                        if (patient is null) return NotFound("Không tìm thấy hồ sơ bệnh nhân.");
+                        requesterId = patient.Id;
+                        break;
+
+                    case "Doctor":
+                        // ✅ FIX: Doctor dùng Doctor.Id để check ownership trong Service
+                        var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
+                        if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
+                        requesterId = doctor.Id;
+                        break;
+
+                    default:
+                        requesterId = userId.Value; // Admin dùng UserId, không check ownership
+                        break;
                 }
 
                 var updated = await _appointmentService.CancelAsync(id, requesterId, role, dto);
@@ -257,7 +286,7 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        //  HELPERS 
+        // ── HELPERS ───────────────────────────────────────────────────────
         private Guid? GetUserIdFromClaim()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -266,15 +295,5 @@ namespace CareFirstClinic.API.Controllers
 
         private string GetRole() =>
             User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-
-        private bool IsRole(string role) =>
-            User.IsInRole(role);
-
-        // Dùng khi cần so sánh PatientId/DoctorId từ profile (không phải UserId)
-        private Guid? GetUserProfileId()
-        {
-            var claim = User.FindFirstValue("ProfileId");
-            return Guid.TryParse(claim, out var id) ? id : null;
-        }
     }
 }
