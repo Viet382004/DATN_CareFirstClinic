@@ -23,8 +23,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DTOs\MedicalRecord\" />
+    <Folder Include="DTOs\Payment\" />
+    <Folder Include="DTOs\Prescription\" />
+    <Folder Include="DTOs\Stock\" />
     <Folder Include="Mappings\" />
     <Folder Include="Helpers\" />
+    <Folder Include="Repositories\MedicalRecord\" />
+    <Folder Include="Repositories\Payment\" />
+    <Folder Include="Repositories\Prescription\" />
+    <Folder Include="Repositories\StockRepo\" />
   </ItemGroup>
 
 </Project>
