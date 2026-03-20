@@ -5,6 +5,7 @@ using CareFirstClinic.API.Repositories.DoctorRepo;
 using CareFirstClinic.API.Repositories.PatientRepo;
 using CareFirstClinic.API.Repositories.ScheduleRepo;
 using CareFirstClinic.API.Repositories.SpecialtyRepo;
+using CareFirstClinic.API.Repositories.StockRepo;
 using CareFirstClinic.API.Services;
 using CareFirstClinic.API.Services.Background;
 using CareFirstClinic.API.Services.ScheduleSeeder;
@@ -52,6 +53,7 @@ builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IStockRepository, StockRepository>();
 
 // ĐĂNG KÝ SERVICES
 builder.Services.AddScoped<JwtService>();
@@ -60,6 +62,7 @@ builder.Services.AddScoped<ISpecialtyService, SpecialtyService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
 builder.Services.AddHostedService<ScheduleBackgroundService>();
 
