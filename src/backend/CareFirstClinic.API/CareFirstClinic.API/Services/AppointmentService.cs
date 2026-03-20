@@ -104,8 +104,10 @@ namespace CareFirstClinic.API.Services
             if (timeSlot.IsBooked)
                 throw new InvalidOperationException("Lịch làm việc này đã được đặt . Vui lòng chọn slot khác.");
 
-            if (timeSlot.Schedule.WorkDate < DateTime.UtcNow.Date)
-                throw new InvalidOperationException("Không thể đặt lịch hẹn cho thời gian đã qua.");
+            var slotDateTime = timeSlot.Schedule.WorkDate.Date + timeSlot.StartTime;
+
+            if (slotDateTime < DateTime.UtcNow)
+                throw new InvalidOperationException("Không thể đặt lịch cho slot đã qua.");
 
             try
             {

@@ -42,6 +42,7 @@ namespace CareFirstClinic.API.Controllers
         }
 
         // GET /api/appointment/{id}
+        // Admin xem tất cả, Doctor/Patient chỉ xem được nếu liên quan đến lịch đó
         [HttpGet("{id:guid}")]
         [Authorize(Roles = "Admin,Doctor,Patient")]
         public async Task<IActionResult> GetById(Guid id)
@@ -51,7 +52,7 @@ namespace CareFirstClinic.API.Controllers
                 var a = await _appointmentService.GetByIdAsync(id);
                 if (a is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
 
-                // ✅ FIX: Query đúng patient từ UserId thay vì đọc claim "ProfileId"
+                // đúng patient từ UserId
                 if (User.IsInRole("Patient"))
                 {
                     var userId = GetUserIdFromClaim();
@@ -221,7 +222,7 @@ namespace CareFirstClinic.API.Controllers
                 var userId = GetUserIdFromClaim();
                 if (userId is null) return Unauthorized("Không xác định được tài khoản.");
 
-                // ✅ FIX: Truyền doctorId vào để Service verify ownership
+                // Truyền doctorId vào để Service verify ownership
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                 if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
 
@@ -261,7 +262,7 @@ namespace CareFirstClinic.API.Controllers
                         break;
 
                     case "Doctor":
-                        // ✅ FIX: Doctor dùng Doctor.Id để check ownership trong Service
+                        // Doctor dùng Doctor.Id để check ownership trong Service
                         var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                         if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
                         requesterId = doctor.Id;
@@ -286,7 +287,7 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // ── HELPERS ───────────────────────────────────────────────────────
+        //  HELPERS 
         private Guid? GetUserIdFromClaim()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);

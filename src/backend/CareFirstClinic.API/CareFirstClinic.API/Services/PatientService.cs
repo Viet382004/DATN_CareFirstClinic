@@ -108,6 +108,11 @@ namespace CareFirstClinic.API.Services
                 patient.Address = dto.Address.Trim();
                 patient.MedicalHistory = dto.MedicalHistory?.Trim();
 
+                if (patient.User != null)
+                {
+                    patient.User.FullName = dto.FullName.Trim();
+                }
+
                 var updated = await _patientRepository.UpdateAsync(patient);
                 return MapToDTO(updated);
             }
