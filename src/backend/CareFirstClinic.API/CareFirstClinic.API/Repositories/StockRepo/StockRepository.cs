@@ -82,17 +82,18 @@ namespace CareFirstClinic.API.Repositories.StockRepo
             }
         }
 
-        public async Task<bool> ExistsByMedicineCodeAsync(string code, Guid? excludeId = null)
+        public async Task<bool> ExistsByMedicineNameAsync(string name, Guid? excludeId = null)
         {
             try
             {
+                var normalized = name.Trim().ToLower();
                 return await _context.Stocks
-                    .AnyAsync(s => s.MedicineCode == code
+                    .AnyAsync(s => s.MedicineName.ToLower() == normalized
                                && (excludeId == null || s.Id != excludeId));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi ExistsByMedicineCode: {Code}", code);
+                _logger.LogError(ex, "Lỗi ExistsByMedicineName: {Name}", name);
                 throw;
             }
         }

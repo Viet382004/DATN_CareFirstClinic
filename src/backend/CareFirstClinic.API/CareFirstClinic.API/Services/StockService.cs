@@ -68,7 +68,7 @@ namespace CareFirstClinic.API.Services
             // Kiểm tra mã thuốc trùng
             if (!string.IsNullOrWhiteSpace(dto.MedicineCode))
             {
-                var exists = await _stockRepo.ExistsByMedicineCodeAsync(dto.MedicineCode);
+                var exists = await _stockRepo.ExistsByMedicineNameAsync(dto.MedicineCode);
                 if (exists)
                     throw new InvalidOperationException(
                         $"Mã thuốc '{dto.MedicineCode}' đã tồn tại.");
@@ -106,10 +106,16 @@ namespace CareFirstClinic.API.Services
                 throw new ArgumentException("Id không được để trống.", nameof(id));
             ArgumentNullException.ThrowIfNull(dto);
 
+            // Kiểm tra tên thuốc trùng
+            var nameExists = await _stockRepo.ExistsByMedicineNameAsync(dto.MedicineName, excludeId: id);
+            if (nameExists)
+                throw new InvalidOperationException(
+                    $"Thuốc '{dto.MedicineName}' đã tồn tại trong kho.");
+
             // Kiểm tra mã thuốc trùng (bỏ qua chính nó)
             if (!string.IsNullOrWhiteSpace(dto.MedicineCode))
             {
-                var exists = await _stockRepo.ExistsByMedicineCodeAsync(dto.MedicineCode, excludeId: id);
+                var exists = await _stockRepo.ExistsByMedicineNameAsync(dto.MedicineCode, excludeId: id);
                 if (exists)
                     throw new InvalidOperationException(
                         $"Mã thuốc '{dto.MedicineCode}' đã tồn tại.");
@@ -124,6 +130,7 @@ namespace CareFirstClinic.API.Services
                 stock.MedicineCode = dto.MedicineCode?.Trim().ToUpper();
                 stock.Unit = dto.Unit?.Trim();
                 stock.Manufacturer = dto.Manufacturer?.Trim();
+                stock.Quantity = dto.Quantity;
                 stock.MinQuantity = dto.MinQuantity;
                 stock.UnitPrice = dto.UnitPrice;
                 stock.IsActive = dto.IsActive;

@@ -17,7 +17,10 @@ namespace CareFirstClinic.API.DTOs
         [MaxLength(200)]
         public string? Manufacturer { get; set; }
 
-        [Range(0, int.MaxValue)]
+        [Range(0, int.MaxValue, ErrorMessage = "Số lượng không được âm.")]
+        public int Quantity { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "Ngưỡng cảnh báo không được âm.")]
         public int MinQuantity { get; set; } = 10;
 
         [Range(0.01, double.MaxValue, ErrorMessage = "Giá phải lớn hơn 0.")]
