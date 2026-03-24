@@ -11,9 +11,7 @@ namespace CareFirstClinic.API.Models
     public enum PaymentMethod
     {
         Cash,
-        CreditCard,
-        BankTransfer,
-        EWallet
+        CreditCard
     }
 
     public class Payment

@@ -321,6 +321,105 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "CareFirstClinic.API.Controllers.MedicalRecordController",
+    "Method": "GetAll",
+    "RelativePath": "api/MedicalRecord",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.MedicalRecordController",
+    "Method": "Create",
+    "RelativePath": "api/MedicalRecord",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "CareFirstClinic.API.DTOs.CreateMedicalRecordDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.MedicalRecordController",
+    "Method": "GetById",
+    "RelativePath": "api/MedicalRecord/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.MedicalRecordController",
+    "Method": "Update",
+    "RelativePath": "api/MedicalRecord/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "CareFirstClinic.API.DTOs.UpdateMedicalRecordDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.MedicalRecordController",
+    "Method": "GetByAppointmentId",
+    "RelativePath": "api/MedicalRecord/appointment/{appointmentId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "appointmentId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.MedicalRecordController",
+    "Method": "GetMyRecords",
+    "RelativePath": "api/MedicalRecord/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.MedicalRecordController",
+    "Method": "GetMyDoctorRecords",
+    "RelativePath": "api/MedicalRecord/me/doctor",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "CareFirstClinic.API.Controllers.PatientController",
     "Method": "GetAll",
     "RelativePath": "api/Patient",
@@ -404,6 +503,86 @@
       {
         "Name": "dto",
         "Type": "CareFirstClinic.API.DTOs.UpdatePatientDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PrescriptionController",
+    "Method": "Create",
+    "RelativePath": "api/Prescription",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "CareFirstClinic.API.DTOs.CreatePrescriptionDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PrescriptionController",
+    "Method": "GetById",
+    "RelativePath": "api/Prescription/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PrescriptionController",
+    "Method": "Cancel",
+    "RelativePath": "api/Prescription/{id}/cancel",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PrescriptionController",
+    "Method": "Dispense",
+    "RelativePath": "api/Prescription/{id}/dispense",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PrescriptionController",
+    "Method": "GetByMedicalRecordId",
+    "RelativePath": "api/Prescription/medicalrecord/{medicalRecordId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "medicalRecordId",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
