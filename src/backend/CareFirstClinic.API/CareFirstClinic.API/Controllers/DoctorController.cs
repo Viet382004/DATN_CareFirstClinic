@@ -1,3 +1,4 @@
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -20,19 +21,15 @@ namespace CareFirstClinic.API.Controllers
         }
 
         // GET /api/doctor
-        // Public — ai cũng xem được danh sách bác sĩ
+        // GET /api/doctor?name=nguyen&specialtyId=xxx&page=1&pageSize=10&sortBy=name&sortDir=asc
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetAll()
+        [AllowAnonymous] // Patient chưa đăng nhập vẫn xem được danh sách bác sĩ
+        public async Task<IActionResult> GetPaged([FromQuery] DoctorQueryParams query)
         {
-            try
-            {
-                var doctors = await _doctorService.GetAllAsync();
-                return Ok(doctors);
-            }
+            try { return Ok(await _doctorService.GetPagedAsync(query)); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll doctors.");
+                _logger.LogError(ex, "Lỗi GetPaged Doctor.");
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }

@@ -1,6 +1,7 @@
 ﻿using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
+using CareFirstClinic.API.Common;
 
 namespace CareFirstClinic.API.Repositories.AppoinmentRepo
 {
@@ -15,7 +16,6 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
             _logger = logger;
         }
 
-        // Hàm Include dùng chung - tránh lặp code
         private IQueryable<Appointment> BaseQuery() =>
             _context.Appointments
                 .Include(a => a.Patient)
@@ -24,7 +24,6 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
                         .ThenInclude(s => s.Doctor)
                             .ThenInclude(d => d.Specialty);
 
-        // GET ALL
         public async Task<List<Appointment>> GetAllAsync()
         {
             try
@@ -40,7 +39,6 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
             }
         }
 
-        // GET BY ID
         public async Task<Appointment?> GetByIdAsync(Guid id)
         {
             if(id == Guid.Empty)
@@ -62,7 +60,6 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
             }
         }
 
-        //GET BY PATIENT ID
         public async Task<List<Appointment>> GetByPatientIdAsync(Guid patientId)
         {
             if (patientId == Guid.Empty)
@@ -86,7 +83,6 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
             }
         }
 
-        // GET BY DOCTOR ID
         public async Task<List<Appointment>> GetByDoctorIdAsync(Guid doctorId)
         {
             if(doctorId == Guid.Empty)
@@ -166,7 +162,6 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
             }
         }
 
-        // UPDATE
         public async Task<Appointment> UpdateAsync(Appointment appointment)
         {
             ArgumentNullException.ThrowIfNull(appointment, nameof(appointment));
@@ -192,6 +187,62 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
                 _logger.LogError(ex, "Lỗi DB khi cập nhật appointment Id: {Id}", appointment.Id);
                 throw new InvalidOperationException("Không thể cập nhật lịch hẹn. Vui lòng thử lại.", ex);
             }
+        }
+        public async Task<(List<Appointment> Items, int Total)> GetPagedAsync(AppointmentQueryParams query)
+        {
+            var q = BaseQuery();
+
+            // lọc theo lịch hôm nay — ưu tiên hơn FromDate/ToDate
+            if (query.Today == true)
+            {
+                var today = DateTime.UtcNow.Date;
+                q = q.Where(a => a.TimeSlot != null &&
+                                 a.TimeSlot.Schedule != null &&
+                                 a.TimeSlot.Schedule.WorkDate.Date == today);
+            }
+            else
+            {
+                if (query.FromDate.HasValue)
+                    q = q.Where(a => a.TimeSlot!.Schedule!.WorkDate.Date >= query.FromDate.Value.Date);
+
+                if (query.ToDate.HasValue)
+                    q = q.Where(a => a.TimeSlot!.Schedule!.WorkDate.Date <= query.ToDate.Value.Date);
+            }
+
+            // lọc theo trạng thái
+            if (!string.IsNullOrWhiteSpace(query.Status) &&
+                Enum.TryParse<AppointmentStatus>(query.Status, true, out var status))
+                q = q.Where(a => a.Status == status);
+
+            // lọc theo bệnh nhân
+            if (query.PatientId.HasValue)
+                q = q.Where(a => a.PatientId == query.PatientId.Value);
+
+            // lọc theo bác sĩ (qua TimeSlot → Schedule)
+            if (query.DoctorId.HasValue)
+                q = q.Where(a => a.TimeSlot!.Schedule!.DoctorId == query.DoctorId.Value);
+
+            var total = await q.CountAsync();
+
+            // sort
+            q = query.SortBy switch
+            {
+                "status" => query.IsAscending
+                    ? q.OrderBy(a => a.Status)
+                    : q.OrderByDescending(a => a.Status),
+                _ => query.IsAscending  // mặc định sort theo workDate + giờ khám
+                    ? q.OrderBy(a => a.TimeSlot!.Schedule!.WorkDate)
+                        .ThenBy(a => a.TimeSlot!.StartTime)
+                    : q.OrderByDescending(a => a.TimeSlot!.Schedule!.WorkDate)
+                        .ThenByDescending(a => a.TimeSlot!.StartTime)
+            };
+
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,15 +26,16 @@ namespace CareFirstClinic.API.Controllers
             _logger = logger;
         }
 
-        // GET /api/payment — Admin xem tất cả
+        // GET /api/payment
+        // GET /api/payment?status=Completed&method=Cash&sortBy=amount&sortDir=desc
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetPaged([FromQuery] PaymentQueryParams query)
         {
-            try { return Ok(await _paymentService.GetAllAsync()); }
+            try { return Ok(await _paymentService.GetPagedAsync(query)); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll Payment.");
+                _logger.LogError(ex, "Lỗi GetPaged Payment.");
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
@@ -85,10 +87,11 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // GET /api/payment/me — Patient xem lịch sử thanh toán
+        // Patient xem lịch sử thanh toán của mình
+        // GET /api/payment/me?status=Completed&page=1
         [HttpGet("me")]
         [Authorize(Roles = "Patient")]
-        public async Task<IActionResult> GetMyPayments()
+        public async Task<IActionResult> GetMyPayments([FromQuery] PaymentQueryParams query)
         {
             try
             {
@@ -98,7 +101,8 @@ namespace CareFirstClinic.API.Controllers
                 var patient = await _patientService.GetByUserIdAsync(userId.Value);
                 if (patient is null) return NotFound("Không tìm thấy hồ sơ bệnh nhân.");
 
-                return Ok(await _paymentService.GetMyPaymentsAsync(patient.Id));
+                query.PatientId = patient.Id;
+                return Ok(await _paymentService.GetPagedAsync(query));
             }
             catch (Exception ex)
             {

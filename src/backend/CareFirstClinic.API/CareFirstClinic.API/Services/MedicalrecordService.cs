@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Data;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories;
@@ -111,18 +112,15 @@ namespace CareFirstClinic.API.Services
             if (doctorId == Guid.Empty)
                 throw new ArgumentException("DoctorId không hợp lệ.", nameof(doctorId));
 
-            // 1 Appointment chỉ có 1 MedicalRecord
             var exists = await _medicalRepo.ExistsByAppointmentIdAsync(dto.AppointmentId);
             if (exists)
                 throw new InvalidOperationException("Lịch hẹn này đã có hồ sơ bệnh án.");
 
-            // Lấy PatientId từ Appointment
             var appointment = await _context.Appointments
                 .FirstOrDefaultAsync(a => a.Id == dto.AppointmentId);
             if (appointment is null)
                 throw new KeyNotFoundException("Không tìm thấy lịch hẹn.");
 
-            // Appointment phải ở trạng thái Confirmed
             if (appointment.Status != AppointmentStatus.Confirmed)
                 throw new InvalidOperationException(
                     "Chỉ có thể tạo hồ sơ bệnh án cho lịch hẹn đã được xác nhận.");
@@ -198,7 +196,25 @@ namespace CareFirstClinic.API.Services
                 throw new ApplicationException("Không thể cập nhật hồ sơ bệnh án.", ex);
             }
         }
-
+        public async Task<PagedResult<MedicalRecordDTO>> GetPagedAsync(MedicalRecordQueryParams query)
+        {
+            try
+            {
+                var (items, total) = await _medicalRepo.GetPagedAsync(query);
+                return new PagedResult<MedicalRecordDTO>
+                {
+                    Items = items.Select(MapToDTO).ToList(),
+                    Page = query.Page,
+                    PageSize = query.PageSize,
+                    TotalItems = total
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged MedicalRecord.");
+                throw new ApplicationException("Không thể lấy danh sách hồ sơ bệnh án.", ex);
+            }
+        }
         private static MedicalRecordDTO MapToDTO(MedicalRecord m) => new()
         {
             Id = m.Id,

@@ -1,6 +1,7 @@
 ﻿using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
+using CareFirstClinic.API.Common;
 
 namespace CareFirstClinic.API.Repositories.StockRepo
 {
@@ -167,6 +168,51 @@ namespace CareFirstClinic.API.Repositories.StockRepo
                 _logger.LogError(ex, "Lỗi ToggleActive Stock Id: {Id}", id);
                 throw;
             }
+        }
+        public async Task<(List<Stock> Items, int Total)> GetPagedAsync(StockQueryParams query)
+        {
+            var q = _context.Stocks.AsQueryable();
+
+            // lọc mặc định chỉ lấy active
+            if (query.IsActive.HasValue)
+                q = q.Where(s => s.IsActive == query.IsActive.Value);
+            else
+                q = q.Where(s => s.IsActive);
+
+            // tìm theo tên thuốc
+            if (!string.IsNullOrWhiteSpace(query.Name))
+            {
+                var name = query.Name.Trim().ToLower();
+                q = q.Where(s => s.MedicineName.ToLower().Contains(name));
+            }
+
+            // tìm theo mã thuốc
+            if (!string.IsNullOrWhiteSpace(query.MedicineCode))
+            {
+                var code = query.MedicineCode.Trim().ToUpper();
+                q = q.Where(s => s.MedicineCode != null && s.MedicineCode.Contains(code));
+            }
+
+            // lọc sắp hết hàng
+            if (query.IsLowStock == true)
+                q = q.Where(s => s.Quantity <= s.MinQuantity);
+
+            var total = await q.CountAsync();
+
+            // sort
+            q = query.SortBy switch
+            {
+                "quantity" => query.IsAscending ? q.OrderBy(s => s.Quantity) : q.OrderByDescending(s => s.Quantity),
+                "unitPrice" => query.IsAscending ? q.OrderBy(s => s.UnitPrice) : q.OrderByDescending(s => s.UnitPrice),
+                _ => query.IsAscending ? q.OrderBy(s => s.MedicineName) : q.OrderByDescending(s => s.MedicineName)
+            };
+
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
     }
 }

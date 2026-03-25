@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Models;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Models;
 
 namespace CareFirstClinic.API.Repositories.DoctorRepo
 {
@@ -11,6 +12,7 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
         Task<Doctor> AddAsync(Doctor doctor);
         Task<Doctor> UpdateAsync(Doctor doctor);
         Task<bool> SoftDeleteAsync(Guid id);
-        Task<bool> ToggleActiveAsync(Guid id); // Admin kích hoạt / vô hiệu hóa
+        Task<bool> ToggleActiveAsync(Guid id);
+        Task<(List<Doctor> Items, int Total)> GetPagedAsync(DoctorQueryParams query);
     }
 }

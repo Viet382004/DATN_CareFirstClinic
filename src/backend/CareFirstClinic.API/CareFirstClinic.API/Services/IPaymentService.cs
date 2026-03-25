@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.Payment;
 
 namespace CareFirstClinic.API.Services
@@ -12,5 +13,6 @@ namespace CareFirstClinic.API.Services
         Task<PaymentDTO> CreateAsync(Guid patientId, CreatePaymentDTO dto);
         Task<PaymentDTO?> CompleteAsync(Guid id, string? transactionId);
         Task<PaymentDTO?> RefundAsync(Guid id);
+        Task<PagedResult<PaymentDTO>> GetPagedAsync(PaymentQueryParams query);
     }
 }

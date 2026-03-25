@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Models;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Models;
 using System.Threading.Tasks;
 
 namespace CareFirstClinic.API.Repositories.ScheduleRepo
@@ -16,7 +17,9 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
         Task<Schedule> AddAsync(Schedule schedule, List<TimeSlot> timeSlots);
         Task<Schedule> UpdateAsync(Schedule schedule);
         Task<bool> DeleteAsync(Guid id);
+        Task<(List<Schedule> Items, int Total)> GetPagedAsync(ScheduleQueryParams query);
         Task BulkInsertAsync(List<Schedule> schedules, List<TimeSlot> timeSlots);
         Task<DateTime?> GetMaxDateAsync();
+
     }
 }

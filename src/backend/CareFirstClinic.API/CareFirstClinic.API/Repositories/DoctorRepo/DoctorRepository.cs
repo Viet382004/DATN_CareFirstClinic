@@ -1,6 +1,9 @@
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
+using CareFirstClinic.API.Common;
+
 
 namespace CareFirstClinic.API.Repositories.DoctorRepo
 {
@@ -272,6 +275,46 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 _logger.LogError(ex, "Lỗi khi toggle active bác sĩ Id: {Id}", id);
                 throw;
             }
+        }
+
+        public async Task<(List<Doctor> Items, int Total)> GetPagedAsync(DoctorQueryParams query)
+        {
+            var q = _context.Doctors
+                .Include(d => d.Specialty)
+                .Include(d => d.User)
+                .AsQueryable();
+
+            // tìm kiếm 
+            if (!string.IsNullOrWhiteSpace(query.Name))
+            {
+                var name = query.Name.Trim().ToLower();
+                q = q.Where(d => d.FullName.ToLower().Contains(name));
+            }
+
+            // lọc theo chuyên khoa
+            if (query.SpecialtyId.HasValue)
+                q = q.Where(d => d.SpecialtyId == query.SpecialtyId.Value);
+
+            var total = await q.CountAsync();
+
+            // sort
+            q = query.SortBy switch
+            {
+                "yearsOfExperience" => query.IsAscending
+                    ? q.OrderBy(d => d.YearsOfExperience)
+                    : q.OrderByDescending(d => d.YearsOfExperience),
+                _ => query.IsAscending  // mặc định sort theo tên
+                    ? q.OrderBy(d => d.FullName)
+                    : q.OrderByDescending(d => d.FullName)
+            };
+
+            // paging: Skip = bỏ qua N item đầu, Take = lấy PageSize item
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
     }
 }

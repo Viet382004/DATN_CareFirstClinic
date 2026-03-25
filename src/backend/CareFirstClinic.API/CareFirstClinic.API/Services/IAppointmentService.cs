@@ -1,3 +1,4 @@
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 
 namespace CareFirstClinic.API.Services
@@ -13,5 +14,6 @@ namespace CareFirstClinic.API.Services
         Task<AppointmentDTO?> ConfirmAsync(Guid id);
         Task<AppointmentDTO?> CompleteAsync(Guid id, Guid doctorId);
         Task<AppointmentDTO?> CancelAsync(Guid id, Guid requesterId, string requesterRole, CancelAppointmentDTO dto);
+        Task<PagedResult<AppointmentDTO>> GetPagedAsync(AppointmentQueryParams query);
     }
 }

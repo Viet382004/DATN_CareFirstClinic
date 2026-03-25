@@ -1,6 +1,8 @@
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories.DoctorRepo;
+using CareFirstClinic.API.Common;
 
 namespace CareFirstClinic.API.Services
 {
@@ -255,6 +257,25 @@ namespace CareFirstClinic.API.Services
                 throw new ApplicationException("Không thể thay đổi trạng thái bác sĩ.", ex);
             }
         }
+        public async Task<PagedResult<DoctorDTO>> GetPagedAsync(DoctorQueryParams query)
+        {
+            try
+            {
+                var (items, total) = await _doctorRepository.GetPagedAsync(query);
+                return new PagedResult<DoctorDTO>
+                {
+                    Items = items.Select(MapToDTO).ToList(),
+                    Page = query.Page,
+                    PageSize = query.PageSize,
+                    TotalItems = total
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged Doctor.");
+                throw new ApplicationException("Không thể lấy danh sách bác sĩ.", ex);
+            }
+        }
 
         // HELPER — Map Doctor model → DoctorDTO
         private static DoctorDTO MapToDTO(Doctor d) => new()
@@ -266,7 +287,7 @@ namespace CareFirstClinic.API.Services
             PhoneNumber = d.PhoneNumber,
             UserId = d.UserId,
             Email = d.User?.Email,
-            TotalAppointments = d.Schedules.Count(s => s.IsAvailable) // Số lịch làm việc còn hiệu lực
+            TotalAppointments = d.Schedules.Count(s => s.IsAvailable) 
         };
     }
 }

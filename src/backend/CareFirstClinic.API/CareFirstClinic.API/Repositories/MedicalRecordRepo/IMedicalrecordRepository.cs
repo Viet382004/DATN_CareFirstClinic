@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Models;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Models;
 
 namespace CareFirstClinic.API.Repositories.MedicalRecordRepo
 {
@@ -12,5 +13,6 @@ namespace CareFirstClinic.API.Repositories.MedicalRecordRepo
         Task<bool> ExistsByAppointmentIdAsync(Guid appointmentId);
         Task<MedicalRecord> AddAsync(MedicalRecord record);
         Task<MedicalRecord> UpdateAsync(MedicalRecord record);
+        Task<(List<MedicalRecord> Items, int Total)> GetPagedAsync(MedicalRecordQueryParams query);
     }
 }

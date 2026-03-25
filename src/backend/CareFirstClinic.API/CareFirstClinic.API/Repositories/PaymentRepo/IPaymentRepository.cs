@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Models;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Models;
 
 namespace CareFirstClinic.API.Repositories
 {
@@ -11,5 +12,6 @@ namespace CareFirstClinic.API.Repositories
         Task<bool> ExistsByAppointmentIdAsync(Guid appointmentId);
         Task<Payment> AddAsync(Payment payment);
         Task<Payment> UpdateAsync(Payment payment);
+        Task<(List<Payment> Items, int Total)> GetPagedAsync(PaymentQueryParams query);
     }
 }

@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,15 +27,16 @@ namespace CareFirstClinic.API.Controllers
         }
 
         // GET /api/schedule
+        // GET /api/schedule?doctorId=xxx&fromDate=2025-06-01&sortDir=asc
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetPaged([FromQuery] ScheduleQueryParams query)
         {
-            try { return Ok(await _scheduleService.GetAllAsync()); }
+            try { return Ok(await _scheduleService.GetPagedAsync(query)); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll.");
-                return StatusCode(500, "Lỗi hệ thống.");
+                _logger.LogError(ex, "Lỗi GetPaged Schedule.");
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
 

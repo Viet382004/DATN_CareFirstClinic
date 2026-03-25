@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,15 +29,16 @@ namespace CareFirstClinic.API.Controllers
             _logger = logger;
         }
 
-        // GET /api/medicalrecord — Admin xem tất cả
+        // GET /api/medicalrecord
+        // GET /api/medicalrecord?diagnosis=đau&hasFollowUp=true&sortBy=followUpDate&sortDir=asc
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetPaged([FromQuery] MedicalRecordQueryParams query)
         {
-            try { return Ok(await _medicalService.GetAllAsync()); }
+            try { return Ok(await _medicalService.GetPagedAsync(query)); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll MedicalRecord.");
+                _logger.LogError(ex, "Lỗi GetPaged MedicalRecord.");
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
@@ -96,10 +98,10 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // GET /api/medicalrecord/me — Patient xem hồ sơ của mình
+        // GET /api/medicalrecord/me?sortBy=createdAt&sortDir=desc
         [HttpGet("me")]
         [Authorize(Roles = "Patient")]
-        public async Task<IActionResult> GetMyRecords()
+        public async Task<IActionResult> GetMyRecords([FromQuery] MedicalRecordQueryParams query)
         {
             try
             {
@@ -109,7 +111,8 @@ namespace CareFirstClinic.API.Controllers
                 var patient = await _patientService.GetByUserIdAsync(userId.Value);
                 if (patient is null) return NotFound("Không tìm thấy hồ sơ bệnh nhân.");
 
-                return Ok(await _medicalService.GetMyRecordsAsync(patient.Id));
+                query.PatientId = patient.Id;
+                return Ok(await _medicalService.GetPagedAsync(query));
             }
             catch (Exception ex)
             {
@@ -118,10 +121,10 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // GET /api/medicalrecord/me/doctor — Doctor xem hồ sơ mình tạo
+        // GET /api/medicalrecord/me/doctor?hasFollowUp=true
         [HttpGet("me/doctor")]
         [Authorize(Roles = "Doctor")]
-        public async Task<IActionResult> GetMyDoctorRecords()
+        public async Task<IActionResult> GetMyDoctorRecords([FromQuery] MedicalRecordQueryParams query)
         {
             try
             {
@@ -131,7 +134,8 @@ namespace CareFirstClinic.API.Controllers
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                 if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
 
-                return Ok(await _medicalService.GetByDoctorIdAsync(doctor.Id));
+                query.DoctorId = doctor.Id;
+                return Ok(await _medicalService.GetPagedAsync(query));
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Data;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.Payment;
 using CareFirstClinic.API.Models;
@@ -94,12 +95,10 @@ namespace CareFirstClinic.API.Services
             if (patientId == Guid.Empty)
                 throw new ArgumentException("PatientId không hợp lệ.", nameof(patientId));
 
-            // 1 Appointment chỉ có 1 Payment
             var exists = await _paymentRepo.ExistsByAppointmentIdAsync(dto.AppointmentId);
             if (exists)
                 throw new InvalidOperationException("Lịch hẹn này đã có thanh toán.");
 
-            // Kiểm tra Appointment tồn tại và đã Completed
             var appointment = await _context.Appointments
                 .FirstOrDefaultAsync(a => a.Id == dto.AppointmentId);
             if (appointment is null)
@@ -109,7 +108,6 @@ namespace CareFirstClinic.API.Services
                 throw new InvalidOperationException(
                     "Chỉ có thể thanh toán cho lịch hẹn đã hoàn thành.");
 
-            // Kiểm tra Patient có phải chủ của Appointment không
             if (appointment.PatientId != patientId)
                 throw new UnauthorizedAccessException("Bạn không có quyền thanh toán lịch hẹn này.");
 
@@ -204,7 +202,25 @@ namespace CareFirstClinic.API.Services
                 throw new ApplicationException("Không thể hoàn tiền.", ex);
             }
         }
-
+        public async Task<PagedResult<PaymentDTO>> GetPagedAsync(PaymentQueryParams query)
+        {
+            try
+            {
+                var (items, total) = await _paymentRepo.GetPagedAsync(query);
+                return new PagedResult<PaymentDTO>
+                {
+                    Items = items.Select(MapToDTO).ToList(),
+                    Page = query.Page,
+                    PageSize = query.PageSize,
+                    TotalItems = total
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged Payment.");
+                throw new ApplicationException("Không thể lấy danh sách thanh toán.", ex);
+            }
+        }
         private static PaymentDTO MapToDTO(Payment p) => new()
         {
             Id = p.Id,

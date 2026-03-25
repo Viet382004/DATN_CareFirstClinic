@@ -1,6 +1,7 @@
 ﻿using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
+using CareFirstClinic.API.Common;
 
 namespace CareFirstClinic.API.Repositories.ScheduleRepo
 {
@@ -137,12 +138,12 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
                     .Include(s => s.Doctor)
                         .ThenInclude(d => d.Specialty)
                     .Include(s => s.TimeSlots
-                        .Where(ts => !ts.IsBooked))  // Chỉ lấy TimeSlot còn trống
+                        .Where(ts => !ts.IsBooked)) 
                     .Where(s => s.DoctorId == doctorId
                              && s.IsAvailable
                              && s.WorkDate >= targetDate
                              && s.WorkDate < nextDay
-                             && s.AvailableSlots > 0)  // Chỉ lấy schedule còn slot
+                             && s.AvailableSlots > 0)  
                     .OrderBy(s => s.StartTime)
                     .ToListAsync();
             }
@@ -173,7 +174,6 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
             }
         }
 
-        //  ADD — lưu Schedule + toàn bộ TimeSlot trong 1 transaction 
         public async Task<Schedule> AddAsync(Schedule schedule, List<TimeSlot> timeSlots)
         {
             ArgumentNullException.ThrowIfNull(schedule);
@@ -184,7 +184,6 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
                 _context.Schedules.Add(schedule);
                 await _context.SaveChangesAsync();
 
-                // Gán ScheduleId sau khi Schedule đã có Id
                 foreach (var slot in timeSlots)
                     slot.ScheduleId = schedule.Id;
 
@@ -193,7 +192,6 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
 
                 await transaction.CommitAsync();
 
-                // Load lại để trả về đầy đủ navigation
                 return (await GetByIdAsync(schedule.Id))!;
             }
             catch (Exception ex)
@@ -223,7 +221,6 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
             }
         }
 
-        // DELETE — soft delete, chặn nếu còn TimeSlot đã được đặt
         public async Task<bool> DeleteAsync(Guid id)
         {
             if (id == Guid.Empty)
@@ -277,6 +274,41 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
         {
             return await _context.Schedules
                 .MaxAsync(x => (DateTime?)x.WorkDate);
+        }
+        public async Task<(List<Schedule> Items, int Total)> GetPagedAsync(ScheduleQueryParams query)
+        {
+            var q = _context.Schedules
+                .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
+                .Include(s => s.TimeSlots)
+                .AsQueryable();
+
+            if (query.DoctorId.HasValue)
+                q = q.Where(s => s.DoctorId == query.DoctorId.Value);
+
+            if (query.IsAvailable.HasValue)
+                q = q.Where(s => s.IsAvailable == query.IsAvailable.Value);
+            else
+                q = q.Where(s => s.IsAvailable);
+
+            if (query.FromDate.HasValue)
+                q = q.Where(s => s.WorkDate.Date >= query.FromDate.Value.Date);
+
+            if (query.ToDate.HasValue)
+                q = q.Where(s => s.WorkDate.Date <= query.ToDate.Value.Date);
+
+            var total = await q.CountAsync();
+
+            // sort
+            q = query.IsAscending
+                ? q.OrderBy(s => s.WorkDate).ThenBy(s => s.StartTime)
+                : q.OrderByDescending(s => s.WorkDate).ThenByDescending(s => s.StartTime);
+
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
     }
 }

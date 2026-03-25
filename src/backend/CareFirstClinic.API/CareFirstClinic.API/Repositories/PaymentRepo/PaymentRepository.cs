@@ -1,7 +1,8 @@
 ﻿using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
-using CareFirstClinic.API.Repositories.PaymentRepo;
+using CareFirstClinic.API.Repositories.PatientRepo;
 using Microsoft.EntityFrameworkCore;
+using CareFirstClinic.API.Common;
 
 namespace CareFirstClinic.API.Repositories
 {
@@ -140,6 +141,50 @@ namespace CareFirstClinic.API.Repositories
                 _logger.LogError(ex, "Lỗi DB khi cập nhật Payment Id: {Id}", payment.Id);
                 throw new InvalidOperationException("Không thể cập nhật thanh toán. Vui lòng thử lại.", ex);
             }
+        }
+        public async Task<(List<Payment> Items, int Total)> GetPagedAsync(PaymentQueryParams query)
+        {
+            var q = BaseQuery(); 
+
+            if (query.PatientId.HasValue)
+                q = q.Where(p => p.PatientId == query.PatientId.Value);
+
+            if (!string.IsNullOrWhiteSpace(query.Status) &&
+                Enum.TryParse<PaymentStatus>(query.Status, true, out var status))
+                q = q.Where(p => p.Status == status);
+
+            if (!string.IsNullOrWhiteSpace(query.Method) &&
+                Enum.TryParse<PaymentMethod>(query.Method, true, out var method))
+                q = q.Where(p => p.Method == method);
+
+            if (query.FromDate.HasValue)
+                q = q.Where(p => p.CreatedAt.Date >= query.FromDate.Value.Date);
+
+            if (query.ToDate.HasValue)
+                q = q.Where(p => p.CreatedAt.Date <= query.ToDate.Value.Date);
+
+            var total = await q.CountAsync();
+
+            // sort
+            q = query.SortBy switch
+            {
+                "amount" => query.IsAscending
+                    ? q.OrderBy(p => p.Amount)
+                    : q.OrderByDescending(p => p.Amount),
+                "paidAt" => query.IsAscending
+                    ? q.OrderBy(p => p.PaidAt)
+                    : q.OrderByDescending(p => p.PaidAt),
+                _ => query.IsAscending
+                    ? q.OrderBy(p => p.CreatedAt)
+                    : q.OrderByDescending(p => p.CreatedAt)
+            };
+
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
     }
 }

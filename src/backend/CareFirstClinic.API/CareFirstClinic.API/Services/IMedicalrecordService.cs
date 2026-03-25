@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 
 namespace CareFirstClinic.API.Services
 {
@@ -11,5 +12,6 @@ namespace CareFirstClinic.API.Services
         Task<List<MedicalRecordDTO>> GetByDoctorIdAsync(Guid doctorId);
         Task<MedicalRecordDTO> CreateAsync(Guid doctorId, CreateMedicalRecordDTO dto);
         Task<MedicalRecordDTO?> UpdateAsync(Guid id, Guid doctorId, UpdateMedicalRecordDTO dto);
+        Task<PagedResult<MedicalRecordDTO>> GetPagedAsync(MedicalRecordQueryParams query);
     }
 }

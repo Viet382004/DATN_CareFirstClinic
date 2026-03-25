@@ -91,6 +91,10 @@
             "Swashbuckle.AspNetCore.SwaggerUI": {
               "target": "Package",
               "version": "[9.0.6, )"
+            },
+            "dotenv.net": {
+              "target": "Package",
+              "version": "[4.0.1, )"
             }
           },
           "imports": [

@@ -2,6 +2,7 @@
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories.MedicalRecordRepo;
 using Microsoft.EntityFrameworkCore;
+using CareFirstClinic.API.Common;
 
 namespace CareFirstClinic.API.Repositories
 {
@@ -162,6 +163,61 @@ namespace CareFirstClinic.API.Repositories
                 _logger.LogError(ex, "Lỗi DB khi cập nhật MedicalRecord Id: {Id}", record.Id);
                 throw new InvalidOperationException("Không thể cập nhật hồ sơ bệnh án. Vui lòng thử lại.", ex);
             }
+        }
+        public async Task<(List<MedicalRecord> Items, int Total)> GetPagedAsync(MedicalRecordQueryParams query)
+        {
+            var q = BaseQuery();
+
+            // lọc theo bệnh nhân
+            if (query.PatientId.HasValue)
+                q = q.Where(m => m.PatientId == query.PatientId.Value);
+
+            // lọc theo bác sĩ
+            if (query.DoctorId.HasValue)
+                q = q.Where(m => m.DoctorId == query.DoctorId.Value);
+
+            // tìm theo chẩn đoán
+            if (!string.IsNullOrWhiteSpace(query.Diagnosis))
+            {
+                var diag = query.Diagnosis.Trim().ToLower();
+                q = q.Where(m => m.Diagnosis.ToLower().Contains(diag));
+            }
+
+            // lọc khoảng ngày tạo
+            if (query.FromDate.HasValue)
+                q = q.Where(m => m.CreatedAt.Date >= query.FromDate.Value.Date);
+
+            if (query.ToDate.HasValue)
+                q = q.Where(m => m.CreatedAt.Date <= query.ToDate.Value.Date);
+
+            // lọc có/không có ngày tái khám
+            if (query.HasFollowUp == true)
+                q = q.Where(m => m.FollowUpDate != null);
+            else if (query.HasFollowUp == false)
+                q = q.Where(m => m.FollowUpDate == null);
+
+            var total = await q.CountAsync();
+
+            // sort
+            q = query.SortBy switch
+            {
+                "followUpDate" => query.IsAscending
+                    ? q.OrderBy(m => m.FollowUpDate)
+                    : q.OrderByDescending(m => m.FollowUpDate),
+                "diagnosis" => query.IsAscending
+                    ? q.OrderBy(m => m.Diagnosis)
+                    : q.OrderByDescending(m => m.Diagnosis),
+                _ => query.IsAscending
+                    ? q.OrderBy(m => m.CreatedAt)
+                    : q.OrderByDescending(m => m.CreatedAt)
+            };
+
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync();
+
+            return (items, total);
         }
     }
 }

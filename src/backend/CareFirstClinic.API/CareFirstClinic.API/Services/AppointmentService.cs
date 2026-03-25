@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Data;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories;
@@ -122,10 +123,8 @@ namespace CareFirstClinic.API.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                // Truyền vào TimeSlot để EF tự động cập nhật IsBooked trong transaction
                 var created = await _appointmentRepo.AddAsync(appointment, timeSlot);
 
-                // Reload để lấy đầy đủ navigation (Patient, TimeSlot, Doctor...)
                 var result = await _appointmentRepo.GetByIdAsync(created.Id);
                 return MapToDTO(result!);
             }
@@ -149,11 +148,9 @@ namespace CareFirstClinic.API.Services
                 var appointment = await _appointmentRepo.GetByIdAsync(id);
                 if (appointment is null) return null;
 
-                // Chỉ chủ nhân mới được sửa
                 if (appointment.PatientId != patientId)
                     throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa lịch hẹn này.");
 
-                // Chỉ sửa được khi còn Pending
                 if (appointment.Status != AppointmentStatus.Pending)
                     throw new InvalidOperationException("Chỉ có thể chỉnh sửa lịch hẹn đang chờ xác nhận.");
 
@@ -174,7 +171,6 @@ namespace CareFirstClinic.API.Services
             }
         }
 
-        // Admin/Doctor xác nhận lịch hẹn
         public async Task<AppointmentDTO?> ConfirmAsync(Guid id)
         {
             if (id == Guid.Empty)
@@ -203,7 +199,6 @@ namespace CareFirstClinic.API.Services
             }
         }
 
-        // Doctor hoàn thành lịch hẹn sau khi khám xong
         public async Task<AppointmentDTO?> CompleteAsync(Guid id, Guid doctorId)
         {
             if (id == Guid.Empty)
@@ -240,7 +235,6 @@ namespace CareFirstClinic.API.Services
             }
         }
 
-        // Patient/Doctor/Admin hủy lịch hẹn
         public async Task<AppointmentDTO?> CancelAsync(Guid id, Guid requesterId, string requesterRole, CancelAppointmentDTO dto)
         {
             if (id == Guid.Empty)
@@ -252,7 +246,6 @@ namespace CareFirstClinic.API.Services
                 var appointment = await _appointmentRepo.GetByIdAsync(id);
                 if (appointment is null) return null;
 
-                // Kiểm tra owner cho Patient, hoặc Doctor/Admin có quyền hủy
                 switch (requesterRole)
                 {
                     case "Patient":
@@ -270,7 +263,6 @@ namespace CareFirstClinic.API.Services
                 }
 
 
-                // Không hủy lịch đã hoàn thành hoặc đã hủy
                 if (appointment.Status == AppointmentStatus.Completed ||
                     appointment.Status == AppointmentStatus.Cancelled)
                     throw new InvalidOperationException(
@@ -294,7 +286,25 @@ namespace CareFirstClinic.API.Services
             }
         }
 
-
+        public async Task<PagedResult<AppointmentDTO>> GetPagedAsync(AppointmentQueryParams query)
+        {
+            try
+            {
+                var (items, total) = await _appointmentRepo.GetPagedAsync(query);
+                return new PagedResult<AppointmentDTO>
+                {
+                    Items = items.Select(MapToDTO).ToList(),
+                    Page = query.Page,
+                    PageSize = query.PageSize,
+                    TotalItems = total
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged Appointment.");
+                throw new ApplicationException("Không thể lấy danh sách lịch hẹn.", ex);
+            }
+        }
 
         // MAP
         private static AppointmentDTO MapToDTO(Appointment a) => new()

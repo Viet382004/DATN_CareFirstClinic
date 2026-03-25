@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,15 +29,16 @@ namespace CareFirstClinic.API.Controllers
             _logger = logger;
         }
 
-        // GET /api/appointment — Admin xem tất cả
+        // GET /api/appointment
+        // GET /api/appointment?today=true&status=Confirmed&sortBy=workDate&sortDir=asc
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetPaged([FromQuery] AppointmentQueryParams query)
         {
-            try { return Ok(await _appointmentService.GetAllAsync()); }
+            try { return Ok(await _appointmentService.GetPagedAsync(query)); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll appointments.");
+                _logger.LogError(ex, "Lỗi GetPaged Appointment.");
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
@@ -81,7 +83,7 @@ namespace CareFirstClinic.API.Controllers
         // GET /api/appointment/me — Patient xem lịch của mình
         [HttpGet("me")]
         [Authorize(Roles = "Patient")]
-        public async Task<IActionResult> GetMyAppointments()
+        public async Task<IActionResult> GetMyAppointments([FromQuery] AppointmentQueryParams query)
         {
             try
             {
@@ -91,9 +93,11 @@ namespace CareFirstClinic.API.Controllers
                 var patient = await _patientService.GetByUserIdAsync(userId.Value);
                 if (patient is null) return NotFound("Không tìm thấy hồ sơ bệnh nhân.");
 
-                return Ok(await _appointmentService.GetMyAppointmentsAsync(patient.Id));
+                // gán PatientId từ token
+                query.PatientId = patient.Id;
+
+                return Ok(await _appointmentService.GetPagedAsync(query));
             }
-            catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi GetMyAppointments.");
@@ -104,7 +108,7 @@ namespace CareFirstClinic.API.Controllers
         // GET /api/appointment/me/doctor — Doctor xem lịch hẹn của mình
         [HttpGet("me/doctor")]
         [Authorize(Roles = "Doctor")]
-        public async Task<IActionResult> GetMyDoctorAppointments()
+        public async Task<IActionResult> GetMyDoctorAppointments([FromQuery] AppointmentQueryParams query)
         {
             try
             {
@@ -114,9 +118,11 @@ namespace CareFirstClinic.API.Controllers
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
                 if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
 
-                return Ok(await _appointmentService.GetByDoctorIdAsync(doctor.Id));
+                // gán DoctorId từ token 
+                query.DoctorId = doctor.Id;
+
+                return Ok(await _appointmentService.GetPagedAsync(query));
             }
-            catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi GetMyDoctorAppointments.");

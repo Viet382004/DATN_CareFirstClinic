@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,15 +20,16 @@ namespace CareFirstClinic.API.Controllers
             _logger = logger;
         }
 
-        // GET /api/stock — Admin/Doctor xem tất cả
+        // GET /api/stock
+        // GET /api/stock?name=para&isLowStock=true&sortBy=quantity&sortDir=asc&page=1
         [HttpGet]
         [Authorize(Roles = "Admin,Doctor")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetPaged([FromQuery] StockQueryParams query)
         {
-            try { return Ok(await _stockService.GetAllAsync()); }
+            try { return Ok(await _stockService.GetPagedAsync(query)); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi GetAll Stock.");
+                _logger.LogError(ex, "Lỗi GetPaged Stock.");
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }

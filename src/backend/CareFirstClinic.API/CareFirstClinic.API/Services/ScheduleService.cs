@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories.ScheduleRepo;
 
@@ -6,12 +7,12 @@ namespace CareFirstClinic.API.Services
 {
     public class ScheduleService : IScheduleService
     {
-        private readonly IScheduleRepository _repo;
+        private readonly IScheduleRepository _Schedulerepo;
         private readonly ILogger<ScheduleService> _logger;
 
         public ScheduleService(IScheduleRepository repo, ILogger<ScheduleService> logger)
         {
-            _repo = repo;
+            _Schedulerepo = repo;
             _logger = logger;
         }
 
@@ -19,7 +20,7 @@ namespace CareFirstClinic.API.Services
         {
             try
             {
-                return (await _repo.GetAllAsync()).Select(MapToDTO).ToList();
+                return (await _Schedulerepo.GetAllAsync()).Select(MapToDTO).ToList();
             }
             catch (Exception ex)
             {
@@ -34,7 +35,7 @@ namespace CareFirstClinic.API.Services
                 throw new ArgumentException("Id không được để trống.", nameof(id));
             try
             {
-                var s = await _repo.GetByIdAsync(id);
+                var s = await _Schedulerepo.GetByIdAsync(id);
                 return s is null ? null : MapToDTO(s);
             }
             catch (ArgumentException) { throw; }
@@ -51,7 +52,7 @@ namespace CareFirstClinic.API.Services
                 throw new ArgumentException("DoctorId không được để trống.", nameof(doctorId));
             try
             {
-                return (await _repo.GetByDoctorIdAsync(doctorId)).Select(MapToDTO).ToList();
+                return (await _Schedulerepo.GetByDoctorIdAsync(doctorId)).Select(MapToDTO).ToList();
             }
             catch (ArgumentException) { throw; }
             catch (Exception ex)
@@ -70,7 +71,7 @@ namespace CareFirstClinic.API.Services
             {
                 var utcDate = DateTime.SpecifyKind(workDate.Date, DateTimeKind.Utc);
 
-                var schedules = await _repo.GetByDoctorAndDateAsync(doctorId, utcDate);
+                var schedules = await _Schedulerepo.GetByDoctorAndDateAsync(doctorId, utcDate);
 
                 return schedules.Select(MapToDTO).ToList();
             }
@@ -89,17 +90,15 @@ namespace CareFirstClinic.API.Services
             if (doctorId == Guid.Empty)
                 throw new ArgumentException("DoctorId không được để trống.", nameof(doctorId));
 
-            // Kiểm tra ngày không ở quá khứ (tùy business rule)
             if (date.Date < DateTime.UtcNow.Date)
                 throw new ArgumentException("Không thể xem lịch trong quá khứ.");
 
             try
             {
-                var schedules = await _repo.GetAvailableByDoctorAndDateAsync(doctorId, date);
+                var schedules = await _Schedulerepo.GetAvailableByDoctorAndDateAsync(doctorId, date);
 
-                // Lọc thêm ở tầng service nếu cần
                 var availableSchedules = schedules
-                    .Where(s => s.TimeSlots.Any(ts => !ts.IsBooked)) // Chỉ lấy schedule còn slot
+                    .Where(s => s.TimeSlots.Any(ts => !ts.IsBooked)) 
                     .Select(MapToDTO)
                     .ToList();
 
@@ -122,7 +121,7 @@ namespace CareFirstClinic.API.Services
                 throw new ArgumentException("Ngày bắt đầu không được ở quá khứ.");
             try
             {
-                return (await _repo.GetAvailableByDoctorIdAsync(doctorId, fromDate)).Select(MapToDTO).ToList();
+                return (await _Schedulerepo.GetAvailableByDoctorIdAsync(doctorId, fromDate)).Select(MapToDTO).ToList();
             }
             catch (ArgumentException) { throw; }
             catch (Exception ex)
@@ -143,16 +142,13 @@ namespace CareFirstClinic.API.Services
             if ((dto.EndTime - dto.StartTime).TotalMinutes < 60)
                 throw new ArgumentException("Ca làm việc phải có ít nhất 1 tiếng.");
 
-            var hasConflict = await _repo.HasConflictAsync(
+            var hasConflict = await _Schedulerepo.HasConflictAsync(
                 dto.DoctorId, dto.WorkDate, dto.StartTime, dto.EndTime);
             if (hasConflict)
                 throw new InvalidOperationException("Bác sĩ đã có lịch làm việc trong khung giờ này.");
 
-            // ── Sinh danh sách TimeSlot tự động ─────────────────────────────
-            // Ví dụ: StartTime=08:00, EndTime=11:00, SlotDuration=30 phút
-            // → Slot 1: 08:00–08:30
-            // → Slot 2: 08:30–09:00
-            // → Slot 3: 09:00–09:30 ... tổng 6 slot
+            //  Sinh danh sách TimeSlot tự động
+
             var timeSlots = new List<TimeSlot>();
             var current = dto.StartTime;
             var slotSpan = TimeSpan.FromMinutes(dto.SlotDurationMinutes);
@@ -166,7 +162,6 @@ namespace CareFirstClinic.API.Services
                     EndTime = current + slotSpan,
                     IsBooked = false,
                     CreatedAt = DateTime.UtcNow
-                    // ScheduleId sẽ được gán trong Repository sau khi Schedule được lưu
                 });
                 current += slotSpan;
             }
@@ -189,7 +184,7 @@ namespace CareFirstClinic.API.Services
                     Note = dto.Note?.Trim()
                 };
 
-                var created = await _repo.AddAsync(schedule, timeSlots);
+                var created = await _Schedulerepo.AddAsync(schedule, timeSlots);
                 return MapToDTO(created);
             }
             catch (ArgumentException) { throw; }
@@ -210,18 +205,16 @@ namespace CareFirstClinic.API.Services
 
             try
             {
-                var schedule = await _repo.GetByIdAsync(id);
+                var schedule = await _Schedulerepo.GetByIdAsync(id);
                 if (schedule is null) return null;
 
                 if (schedule.WorkDate.Date < DateTime.UtcNow.Date)
                     throw new InvalidOperationException("Không thể chỉnh sửa lịch làm việc đã qua.");
 
-                // Update chỉ cho phép đổi Note và IsAvailable
-                // Không cho đổi giờ vì TimeSlot đã được sinh ra rồi
                 schedule.Note = dto.Note?.Trim();
                 schedule.IsAvailable = dto.IsAvailable;
 
-                var updated = await _repo.UpdateAsync(schedule);
+                var updated = await _Schedulerepo.UpdateAsync(schedule);
                 return MapToDTO(updated);
             }
             catch (ArgumentException) { throw; }
@@ -240,7 +233,7 @@ namespace CareFirstClinic.API.Services
                 throw new ArgumentException("Id không được để trống.", nameof(id));
             try
             {
-                return await _repo.DeleteAsync(id);
+                return await _Schedulerepo.DeleteAsync(id);
             }
             catch (ArgumentException) { throw; }
             catch (InvalidOperationException) { throw; }
@@ -250,8 +243,27 @@ namespace CareFirstClinic.API.Services
                 throw new ApplicationException("Không thể xóa lịch làm việc.", ex);
             }
         }
+        public async Task<PagedResult<ScheduleDTO>> GetPagedAsync(ScheduleQueryParams query)
+        {
+            try
+            {
+                var (items, total) = await _Schedulerepo.GetPagedAsync(query);
+                return new PagedResult<ScheduleDTO>
+                {
+                    Items = items.Select(MapToDTO).ToList(),
+                    Page = query.Page,
+                    PageSize = query.PageSize,
+                    TotalItems = total
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged Schedule.");
+                throw new ApplicationException("Không thể lấy danh sách lịch làm việc.", ex);
+            }
+        }
 
-        // ── MAPPER ──────────────────────────────────────────────────────────
+        //  MAPPER 
         private static ScheduleDTO MapToDTO(Schedule s) => new()
         {
             Id = s.Id,

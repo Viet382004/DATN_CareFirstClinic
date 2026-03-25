@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs;
+﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories;
 using CareFirstClinic.API.Repositories.StockRepo;
@@ -190,7 +191,25 @@ namespace CareFirstClinic.API.Services
                 throw new ApplicationException("Không thể thay đổi trạng thái thuốc.", ex);
             }
         }
-
+        public async Task<PagedResult<StockDTO>> GetPagedAsync(StockQueryParams query)
+        {
+            try
+            {
+                var (items, total) = await _stockRepo.GetPagedAsync(query);
+                return new PagedResult<StockDTO>
+                {
+                    Items = items.Select(MapToDTO).ToList(),
+                    Page = query.Page,
+                    PageSize = query.PageSize,
+                    TotalItems = total
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged Stock.");
+                throw new ApplicationException("Không thể lấy danh sách thuốc.", ex);
+            }
+        }
         private static StockDTO MapToDTO(Stock s) => new()
         {
             Id = s.Id,
