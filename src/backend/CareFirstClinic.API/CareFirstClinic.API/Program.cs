@@ -26,7 +26,7 @@ var dbName = Environment.GetEnvironmentVariable("DB_NAME");
 var dbUser = Environment.GetEnvironmentVariable("DB_USER");
 var dbPass = Environment.GetEnvironmentVariable("DB_PASS");
 
-var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass};SSL Mode=Require;Trust Server Certificate=true";
+var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass};SSL Mode=Require;Trust Server Certificate=true;Timeout=60;Command Timeout=60";
 
 builder.Services.AddDbContext<CareFirstClinicDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -117,29 +117,29 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// AUTO SEED DATA
-// using (var scope = app.Services.CreateScope())
-// {
-//     var services = scope.ServiceProvider;
-//     try
-//     {
-//         var context = services.GetRequiredService<CareFirstClinicDbContext>();
-//         var seeder = services.GetRequiredService<IScheduleSeeder>();
-//         await DbSeeder.SeedAsync(context);
-//         await seeder.SeedAsync();
-//     }
-//     catch (Exception ex)
-//     {
-//         var logger = services.GetRequiredService<ILogger<Program>>();
-//         logger.LogError(ex, "Đã xảy ra lỗi khi seed dữ liệu.");
-//     }
-// }
+//AUTO SEED DATA
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<CareFirstClinicDbContext>();
+        var seeder = services.GetRequiredService<IScheduleSeeder>();
+        await DbSeeder.SeedAsync(context);
+        await seeder.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Đã xảy ra lỗi khi seed dữ liệu.");
+    }
+}
 
-// if (app.Environment.IsDevelopment())
-// {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-//}
+app.UseSwagger();
+app.UseSwaggerUI(options => {
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "CareFirstClinic API v1");
+    options.RoutePrefix = "swagger"; 
+});
 
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
