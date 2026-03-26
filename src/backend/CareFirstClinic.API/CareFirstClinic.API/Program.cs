@@ -76,7 +76,7 @@ builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
-builder.Services.AddHostedService<ScheduleBackgroundService>();
+//builder.Services.AddHostedService<ScheduleBackgroundService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
