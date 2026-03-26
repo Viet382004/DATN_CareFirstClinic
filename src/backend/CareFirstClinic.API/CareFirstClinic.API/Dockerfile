@@ -1,23 +1,23 @@
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["CareFirstClinic.API/CareFirstClinic.API.csproj", "CareFirstClinic.API/"]
-RUN dotnet restore "CareFirstClinic.API/CareFirstClinic.API.csproj"
+
+# Vì Root Directory đã trỏ thẳng vào thư mục chứa code, 
+# ta chỉ cần copy file .csproj nằm ngay tại đó.
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy toàn bộ code còn lại
 COPY . .
-WORKDIR "/src/CareFirstClinic.API"
-RUN dotnet build "CareFirstClinic.API.csproj" -c Release -o /app/build
+RUN dotnet publish -c Release -o /app/publish
 
-# Stage 2: Publish
-FROM build AS publish
-RUN dotnet publish "CareFirstClinic.API.csproj" -c Release -o /app/publish
-
-# Stage 3: Final
+# Stage 2: Final
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 
-# Render yêu cầu ứng dụng chạy trên cổng 80 hoặc 10000
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 
+# Tên file DLL phải khớp với project của bạn
 ENTRYPOINT ["dotnet", "CareFirstClinic.API.dll"]
