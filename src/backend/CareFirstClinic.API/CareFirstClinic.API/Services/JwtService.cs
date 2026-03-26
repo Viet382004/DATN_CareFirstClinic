@@ -9,43 +9,55 @@ namespace CareFirstClinic.API.Services
     public class JwtService
     {
         private readonly IConfiguration _config;
+        private readonly string _jwtKey;
+        private readonly string _jwtIssuer;
+        private readonly string _jwtAudience;
 
         public JwtService(IConfiguration config)
         {
             _config = config;
+
+            _jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+                ?? _config["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT Key chưa được cấu hình.");
+
+            _jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+                ?? _config["Jwt:Issuer"]
+                ?? "CareFirstClinic";
+
+            _jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+                ?? _config["Jwt:Audience"]
+                ?? "CareFirstUsers";
+
+            if (string.IsNullOrWhiteSpace(_jwtKey) || Encoding.UTF8.GetByteCount(_jwtKey) < 32)
+            {
+                throw new InvalidOperationException(
+                    $"JWT Key quá ngắn! Hiện tại chỉ có {Encoding.UTF8.GetByteCount(_jwtKey)} bytes.");
+            }
         }
 
         public string GenerateToken(User user)
         {
-            // FIX: Kiểm tra null an toàn thay vì crash runtime
-            var jwtKey = _config["Jwt:Key"]
-                ?? throw new InvalidOperationException("Chưa cấu hình Jwt:Key trong appsettings.");
-            var jwtIssuer = _config["Jwt:Issuer"]
-                ?? throw new InvalidOperationException("Chưa cấu hình Jwt:Issuer trong appsettings.");
-            var jwtAudience = _config["Jwt:Audience"]
-                ?? throw new InvalidOperationException("Chưa cấu hình Jwt:Audience trong appsettings.");
-
-            var key = Encoding.UTF8.GetBytes(jwtKey);
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
 
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email),
-                // FIX: Thêm ClaimTypes.Role để [Authorize(Roles = "...")] hoạt động
-                new Claim(ClaimTypes.Role, user.Role?.Name ?? string.Empty),
+                new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.Role, user.Role?.Name ?? "User"),
                 new Claim("RoleId", user.RoleId.ToString())
             };
 
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+
             var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
+                issuer: _jwtIssuer,
+                audience: _jwtAudience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(60),
-                signingCredentials: new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256
-                )
+                signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256)
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
