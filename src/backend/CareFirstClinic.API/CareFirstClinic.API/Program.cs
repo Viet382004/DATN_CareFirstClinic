@@ -118,22 +118,22 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // AUTO SEED DATA
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<CareFirstClinicDbContext>();
-        var seeder = services.GetRequiredService<IScheduleSeeder>();
-        await DbSeeder.SeedAsync(context);
-        await seeder.SeedAsync();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Đã xảy ra lỗi khi seed dữ liệu.");
-    }
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var services = scope.ServiceProvider;
+//     try
+//     {
+//         var context = services.GetRequiredService<CareFirstClinicDbContext>();
+//         var seeder = services.GetRequiredService<IScheduleSeeder>();
+//         await DbSeeder.SeedAsync(context);
+//         await seeder.SeedAsync();
+//     }
+//     catch (Exception ex)
+//     {
+//         var logger = services.GetRequiredService<ILogger<Program>>();
+//         logger.LogError(ex, "Đã xảy ra lỗi khi seed dữ liệu.");
+//     }
+// }
 
 if (app.Environment.IsDevelopment())
 {
