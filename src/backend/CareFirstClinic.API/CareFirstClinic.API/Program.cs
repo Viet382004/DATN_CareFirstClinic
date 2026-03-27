@@ -18,13 +18,18 @@ using dotenv.net;
 
 DotEnv.Load();
 
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+{
+    DotEnv.Load();
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? builder.Configuration["DB_HOST"];
-var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? builder.Configuration["DB_PORT"];
-var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? builder.Configuration["DB_NAME"];
-var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? builder.Configuration["DB_USER"];
-var dbPass = Environment.GetEnvironmentVariable("DB_PASS") ?? builder.Configuration["DB_PASS"];
+var dbHost = builder.Configuration["DB_HOST"];
+var dbPort = builder.Configuration["DB_PORT"];
+var dbName = builder.Configuration["DB_NAME"];
+var dbUser = builder.Configuration["DB_USER"];
+var dbPass = builder.Configuration["DB_PASS"];
 
 if (string.IsNullOrEmpty(dbHost))
 {
