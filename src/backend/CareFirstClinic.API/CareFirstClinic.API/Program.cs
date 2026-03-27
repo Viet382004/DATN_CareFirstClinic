@@ -134,10 +134,23 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Đã xảy ra lỗi khi seed dữ liệu.");
     }
 }
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<CareFirstClinicDbContext>();
+    try
+    {
+        context.Database.OpenConnection();
+        Console.WriteLine("DB CONNECT OK ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("DB CONNECT FAIL : " + ex.Message);
+    }
+}
 
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 
 app.UseCors("AllowFrontend");
