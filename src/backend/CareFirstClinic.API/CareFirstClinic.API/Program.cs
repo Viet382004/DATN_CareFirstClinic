@@ -26,14 +26,22 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development
 var builder = WebApplication.CreateBuilder(args);
 
 var dbHost = builder.Configuration["DB_HOST"];
-var dbPort = builder.Configuration["DB_PORT"];
+var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
 var dbName = builder.Configuration["DB_NAME"];
 var dbUser = builder.Configuration["DB_USER"];
 var dbPass = builder.Configuration["DB_PASS"];
 
-if (string.IsNullOrEmpty(dbHost))
+Console.WriteLine("=== DATABASE CONFIG DEBUG ===");
+Console.WriteLine($"DB_HOST: {(string.IsNullOrEmpty(dbHost) ? "NULL" : dbHost)}");
+Console.WriteLine($"DB_PORT: {dbPort}");
+Console.WriteLine($"DB_NAME: {(string.IsNullOrEmpty(dbName) ? "NULL" : dbName)}");
+Console.WriteLine($"DB_USER: {(string.IsNullOrEmpty(dbUser) ? "NULL" : dbUser)}");
+Console.WriteLine($"DB_PASS: {(string.IsNullOrEmpty(dbPass) ? "NULL" : "******")}");
+Console.WriteLine("============================");
+
+if (string.IsNullOrEmpty(dbHost) || string.IsNullOrEmpty(dbName) || string.IsNullOrEmpty(dbUser) || string.IsNullOrEmpty(dbPass))
 {
-    Console.WriteLine("CẢNH BÁO: Không tìm thấy DB_HOST từ Environment!");
+    Console.WriteLine("❌ LỖI: Thiếu biến môi trường database!");
 }
 
 var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass};SSL Mode=Require;Trust Server Certificate=true";
