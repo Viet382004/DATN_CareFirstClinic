@@ -125,8 +125,8 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<CareFirstClinicDbContext>();
         var seeder = services.GetRequiredService<IScheduleSeeder>();
-        await DbSeeder.SeedAsync(context);
-        await seeder.SeedAsync();
+        //await DbSeeder.SeedAsync(context);
+        //await seeder.SeedAsync();
     }
     catch (Exception ex)
     {
