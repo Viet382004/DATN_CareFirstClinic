@@ -16,6 +16,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using dotenv.net;
 using Npgsql;
+using CareFirstClinic.API.Services;
+using CareFirstClinic.API.Services.Background;
 
 DotEnv.Load();
 
@@ -37,7 +39,7 @@ if (!string.IsNullOrEmpty(databaseUrl))
 }
 else
 {
-    Console.WriteLine("⚠️ DATABASE_URL not found, using individual variables");
+    Console.WriteLine(" DATABASE_URL not found, using individual variables");
 
     var dbHost = builder.Configuration["DB_HOST"];
     var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
@@ -110,6 +112,8 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
@@ -121,6 +125,7 @@ builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
+builder.Services.AddHostedService<AppointmentReminderService>();
 //builder.Services.AddHostedService<ScheduleBackgroundService>();
 
 builder.Services.AddControllers();

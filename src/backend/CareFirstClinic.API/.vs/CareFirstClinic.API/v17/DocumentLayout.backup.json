@@ -7,6 +7,30 @@
       "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\prescriptionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\prescriptionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\appointmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\appointmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\.env||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\jwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\jwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\paymentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\paymentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\repositories\\schedulerepo\\schedulerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\repositories\\schedulerepo\\schedulerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -35,10 +59,6 @@
       "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\controllers\\doctorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\paymentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\paymentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\istockservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\istockservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -61,10 +81,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\medicalrecordservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\medicalrecordservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\appointmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|solutionrelative:carefirstclinic.api\\services\\appointmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{CA74D31C-C60D-4931-914A-ADEB14E7B4D4}|CareFirstClinic.API\\CareFirstClinic.API.csproj|d:\\\u0111\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - htttt\\carefirstclinic\\src\\backend\\carefirstclinic.api\\carefirstclinic.api\\services\\iappointmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -126,8 +142,21 @@
       "DocumentGroups": [
         {
           "DockedHeight": 387,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 8,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PrescriptionService.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\PrescriptionService.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\PrescriptionService.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\PrescriptionService.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Services\\PrescriptionService.cs",
+              "ViewState": "AgIAAIYAAAAAAAAAAAAYwIkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-28T09:45:52.099Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
@@ -146,46 +175,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "MedicalrecordController.cs",
-              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
-              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
-              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
-              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
-              "ViewState": "AgIAAHYAAAAAAAAAAAAowIcAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:19:17.005Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "AppoinmentController.cs",
-              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
-              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
-              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
-              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
-              "ViewState": "AgIAAFIAAAAAAAAAAAAAwGAAAAAtAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:16:16.609Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "StockController.cs",
-              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\StockController.cs",
-              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\StockController.cs",
-              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\StockController.cs",
-              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\StockController.cs",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAAwBsAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:15:59.173Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 13,
               "Title": "DoctorController.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\DoctorController.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\DoctorController.cs",
@@ -193,12 +183,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Controllers\\DoctorController.cs",
               "ViewState": "AgIAAAwAAAAAAAAAAAAAwBwAAABJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:15:23.771Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:15:23.771Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 15,
               "Title": "IPaymentService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\IPaymentService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\IPaymentService.cs",
@@ -206,21 +195,19 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\IPaymentService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAABIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:10:27.276Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:10:27.276Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 7,
               "Title": "ScheduleRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\ScheduleRepo\\ScheduleRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\ScheduleRepo\\ScheduleRepository.cs",
               "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\ScheduleRepo\\ScheduleRepository.cs",
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\ScheduleRepo\\ScheduleRepository.cs",
-              "ViewState": "AgIAAAwBAAAAAAAAAAAuwBIBAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAAAYBAAAAAAAAAAAowBIBAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:43:38.383Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:43:38.383Z"
             },
             {
               "$type": "Document",
@@ -230,7 +217,7 @@
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Program.cs",
               "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Program.cs",
               "RelativeToolTip": "CareFirstClinic.API\\Program.cs",
-              "ViewState": "AgIAAFUAAAAAAAAAAAAYwBIAAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAADkAAAAAAAAAAAAAABEAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-25T02:30:37.429Z",
               "EditorCaption": ""
@@ -238,32 +225,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "ScheduleController.cs",
-              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\ScheduleController.cs",
-              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\ScheduleController.cs",
-              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\ScheduleController.cs",
-              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\ScheduleController.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAxwCMAAAAgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:20:59.736Z",
+              "Title": ".env",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\.env",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\.env",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\.env",
+              "RelativeToolTip": "CareFirstClinic.API\\.env",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-03-26T15:04:17.447Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "PaymentController.cs",
-              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\PaymentController.cs",
-              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\PaymentController.cs",
-              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\PaymentController.cs",
-              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\PaymentController.cs",
-              "ViewState": "AgIAAF4AAAAAAAAAAAAowF8AAAAPAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:21:20.631Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 6,
               "Title": "PaymentService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\PaymentService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\PaymentService.cs",
@@ -271,12 +245,109 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\PaymentService.cs",
               "ViewState": "AgIAANsAAAAAAAAAAAAYwO4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:10:03.609Z",
+              "WhenOpened": "2026-03-24T15:10:03.609Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\appsettings.json",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\appsettings.json",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\appsettings.json",
+              "RelativeToolTip": "CareFirstClinic.API\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-03-26T15:14:09.946Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AppointmentService.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\AppointmentService.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\AppointmentService.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\AppointmentService.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Services\\AppointmentService.cs",
+              "ViewState": "AgIAAIwAAAAAAAAAAAAswIUAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T15:02:31.639Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "JwtService.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\JwtService.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\JwtService.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\JwtService.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Services\\JwtService.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAUwBkAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-26T14:48:09.506Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 11,
+              "Title": "StockController.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\StockController.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\StockController.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\StockController.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\StockController.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAwBsAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T15:15:59.173Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "AppoinmentController.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\AppoinmentController.cs",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAAwGAAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T15:16:16.609Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "MedicalrecordController.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\MedicalrecordController.cs",
+              "ViewState": "AgIAAHYAAAAAAAAAAAAowIcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T15:19:17.005Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ScheduleController.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\ScheduleController.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\ScheduleController.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\ScheduleController.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\ScheduleController.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAxwCMAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T15:20:59.736Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "PaymentController.cs",
+              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\PaymentController.cs",
+              "RelativeDocumentMoniker": "CareFirstClinic.API\\Controllers\\PaymentController.cs",
+              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Controllers\\PaymentController.cs",
+              "RelativeToolTip": "CareFirstClinic.API\\Controllers\\PaymentController.cs",
+              "ViewState": "AgIAAF4AAAAAAAAAAAAowF8AAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-24T15:21:20.631Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
               "Title": "IScheduleService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\IScheduleService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\IScheduleService.cs",
@@ -284,12 +355,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\IScheduleService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:09:48.021Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:09:48.021Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 17,
               "Title": "ScheduleService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\ScheduleService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\ScheduleService.cs",
@@ -297,12 +367,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\ScheduleService.cs",
               "ViewState": "AgIAAOYAAAAAAAAAAAAAwPUAAABcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:06:38.502Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:06:38.502Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 18,
               "Title": "IMedicalrecordService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\IMedicalrecordService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\IMedicalrecordService.cs",
@@ -310,12 +379,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\IMedicalrecordService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:06:17.36Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:06:17.36Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 19,
               "Title": "MedicalrecordService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\MedicalrecordService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\MedicalrecordService.cs",
@@ -323,12 +391,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\MedicalrecordService.cs",
               "ViewState": "AgIAAL0AAAAAAAAAAAAYwMYAAABmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:05:38.255Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:05:38.255Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 14,
               "Title": "IStockService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\IStockService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\IStockService.cs",
@@ -336,12 +403,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\IStockService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:02:12.227Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:02:12.227Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 20,
               "Title": "IAppointmentService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\IAppointmentService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\IAppointmentService.cs",
@@ -349,25 +415,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\IAppointmentService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:02:49.989Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:02:49.989Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "AppointmentService.cs",
-              "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\AppointmentService.cs",
-              "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\AppointmentService.cs",
-              "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\AppointmentService.cs",
-              "RelativeToolTip": "CareFirstClinic.API\\Services\\AppointmentService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAH8AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:02:31.639Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 21,
               "Title": "StockService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\StockService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\StockService.cs",
@@ -375,12 +427,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\StockService.cs",
               "ViewState": "AgIAALgAAAAAAAAAAAAYwMEAAABWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:01:55.24Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:01:55.24Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 22,
               "Title": "IDoctorService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\IDoctorService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\IDoctorService.cs",
@@ -388,25 +439,23 @@
               "RelativeToolTip": "CareFirstClinic.API\\Services\\IDoctorService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAABMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T15:01:36.421Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T15:01:36.421Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 23,
               "Title": "DoctorService.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\DoctorService.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Services\\DoctorService.cs",
               "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Services\\DoctorService.cs",
               "RelativeToolTip": "CareFirstClinic.API\\Services\\DoctorService.cs",
-              "ViewState": "AgIAAPwAAAAAAAAAAIBJwAMBAABYAAAAAAAAAA==",
+              "ViewState": "AgIAAPkAAAAAAAAAAIBZwAMBAABYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:59:50.471Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:59:50.471Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 24,
               "Title": "IPaymentRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\PaymentRepo\\IPaymentRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\PaymentRepo\\IPaymentRepository.cs",
@@ -414,12 +463,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\PaymentRepo\\IPaymentRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAABAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:48:44.545Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:48:44.545Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 25,
               "Title": "PaymentRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\PaymentRepo\\PaymentRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\PaymentRepo\\PaymentRepository.cs",
@@ -427,25 +475,23 @@
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\PaymentRepo\\PaymentRepository.cs",
               "ViewState": "AgIAAIMAAAAAAAAAAAAuwJAAAABjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:47:18.919Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:47:18.919Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 26,
               "Title": "IScheduleRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\ScheduleRepo\\IScheduleRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\ScheduleRepo\\IScheduleRepository.cs",
               "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\ScheduleRepo\\IScheduleRepository.cs",
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\ScheduleRepo\\IScheduleRepository.cs",
-              "ViewState": "AgIAAAEAAAAAAAAAAIBJwBIAAAAoAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAABRwBIAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:44:13.612Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:44:13.612Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 28,
               "Title": "IMedicalrecordRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\MedicalRecordRepo\\IMedicalrecordRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\MedicalRecordRepo\\IMedicalrecordRepository.cs",
@@ -453,12 +499,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\MedicalRecordRepo\\IMedicalrecordRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAABjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:42:17.346Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:42:17.346Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 27,
               "Title": "MedicalrecordRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\MedicalRecordRepo\\MedicalrecordRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\MedicalRecordRepo\\MedicalrecordRepository.cs",
@@ -466,12 +511,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\MedicalRecordRepo\\MedicalrecordRepository.cs",
               "ViewState": "AgIAALQAAAAAAAAAAAAAwKYAAABvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:40:59.096Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:40:59.096Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 29,
               "Title": "IAppointmentRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\AppoinmentRepo\\IAppointmentRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\AppoinmentRepo\\IAppointmentRepository.cs",
@@ -479,12 +523,11 @@
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\AppoinmentRepo\\IAppointmentRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:40:14.104Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:40:14.104Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 30,
               "Title": "AppointmentRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\AppoinmentRepo\\AppointmentRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\AppoinmentRepo\\AppointmentRepository.cs",
@@ -492,25 +535,23 @@
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\AppoinmentRepo\\AppointmentRepository.cs",
               "ViewState": "AgIAAKwAAAAAAAAAAADwv74AAABrAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:38:11.71Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:38:11.71Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 31,
               "Title": "DoctorRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\DoctorRepo\\DoctorRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\DoctorRepo\\DoctorRepository.cs",
               "ToolTip": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\DoctorRepo\\DoctorRepository.cs",
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\DoctorRepo\\DoctorRepository.cs",
-              "ViewState": "AgIAABMBAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABABAAAAAAAAAIBZwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:36:48.178Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:36:48.178Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 32,
               "Title": "StockRepository.cs",
               "DocumentMoniker": "D:\\\u0110\u1ED3 \u00E1n chuy\u00EAn ngh\u00E0nh - HTTTT\\CareFirstClinic\\src\\backend\\CareFirstClinic.API\\CareFirstClinic.API\\Repositories\\StockRepo\\StockRepository.cs",
               "RelativeDocumentMoniker": "CareFirstClinic.API\\Repositories\\StockRepo\\StockRepository.cs",
@@ -518,8 +559,7 @@
               "RelativeToolTip": "CareFirstClinic.API\\Repositories\\StockRepo\\StockRepository.cs",
               "ViewState": "AgIAALwAAAAAAAAAAAAYwNkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-24T14:32:34.144Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-24T14:32:34.144Z"
             }
           ]
         },
