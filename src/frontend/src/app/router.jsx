@@ -12,7 +12,7 @@ import BookingSuccess from "../modules/patient/pages/booking/BookingSuccess";
 import DoctorDashboard from "../modules/doctor/pages/dashboard/Doctordashboard";
 import AdminDashboard from "../modules/admin/pages/dashboard/Admindashboard";
 import PatientAppointments from "../modules/patient/pages/appoinment/Patientappointments";
-import PatientProfile from "../modules/patient/pages/profile/PatientProfile";
+import Patientprofile from "../modules/patient/pages/profile/Patientprofile";
 import { useAuth } from "../contexts/AuthContext";
 
 
@@ -32,7 +32,7 @@ const AppRouter = () => {
         <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/patient/appointments" element={<PatientAppointments />} />
-        <Route path="/patient/profile" element={<PatientProfile />} />
+        <Route path="/patient/profile" element={<Patientprofile/>} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
