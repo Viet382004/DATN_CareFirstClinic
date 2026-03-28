@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using dotenv.net;
+using Npgsql;
 
 DotEnv.Load();
 
@@ -25,27 +26,53 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development
 
 var builder = WebApplication.CreateBuilder(args);
 
-var dbHost = builder.Configuration["DB_HOST"];
-var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
-var dbName = builder.Configuration["DB_NAME"];
-var dbUser = builder.Configuration["DB_USER"];
-var dbPass = builder.Configuration["DB_PASS"];
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+string connectionString;
 
-Console.WriteLine("=== DATABASE CONFIG DEBUG ===");
-Console.WriteLine($"DB_HOST: {(string.IsNullOrEmpty(dbHost) ? "NULL" : dbHost)}");
-Console.WriteLine($"DB_PORT: {dbPort}");
-Console.WriteLine($"DB_NAME: {(string.IsNullOrEmpty(dbName) ? "NULL" : dbName)}");
-Console.WriteLine($"DB_USER: {(string.IsNullOrEmpty(dbUser) ? "NULL" : dbUser)}");
-Console.WriteLine($"DB_PASS: {(string.IsNullOrEmpty(dbPass) ? "NULL" : "******")}");
-Console.WriteLine("============================");
-
-if (string.IsNullOrEmpty(dbHost) || string.IsNullOrEmpty(dbName) || string.IsNullOrEmpty(dbUser) || string.IsNullOrEmpty(dbPass))
+if (!string.IsNullOrEmpty(databaseUrl))
 {
-    Console.WriteLine("❌ LỖI: Thiếu biến môi trường database!");
+    connectionString = databaseUrl;
+    Console.WriteLine(" Using DATABASE_URL from environment ");
+    Console.WriteLine($"DATABASE_URL found: {databaseUrl.Substring(0, Math.Min(50, databaseUrl.Length))}...");
+}
+else
+{
+    Console.WriteLine("⚠️ DATABASE_URL not found, using individual variables");
+
+    var dbHost = builder.Configuration["DB_HOST"];
+    var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
+    var dbName = builder.Configuration["DB_NAME"];
+    var dbUser = builder.Configuration["DB_USER"];
+    var dbPass = builder.Configuration["DB_PASS"];
+
+    Console.WriteLine(" DATABASE CONFIG DEBUG ");
+    Console.WriteLine($"DB_HOST: {dbHost}");
+    Console.WriteLine($"DB_PORT: {dbPort}");
+    Console.WriteLine($"DB_NAME: {dbName}");
+    Console.WriteLine($"DB_USER: {dbUser}");
+    Console.WriteLine($"DB_PASS: {(string.IsNullOrEmpty(dbPass) ? "NULL" : "******")}");
+
+    if (string.IsNullOrEmpty(dbHost) || string.IsNullOrEmpty(dbName) ||
+        string.IsNullOrEmpty(dbUser) || string.IsNullOrEmpty(dbPass))
+    {
+        Console.WriteLine("LỖI: Thiếu biến môi trường database!");
+        throw new Exception("Database configuration is incomplete");
+    }
+
+    var connectionStringBuilder = new NpgsqlConnectionStringBuilder
+    {
+        Host = dbHost,
+        Port = int.Parse(dbPort),
+        Database = dbName,
+        Username = dbUser,
+        Password = dbPass,
+        SslMode = SslMode.Require,
+        TrustServerCertificate = true
+    };
+    connectionString = connectionStringBuilder.ToString();
 }
 
-var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass};SSL Mode=Require;Trust Server Certificate=true";
-
+Console.WriteLine($" Connection string configured (password hidden)");
 builder.Services.AddDbContext<CareFirstClinicDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -135,7 +162,25 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-//AUTO SEED DATA
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<CareFirstClinicDbContext>();
+    try
+    {
+        context.Database.OpenConnection();
+        Console.WriteLine("DB CONNECT OK - Database connection successful! ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"DB CONNECT FAIL: {ex.Message} ");
+        Console.WriteLine($"Exception type: {ex.GetType().Name}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+        }
+    }
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -152,25 +197,9 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Đã xảy ra lỗi khi seed dữ liệu.");
     }
 }
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<CareFirstClinicDbContext>();
-    try
-    {
-        context.Database.OpenConnection();
-        Console.WriteLine("DB CONNECT OK ");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("DB CONNECT FAIL : " + ex.Message);
-    }
-}
-
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
