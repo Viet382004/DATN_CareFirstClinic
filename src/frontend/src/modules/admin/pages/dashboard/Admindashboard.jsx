@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './AdminDashboard.module.css';
+import styles from './Admindashboard.module.css';
 import {
   LayoutDashboard, Users, Calendar, FileText, Settings, Bell,
   Search, Filter, TrendingUp, TrendingDown, DollarSign,
