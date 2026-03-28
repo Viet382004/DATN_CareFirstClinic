@@ -13,12 +13,14 @@ namespace CareFirstClinic.API.Services
         private readonly IAppointmentRepository _appointmentRepo;
         private readonly CareFirstClinicDbContext _context;
         private readonly ILogger<AppointmentService> _logger;
+        private readonly IEmailService _emailService;
 
-        public AppointmentService(IAppointmentRepository appointmentRepo,CareFirstClinicDbContext context, ILogger<AppointmentService> logger)
+        public AppointmentService(IAppointmentRepository appointmentRepo, CareFirstClinicDbContext context, ILogger<AppointmentService> logger, IEmailService emailService)
         {
             _appointmentRepo = appointmentRepo;
             _context = context;
             _logger = logger;
+            _emailService = emailService;
         }
         public async Task<List<AppointmentDTO>> GetAllAsync()
         {
@@ -99,7 +101,7 @@ namespace CareFirstClinic.API.Services
             if (timeSlot is null)
                 throw new ArgumentException("TimeSlotId không tồn tại.", nameof(dto.TimeSlotId));
 
-            if(!timeSlot.Schedule!.IsAvailable)
+            if (!timeSlot.Schedule!.IsAvailable)
                 throw new InvalidOperationException("Lịch làm việc này không còn khả dụng. Vui lòng chọn slot khác.");
 
             if (timeSlot.IsBooked)
@@ -126,6 +128,32 @@ namespace CareFirstClinic.API.Services
                 var created = await _appointmentRepo.AddAsync(appointment, timeSlot);
 
                 var result = await _appointmentRepo.GetByIdAsync(created.Id);
+
+                // Gửi email xác nhận — dùng _ để không await (fire and forget)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var email = result!.Patient?.User?.Email;
+                        var patientName = result.Patient?.FullName;
+                        var doctorName = result.TimeSlot?.Schedule?.Doctor?.FullName;
+                        var specialty = result.TimeSlot?.Schedule?.Doctor?.Specialty?.Name;
+                        var workDate = result.TimeSlot!.Schedule!.WorkDate;
+                        var startTime = result.TimeSlot.StartTime;
+                        var endTime = result.TimeSlot.EndTime;
+
+                        if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            await _emailService.SendAppointmentBookedAsync(
+                                email, patientName!, doctorName!, specialty!,
+                                workDate, startTime, endTime, result.Reason);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi gửi email đặt lịch AppointmentId: {Id}", created.Id);
+                    }
+                });
                 return MapToDTO(result!);
             }
             catch (ArgumentException) { throw; }
@@ -203,7 +231,7 @@ namespace CareFirstClinic.API.Services
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id không được để trống.", nameof(id));
-            
+
             try
             {
                 var appointment = await _appointmentRepo.GetByIdAsync(id);

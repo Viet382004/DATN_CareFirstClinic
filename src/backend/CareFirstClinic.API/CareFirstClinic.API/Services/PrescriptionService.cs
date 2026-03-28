@@ -11,15 +11,18 @@ namespace CareFirstClinic.API.Services
         private readonly IPrescriptionRepository _prescriptionRepo;
         private readonly CareFirstClinicDbContext _context;
         private readonly ILogger<PrescriptionService> _logger;
+        private readonly IEmailService _emailService;
 
         public PrescriptionService(
             IPrescriptionRepository prescriptionRepo,
             CareFirstClinicDbContext context,
-            ILogger<PrescriptionService> logger)
+            ILogger<PrescriptionService> logger,
+            IEmailService emailService)
         {
             _prescriptionRepo = prescriptionRepo;
             _context = context;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public async Task<PrescriptionDTO?> GetByIdAsync(Guid id)
@@ -107,6 +110,43 @@ namespace CareFirstClinic.API.Services
 
                 var created = await _prescriptionRepo.AddAsync(prescription);
                 var result = await _prescriptionRepo.GetByIdAsync(created.Id);
+                // Lấy email patient từ MedicalRecord → Appointment → Patient → User
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var medicalRecord = await _context.MedicalRecords
+                            .Include(m => m.Patient).ThenInclude(p => p!.User)
+                            .Include(m => m.Doctor)
+                            .FirstOrDefaultAsync(m => m.Id == dto.MedicalRecordId);
+
+                        var email = medicalRecord?.Patient?.User?.Email;
+                        var patientName = medicalRecord?.Patient?.FullName;
+                        var doctorName = medicalRecord?.Doctor?.FullName;
+
+                        if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            var emailItems = result!.Details.Select(d => new PrescriptionEmailItem
+                            {
+                                MedicineName = d.Stock?.MedicineName ?? string.Empty,
+                                Unit = d.Stock?.Unit,
+                                Frequency = d.Frequency,
+                                DurationDays = d.DurationDays,
+                                Quantity = d.Quantity,
+                                Instructions = d.Instructions
+                            }).ToList();
+
+                            await _emailService.SendPrescriptionAsync(
+                                email, patientName!, doctorName!,
+                                result.IssuedAt, emailItems, result.Notes);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi gửi email đơn thuốc PrescriptionId: {Id}", created.Id);
+                    }
+                });
+
                 return MapToDTO(result!);
             }
             catch (KeyNotFoundException) { throw; }
