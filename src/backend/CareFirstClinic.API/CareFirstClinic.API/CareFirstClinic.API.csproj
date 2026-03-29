@@ -27,6 +27,9 @@
   <ItemGroup>
     <Folder Include="Mappings\" />
     <Folder Include="Helpers\" />
+    <Folder Include="wwwroot\uploads\avatars\doctor\" />
+    <Folder Include="wwwroot\uploads\avatars\patient\" />
+    <Folder Include="wwwroot\uploads\images\medicine\" />
   </ItemGroup>
 
 </Project>

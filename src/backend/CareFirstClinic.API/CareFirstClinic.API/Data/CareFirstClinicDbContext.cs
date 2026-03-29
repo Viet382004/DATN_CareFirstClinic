@@ -8,7 +8,6 @@ namespace CareFirstClinic.API.Data
         public CareFirstClinicDbContext(DbContextOptions<CareFirstClinicDbContext> options)
             : base(options) { }
 
-        // ── DbSets ──────────────────────────────────────────────────────────
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
@@ -73,9 +72,13 @@ namespace CareFirstClinic.API.Data
             modelBuilder.Entity<Doctor>(e =>
             {
                 e.HasKey(x => x.Id);
+                e.Property(x => x.AvatarUrl).HasMaxLength(500);
                 e.Property(x => x.FullName).IsRequired().HasMaxLength(100);
+                e.Property(x => x.AcademicTitle).IsRequired().HasMaxLength(100);
+                e.Property(x => x.Position).IsRequired().HasMaxLength(100);
                 e.Property(x => x.PhoneNumber).HasMaxLength(20);
                 e.Property(x => x.YearsOfExperience).IsRequired();
+                e.Property(x => x.Description).HasMaxLength(1000);
 
                 // Doctor → Specialty (N-1)
                 e.HasOne(x => x.Specialty)
@@ -94,6 +97,7 @@ namespace CareFirstClinic.API.Data
             modelBuilder.Entity<Patient>(e =>
             {
                 e.HasKey(x => x.Id);
+                e.Property(x => x.AvatarUrl).HasMaxLength(500);
                 e.Property(x => x.FullName).IsRequired().HasMaxLength(100);
                 e.Property(x => x.Gender).IsRequired().HasMaxLength(10);
                 e.Property(x => x.PhoneNumber).HasMaxLength(20);

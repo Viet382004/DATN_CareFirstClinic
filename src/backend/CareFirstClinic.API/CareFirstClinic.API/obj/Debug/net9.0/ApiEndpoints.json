@@ -352,6 +352,100 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "CareFirstClinic.API.Controllers.AvatarController",
+    "Method": "UploadDoctorAvatar",
+    "RelativePath": "api/Avatar/doctor",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AvatarController",
+    "Method": "DeleteDoctorAvatar",
+    "RelativePath": "api/Avatar/doctor",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AvatarController",
+    "Method": "UploadDoctorAvatarById",
+    "RelativePath": "api/Avatar/doctor/{doctorId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "doctorId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AvatarController",
+    "Method": "UploadPatientAvatar",
+    "RelativePath": "api/Avatar/patient",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AvatarController",
+    "Method": "DeletePatientAvatar",
+    "RelativePath": "api/Avatar/patient",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AvatarController",
+    "Method": "UploadPatientAvatarById",
+    "RelativePath": "api/Avatar/patient/{patientId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "patientId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "CareFirstClinic.API.Controllers.DoctorController",
     "Method": "GetPaged",
     "RelativePath": "api/Doctor",

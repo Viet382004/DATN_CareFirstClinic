@@ -14,7 +14,23 @@ namespace CareFirstClinic.API.Services
             _patientRepository = patientRepository;
             _logger = logger;
         }
+        public async Task<PatientDTO?> UpdateAvatarAsync(Guid id, string? avatarUrl)
+        {
+            try
+            {
+                var patient = await _patientRepository.GetByIdAsync(id);
+                if (patient is null) return null;
 
+                patient.AvatarUrl = avatarUrl;
+                var updated = await _patientRepository.UpdateAsync(patient);
+                return MapToDTO(updated);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi UpdateAvatar Patient Id: {Id}", id);
+                throw new ApplicationException("Không thể cập nhật ảnh đại diện.", ex);
+            }
+        }
         // GET ALL
         public async Task<List<PatientDTO>> GetAllAsync()
         {
@@ -33,7 +49,6 @@ namespace CareFirstClinic.API.Services
         // GET BY ID
         public async Task<PatientDTO?> GetByIdAsync(Guid id)
         {
-            // Điều kiện: id hợp lệ
             if (id == Guid.Empty)
                 throw new ArgumentException("Id không được để trống.", nameof(id));
 
@@ -44,7 +59,7 @@ namespace CareFirstClinic.API.Services
             }
             catch (ArgumentException)
             {
-                throw; // Ném lại lỗi validation để Controller trả 400
+                throw; 
             }
             catch (Exception ex)
             {
@@ -78,18 +93,14 @@ namespace CareFirstClinic.API.Services
         // UPDATE
         public async Task<PatientDTO?> UpdateAsync(Guid id, UpdatePatientDTO dto)
         {
-            // Điều kiện 1: id hợp lệ
             if (id == Guid.Empty)
                 throw new ArgumentException("Id không được để trống.", nameof(id));
 
-            // Điều kiện 2: dto không null
             ArgumentNullException.ThrowIfNull(dto);
 
-            // Điều kiện 3: ngày sinh không được ở tương lai
             if (dto.DateOfBirth > DateTime.UtcNow)
                 throw new ArgumentException("Ngày sinh không được lớn hơn ngày hiện tại.");
 
-            // Điều kiện 4: tuổi hợp lý (không quá 150 tuổi)
             if (dto.DateOfBirth < DateTime.UtcNow.AddYears(-150))
                 throw new ArgumentException("Ngày sinh không hợp lệ.");
 
@@ -97,7 +108,6 @@ namespace CareFirstClinic.API.Services
             {
                 var patient = await _patientRepository.GetByIdAsync(id);
 
-                // Điều kiện 5: bệnh nhân phải tồn tại
                 if (patient is null)
                     return null;
 
@@ -122,11 +132,11 @@ namespace CareFirstClinic.API.Services
             }
             catch (KeyNotFoundException)
             {
-                throw; // Để Controller bắt và trả 404
+                throw; 
             }
             catch (InvalidOperationException)
             {
-                throw; // Concurrency hoặc DB error đã có message rõ
+                throw; 
             }
             catch (Exception ex)
             {
@@ -160,6 +170,7 @@ namespace CareFirstClinic.API.Services
         private static PatientDTO MapToDTO(Patient p) => new()
         {
             Id = p.Id,
+            AvatarUrl = p.AvatarUrl,
             FullName = p.FullName,
             DateOfBirth = p.DateOfBirth,
             Gender = p.Gender,

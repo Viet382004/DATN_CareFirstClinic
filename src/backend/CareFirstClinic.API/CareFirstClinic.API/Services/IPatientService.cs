@@ -9,5 +9,6 @@ namespace CareFirstClinic.API.Services
         Task<PatientDTO?> GetByUserIdAsync(Guid userId);
         Task<PatientDTO?> UpdateAsync(Guid id, UpdatePatientDTO dto);
         Task<bool> DeleteAsync(Guid id);
+        Task<PatientDTO?> UpdateAvatarAsync(Guid id, string? avatarUrl);
     }
 }

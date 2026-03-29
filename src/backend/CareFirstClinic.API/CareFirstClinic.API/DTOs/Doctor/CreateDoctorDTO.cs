@@ -11,6 +11,14 @@ namespace CareFirstClinic.API.DTOs
         [Required(ErrorMessage = "Chuyên khoa không được để trống.")]
         public Guid SpecialtyId { get; set; }
 
+        [Required(ErrorMessage = "Trình độ không được để trống.")]
+        public string AcademicTitle { get; set; }
+
+        [Required(ErrorMessage = "Vị trí không được để trống.")]
+        public string Position { get; set; }
+
+        public string Description { get; set; }
+
         [Range(0, 60, ErrorMessage = "Số năm kinh nghiệm phải từ 0 đến 60.")]
         public int YearsOfExperience { get; set; }
 
@@ -19,7 +27,6 @@ namespace CareFirstClinic.API.DTOs
         public string PhoneNumber { get; set; } = string.Empty;
 
 
-        // UserId để liên kết với tài khoản — có thể null nếu muốn tự động tạo
         public Guid? UserId { get; set; }
 
         [Required(ErrorMessage = "Email không được để trống.")]

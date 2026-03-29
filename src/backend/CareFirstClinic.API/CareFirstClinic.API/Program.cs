@@ -112,7 +112,6 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 builder.Services.AddScoped<JwtService>();
@@ -125,6 +124,8 @@ builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddHostedService<AppointmentReminderService>();
 //builder.Services.AddHostedService<ScheduleBackgroundService>();
 
@@ -206,6 +207,7 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors("AllowFrontend");
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

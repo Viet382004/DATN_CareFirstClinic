@@ -6,6 +6,7 @@ namespace CareFirstClinic.API.Models
     public class Patient
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+        public string? AvatarUrl { get; set; }
 
         [Required]
         [MaxLength(100)]

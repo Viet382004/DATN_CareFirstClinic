@@ -1,16 +1,15 @@
 ﻿namespace CareFirstClinic.API.DTOs
 {
-    /// Dùng để trả thông tin bệnh nhân về cho client (response)
-    /// Không bao giờ expose trực tiếp model Patient ra ngoài
     public class PatientDTO
     {
         public Guid Id { get; set; }
+        public string? AvatarUrl { get; set; }
+
 
         public string FullName { get; set; } = string.Empty;
 
         public DateTime DateOfBirth { get; set; }
 
-        /// <summary>Tuổi tính tự động từ DateOfBirth</summary>
         public int Age => DateOfBirth == default
             ? 0
             : DateTime.UtcNow.Year - DateOfBirth.Year
@@ -26,7 +25,6 @@
 
         public DateTime CreatedAt { get; set; }
 
-        // Thông tin tài khoản liên kết
         public Guid? UserId { get; set; }
         public string? UserEmail { get; set; }
     }

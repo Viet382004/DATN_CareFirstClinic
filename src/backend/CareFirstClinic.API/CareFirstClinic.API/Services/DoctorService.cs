@@ -16,7 +16,23 @@ namespace CareFirstClinic.API.Services
             _doctorRepository = doctorRepository;
             _logger = logger;
         }
+        public async Task<DoctorDTO?> UpdateAvatarAsync(Guid id, string? avatarUrl)
+        {
+            try
+            {
+                var doctor = await _doctorRepository.GetByIdAsync(id);
+                if (doctor is null) return null;
 
+                doctor.AvatarUrl = avatarUrl;
+                var updated = await _doctorRepository.UpdateAsync(doctor);
+                return MapToDTO(updated);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi UpdateAvatar Doctor Id: {Id}", id);
+                throw new ApplicationException("Không thể cập nhật ảnh đại diện.", ex);
+            }
+        }
         // GET ALL
         public async Task<List<DoctorDTO>> GetAllAsync()
         {
@@ -54,7 +70,7 @@ namespace CareFirstClinic.API.Services
             }
         }
 
-        // GET BY USER ID — Bác sĩ xem hồ sơ bản thân
+        // GET BY USER ID 
         public async Task<DoctorDTO?> GetByUserIdAsync(Guid userId)
         {
             if (userId == Guid.Empty)
@@ -103,18 +119,12 @@ namespace CareFirstClinic.API.Services
         {
             ArgumentNullException.ThrowIfNull(dto);
 
-            // Điều kiện: email không được để trống
             if (string.IsNullOrWhiteSpace(dto.Email))
                 throw new ArgumentException("Email không được để trống.");
 
-            // Điều kiện: năm kinh nghiệm hợp lệ
             if (dto.YearsOfExperience < 0 || dto.YearsOfExperience > 60)
                 throw new ArgumentException("Số năm kinh nghiệm phải từ 0 đến 60.");
 
-            // Lấy DbContext từ repository (giả định DoctorRepository dùng chung context)
-            // Vì repository pattern hiện tại không lộ context, ta sẽ xử lý trực tiếp qua repo.
-            // Tuy nhiên, việc tạo User cần logic phức tạp hơn. 
-            // Ta sẽ giả định repository có phương thức hỗ trợ hoặc Service sẽ điều phối.
 
             try
             {
@@ -122,12 +132,14 @@ namespace CareFirstClinic.API.Services
                 {
                     Id = Guid.NewGuid(),
                     FullName = dto.FullName.Trim(),
+                    AcademicTitle = dto.AcademicTitle,
+                    Description = dto.Description,
+                    Position = dto.Position,
                     SpecialtyId = dto.SpecialtyId,
                     YearsOfExperience = dto.YearsOfExperience,
                     PhoneNumber = dto.PhoneNumber?.Trim() ?? string.Empty,
                 };
 
-                // Nếu không truyền UserId, tự động tạo User account
                 if (dto.UserId == null)
                 {
                     // Hash mật khẩu
@@ -167,7 +179,6 @@ namespace CareFirstClinic.API.Services
 
             ArgumentNullException.ThrowIfNull(dto);
 
-            // Điều kiện: năm kinh nghiệm hợp lệ
             if (dto.YearsOfExperience < 0 || dto.YearsOfExperience > 60)
                 throw new ArgumentException("Số năm kinh nghiệm phải từ 0 đến 60.");
 
@@ -177,13 +188,15 @@ namespace CareFirstClinic.API.Services
             {
                 var doctor = await _doctorRepository.GetByIdAsync(id);
 
-                // Điều kiện: bác sĩ phải tồn tại
                 if (doctor is null) return null;
 
                 doctor.FullName = dto.FullName.Trim();
+                doctor.AcademicTitle = dto.AcademicTitle.ToString();
+                doctor.Position = dto.Position.ToString();
                 doctor.SpecialtyId = dto.SpecialtyId;
                 doctor.YearsOfExperience = dto.YearsOfExperience;
                 doctor.PhoneNumber = dto.PhoneNumber.Trim();
+                doctor.Description = dto.Description.ToString();
 
                 var updated = await _doctorRepository.UpdateAsync(doctor);
                 return MapToDTO(updated);
@@ -194,11 +207,11 @@ namespace CareFirstClinic.API.Services
             }
             catch (KeyNotFoundException)
             {
-                throw; // Để Controller trả 404
+                throw; 
             }
             catch (InvalidOperationException)
             {
-                throw; // Xung đột dữ liệu — để Controller trả 409
+                throw; 
             }
             catch (Exception ex)
             {
@@ -224,7 +237,7 @@ namespace CareFirstClinic.API.Services
             }
             catch (InvalidOperationException)
             {
-                throw; // Còn lịch hẹn tương lai — để Controller trả 409
+                throw;
             }
             catch (Exception ex)
             {
@@ -281,10 +294,14 @@ namespace CareFirstClinic.API.Services
         private static DoctorDTO MapToDTO(Doctor d) => new()
         {
             Id = d.Id,
+            AvatarUrl = d.AvatarUrl,
             FullName = d.FullName,
+            AcademicTitle = d.AcademicTitle,
+            Position = d.Position,
             SpecialtyName = d.Specialty?.Name ?? string.Empty,
             YearsOfExperience = d.YearsOfExperience,
             PhoneNumber = d.PhoneNumber,
+            Description = d.Description,
             UserId = d.UserId,
             Email = d.User?.Email,
             TotalAppointments = d.Schedules.Count(s => s.IsAvailable) 

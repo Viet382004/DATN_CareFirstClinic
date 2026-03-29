@@ -14,5 +14,6 @@ namespace CareFirstClinic.API.Services
         Task<bool> DeleteAsync(Guid id);
         Task<bool> ToggleActiveAsync(Guid id);
         Task<PagedResult<DoctorDTO>> GetPagedAsync(DoctorQueryParams query);
+        Task<DoctorDTO?> UpdateAvatarAsync(Guid id, string? avatarUrl);
     }
 }
