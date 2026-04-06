@@ -56,6 +56,8 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.UserName).IsRequired().HasMaxLength(50);
                 e.Property(x => x.Email).IsRequired().HasMaxLength(150);
                 e.HasIndex(x => x.Email).IsUnique();
+                e.Property(x => x.OtpCode).HasMaxLength(6);
+                e.Property(x => x.IsEmailVerified).HasDefaultValue(false);
                 e.Property(x => x.FullName).IsRequired().HasMaxLength(100);
                 e.Property(x => x.PasswordHash).IsRequired().HasColumnType("text");
                 e.Property(x => x.IsActive).HasDefaultValue(true);

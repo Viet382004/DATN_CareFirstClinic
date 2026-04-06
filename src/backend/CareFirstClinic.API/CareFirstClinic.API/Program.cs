@@ -16,8 +16,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using dotenv.net;
 using Npgsql;
-using CareFirstClinic.API.Services;
-using CareFirstClinic.API.Services.Background;
 
 DotEnv.Load();
 

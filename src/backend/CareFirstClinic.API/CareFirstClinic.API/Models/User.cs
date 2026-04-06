@@ -21,11 +21,11 @@ namespace CareFirstClinic.API.Models
         [EmailAddress]
         [MaxLength(150)]
         public string Email { get; set; } = string.Empty;
-
+        public bool IsEmailVerified { get; set; } = false;
+        public string? OtpCode { get; set; }
+        public DateTime? OtpExpiredAt { get; set; }
         public bool IsActive { get; set; } = true;
-
         public Guid RoleId { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation

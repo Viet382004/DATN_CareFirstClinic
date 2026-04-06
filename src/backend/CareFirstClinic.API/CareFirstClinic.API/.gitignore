@@ -1,1 +1,15 @@
 .env
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.db
+*.cache
+*.idx
+
+# Build outputs
+bin/
+obj/
+*.dll
+*.exe
+*.pdb

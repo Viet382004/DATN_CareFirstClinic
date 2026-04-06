@@ -2,6 +2,12 @@ namespace CareFirstClinic.API.Services
 {
     public interface IEmailService
     {
+        // Xác nhận đăng ký 
+        Task SendOtpAsync(
+            string toEmail, 
+            string userName, 
+            string otpCode);
+
         // Gửi email đặt lịch hẹn thành công
         Task SendAppointmentBookedAsync(
             string toEmail,

@@ -9,299 +9,400 @@ namespace CareFirstClinic.API.Services
         private readonly IConfiguration _config;
         private readonly ILogger<EmailService> _logger;
 
-        // Lấy config từ appsettings.json
-        private string ApiKey     => _config["SendGrid:ApiKey"]    ?? throw new InvalidOperationException("Chưa cấu hình SendGrid:ApiKey");
-        private string FromEmail  => _config["SendGrid:FromEmail"] ?? "noreply@carefirstclinic.com";
-        private string FromName   => _config["SendGrid:FromName"]  ?? "CareFirst Clinic";
-
         public EmailService(IConfiguration config, ILogger<EmailService> logger)
         {
             _config = config;
             _logger = logger;
         }
 
-        // ── Hàm gửi chung — tất cả email đều dùng hàm này ──────────
-        // Nhận subject + htmlContent, gửi qua SendGrid API
+        // ════════════════════════════════════════════════════════
+        // ĐỌC CONFIG — thử Environment Variable trước, fallback về appsettings
+        // Lý do: bạn dùng .env nên biến nằm trong Environment,
+        //        không phải trong _config["SendGrid:ApiKey"]
+        // ════════════════════════════════════════════════════════
+        private string ApiKey =>
+            Environment.GetEnvironmentVariable("SENDGRID_API_KEY")
+            ?? _config["SendGrid:ApiKey"]
+            ?? string.Empty;
+
+        private string FromEmail =>
+            Environment.GetEnvironmentVariable("SENDGRID_FROM_EMAIL")
+            ?? _config["SendGrid:FromEmail"]
+            ?? string.Empty;
+
+        private string FromName =>
+            Environment.GetEnvironmentVariable("SENDGRID_FROM_NAME")
+            ?? _config["SendGrid:FromName"]
+            ?? "CareFirst Clinic";
+
+        // ════════════════════════════════════════════════════════
+        // HÀM GỬI CHUNG
+        // ════════════════════════════════════════════════════════
         private async Task SendAsync(string toEmail, string toName, string subject, string htmlContent)
         {
+            // Log để debug — biết được đang đọc giá trị nào
+            _logger.LogInformation("SendGrid config — ApiKey: {Key}, FromEmail: {Email}",
+                string.IsNullOrWhiteSpace(ApiKey) ? "TRỐNG!" : ApiKey[..Math.Min(10, ApiKey.Length)] + "...",
+                string.IsNullOrWhiteSpace(FromEmail) ? "TRỐNG!" : FromEmail);
+
+            if (string.IsNullOrWhiteSpace(ApiKey))
+            {
+                _logger.LogError("SENDGRID_API_KEY chưa được set trong .env hoặc appsettings.json");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(FromEmail))
+            {
+                _logger.LogError("SENDGRID_FROM_EMAIL chưa được set trong .env hoặc appsettings.json");
+                return;
+            }
+
             try
             {
-                var client  = new SendGridClient(ApiKey);
-                var from    = new EmailAddress(FromEmail, FromName);
-                var to      = new EmailAddress(toEmail, toName);
-                var msg     = MailHelper.CreateSingleEmail(from, to, subject, null, htmlContent);
+                var client = new SendGridClient(ApiKey);
+                var from = new EmailAddress(FromEmail, FromName);
+                var to = new EmailAddress(toEmail, toName);
+                var msg = MailHelper.CreateSingleEmail(
+                    from, to, subject,
+                    plainTextContent: null,
+                    htmlContent);
+
+                _logger.LogInformation("Đang gửi '{Subject}' → {ToEmail}...", subject, toEmail);
 
                 var response = await client.SendEmailAsync(msg);
 
-                if (!response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode)
                 {
-                    var body = await response.Body.ReadAsStringAsync();
-                    _logger.LogError("SendGrid lỗi {Status}: {Body}", response.StatusCode, body);
+                    _logger.LogInformation("✅ Gửi email thành công → {ToEmail}", toEmail);
                 }
                 else
                 {
-                    _logger.LogInformation("Đã gửi email '{Subject}' tới {Email}", subject, toEmail);
+                    var body = await response.Body.ReadAsStringAsync();
+                    _logger.LogError("❌ SendGrid lỗi {Code}: {Body}",
+                        (int)response.StatusCode, body);
                 }
             }
             catch (Exception ex)
             {
-                // Không throw — lỗi email không được làm crash luồng chính
-                _logger.LogError(ex, "Lỗi khi gửi email tới {Email}", toEmail);
+                _logger.LogError(ex, "❌ Exception khi gửi email → {ToEmail}", toEmail);
             }
         }
 
-        // ── 1. EMAIL ĐẶT LỊCH HẸN THÀNH CÔNG ───────────────────────
+        // ════════════════════════════════════════════════════════
+        // 1. GỬI OTP
+        // ════════════════════════════════════════════════════════
+        public async Task SendOtpAsync(string toEmail, string userName, string otpCode)
+        {
+            var subject = "CareFirst Clinic — Mã xác thực tài khoản";
+            var html = $@"
+<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'><meta name='viewport' content='width=device-width'></head>
+<body style='margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;'>
+  <table width='100%' cellpadding='0' cellspacing='0'>
+    <tr><td align='center' style='padding:40px 20px;'>
+      <table width='560' cellpadding='0' cellspacing='0'
+             style='background:white;border-radius:8px;overflow:hidden;
+                    box-shadow:0 2px 8px rgba(0,0,0,0.08);'>
+
+        <tr><td style='background:#534AB7;padding:32px;text-align:center;'>
+          <h1 style='color:white;margin:0;font-size:24px;letter-spacing:1px;'>
+            CareFirst Clinic
+          </h1>
+          <p style='color:#EEEDFE;margin:8px 0 0;font-size:14px;'>Xác thực tài khoản</p>
+        </td></tr>
+
+        <tr><td style='padding:32px;'>
+          <p style='color:#333;font-size:16px;margin-top:0;'>
+            Xin chào <strong>{userName}</strong>,
+          </p>
+          <p style='color:#555;line-height:1.6;'>
+            Cảm ơn bạn đã đăng ký tại <strong>CareFirst Clinic</strong>.
+            Vui lòng nhập mã bên dưới để xác thực tài khoản:
+          </p>
+
+          <div style='text-align:center;margin:32px 0;'>
+            <div style='display:inline-block;background:#534AB7;color:white;
+                        font-size:42px;font-weight:bold;letter-spacing:14px;
+                        padding:18px 36px;border-radius:12px;'>
+              {otpCode}
+            </div>
+          </div>
+
+          <table width='100%' cellpadding='12' cellspacing='0'>
+            <tr><td style='background:#FFF8E1;border-left:4px solid #FFA000;border-radius:0 4px 4px 0;'>
+              <p style='margin:0;font-size:14px;color:#666;'>
+                ⏱ Mã có hiệu lực trong <strong>10 phút</strong>.
+                Không chia sẻ mã này với bất kỳ ai.
+              </p>
+            </td></tr>
+          </table>
+
+          <p style='color:#999;font-size:13px;margin-top:24px;'>
+            Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này.
+          </p>
+          <p style='color:#555;'>Trân trọng,<br><strong>CareFirst Clinic</strong></p>
+        </td></tr>
+
+        <tr><td style='background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #eee;'>
+          <p style='margin:0;color:#bbb;font-size:12px;'>Email tự động — vui lòng không trả lời</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>";
+            await SendAsync(toEmail, userName, subject, html);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // 2. ĐẶT LỊCH THÀNH CÔNG
+        // ════════════════════════════════════════════════════════
         public async Task SendAppointmentBookedAsync(
-            string toEmail,
-            string patientName,
-            string doctorName,
-            string specialtyName,
-            DateTime workDate,
-            TimeSpan startTime,
-            TimeSpan endTime,
-            string? reason)
+            string toEmail, string patientName, string doctorName,
+            string specialtyName, DateTime workDate,
+            TimeSpan startTime, TimeSpan endTime, string? reason)
         {
             var subject = "CareFirst Clinic — Đặt lịch hẹn thành công";
-            var html = BuildAppointmentBookedHtml(
-                patientName, doctorName, specialtyName,
-                workDate, startTime, endTime, reason);
+            var reasonRow = string.IsNullOrWhiteSpace(reason) ? "" : $@"
+              <tr>
+                <td style='padding:10px 0;color:#888;width:40%;font-size:14px;'>Lý do khám</td>
+                <td style='padding:10px 0;font-size:14px;'>{reason}</td>
+              </tr>";
 
+            var html = $@"
+<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'></head>
+<body style='margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;'>
+  <table width='100%' cellpadding='0' cellspacing='0'>
+    <tr><td align='center' style='padding:40px 20px;'>
+      <table width='560' cellpadding='0' cellspacing='0'
+             style='background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);'>
+
+        <tr><td style='background:#1D9E75;padding:32px;text-align:center;'>
+          <h1 style='color:white;margin:0;font-size:24px;'>CareFirst Clinic</h1>
+          <p style='color:#E1F5EE;margin:8px 0 0;font-size:14px;'>Đặt lịch hẹn thành công ✓</p>
+        </td></tr>
+
+        <tr><td style='padding:32px;'>
+          <p style='color:#333;'>Xin chào <strong>{patientName}</strong>,</p>
+          <p style='color:#555;'>Lịch hẹn của bạn đã được đặt thành công:</p>
+
+          <table width='100%' cellpadding='0' cellspacing='0'
+                 style='background:#f9f9f9;border-radius:8px;padding:20px;margin:16px 0;border:1px solid #eee;'>
+            <tr>
+              <td style='padding:10px 0;color:#888;width:40%;font-size:14px;'>Bác sĩ</td>
+              <td style='padding:10px 0;font-weight:bold;'>{doctorName}</td>
+            </tr>
+            <tr>
+              <td style='padding:10px 0;color:#888;font-size:14px;'>Chuyên khoa</td>
+              <td style='padding:10px 0;'>{specialtyName}</td>
+            </tr>
+            <tr>
+              <td style='padding:10px 0;color:#888;font-size:14px;'>Ngày khám</td>
+              <td style='padding:10px 0;font-weight:bold;color:#1D9E75;font-size:15px;'>
+                {workDate:dd/MM/yyyy}
+              </td>
+            </tr>
+            <tr>
+              <td style='padding:10px 0;color:#888;font-size:14px;'>Giờ khám</td>
+              <td style='padding:10px 0;font-weight:bold;font-size:16px;'>
+                {startTime:hh\\:mm} — {endTime:hh\\:mm}
+              </td>
+            </tr>
+            {reasonRow}
+          </table>
+
+          <table width='100%' cellpadding='12' cellspacing='0'>
+            <tr><td style='background:#FFF8E1;border-left:4px solid #FFA000;border-radius:0 4px 4px 0;'>
+              <p style='margin:0;font-size:14px;color:#666;'>
+                Vui lòng đến đúng giờ. Nếu cần hủy, hãy thực hiện trước 24 giờ.
+              </p>
+            </td></tr>
+          </table>
+          <p style='color:#555;margin-top:24px;'>Trân trọng,<br><strong>CareFirst Clinic</strong></p>
+        </td></tr>
+
+        <tr><td style='background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #eee;'>
+          <p style='margin:0;color:#bbb;font-size:12px;'>Email tự động — vui lòng không trả lời</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>";
             await SendAsync(toEmail, patientName, subject, html);
         }
 
-        // ── 2. EMAIL NHẮC LỊCH KHÁM (1 NGÀY TRƯỚC) ─────────────────
+        // ════════════════════════════════════════════════════════
+        // 3. NHẮC LỊCH KHÁM
+        // ════════════════════════════════════════════════════════
         public async Task SendAppointmentReminderAsync(
-            string toEmail,
-            string patientName,
-            string doctorName,
-            string specialtyName,
-            DateTime workDate,
-            TimeSpan startTime,
-            TimeSpan endTime)
+            string toEmail, string patientName, string doctorName,
+            string specialtyName, DateTime workDate,
+            TimeSpan startTime, TimeSpan endTime)
         {
-            var subject = "CareFirst Clinic — Nhắc nhở lịch khám ngày mai";
-            var html = BuildReminderHtml(
-                patientName, doctorName, specialtyName,
-                workDate, startTime, endTime);
+            var subject = "CareFirst Clinic — Nhắc lịch khám ngày mai";
+            var html = $@"
+<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'></head>
+<body style='margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;'>
+  <table width='100%' cellpadding='0' cellspacing='0'>
+    <tr><td align='center' style='padding:40px 20px;'>
+      <table width='560' cellpadding='0' cellspacing='0'
+             style='background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);'>
 
+        <tr><td style='background:#185FA5;padding:32px;text-align:center;'>
+          <h1 style='color:white;margin:0;font-size:24px;'>CareFirst Clinic</h1>
+          <p style='color:#E6F1FB;margin:8px 0 0;font-size:14px;'>Nhắc nhở lịch khám ngày mai 📅</p>
+        </td></tr>
+
+        <tr><td style='padding:32px;'>
+          <p style='color:#333;'>Xin chào <strong>{patientName}</strong>,</p>
+          <p style='color:#555;'>Bạn có lịch khám <strong>vào ngày mai</strong>. Đừng quên nhé!</p>
+
+          <table width='100%' cellpadding='0' cellspacing='0'
+                 style='background:#f9f9f9;border-radius:8px;padding:20px;margin:16px 0;border:1px solid #eee;'>
+            <tr>
+              <td style='padding:10px 0;color:#888;width:40%;font-size:14px;'>Bác sĩ</td>
+              <td style='padding:10px 0;font-weight:bold;'>{doctorName}</td>
+            </tr>
+            <tr>
+              <td style='padding:10px 0;color:#888;font-size:14px;'>Chuyên khoa</td>
+              <td style='padding:10px 0;'>{specialtyName}</td>
+            </tr>
+            <tr>
+              <td style='padding:10px 0;color:#888;font-size:14px;'>Ngày khám</td>
+              <td style='padding:10px 0;font-weight:bold;color:#185FA5;font-size:15px;'>
+                {workDate:dd/MM/yyyy}
+              </td>
+            </tr>
+            <tr>
+              <td style='padding:10px 0;color:#888;font-size:14px;'>Giờ khám</td>
+              <td style='padding:10px 0;font-weight:bold;font-size:20px;color:#185FA5;'>
+                {startTime:hh\\:mm} — {endTime:hh\\:mm}
+              </td>
+            </tr>
+          </table>
+
+          <table width='100%' cellpadding='12' cellspacing='0'>
+            <tr><td style='background:#E6F1FB;border-left:4px solid #185FA5;border-radius:0 4px 4px 0;'>
+              <p style='margin:0;font-size:14px;color:#185FA5;'>
+                Nhớ mang CMND/CCCD và kết quả xét nghiệm trước đây nếu có.
+              </p>
+            </td></tr>
+          </table>
+          <p style='color:#555;margin-top:24px;'>Trân trọng,<br><strong>CareFirst Clinic</strong></p>
+        </td></tr>
+
+        <tr><td style='background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #eee;'>
+          <p style='margin:0;color:#bbb;font-size:12px;'>Email tự động — vui lòng không trả lời</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>";
             await SendAsync(toEmail, patientName, subject, html);
         }
 
-        // ── 3. EMAIL GỬI ĐƠN THUỐC ──────────────────────────────────
+        // ════════════════════════════════════════════════════════
+        // 4. GỬI ĐƠN THUỐC
+        // ════════════════════════════════════════════════════════
         public async Task SendPrescriptionAsync(
-            string toEmail,
-            string patientName,
-            string doctorName,
-            DateTime issuedAt,
-            List<PrescriptionEmailItem> details,
-            string? notes)
-        {
-            var subject = "CareFirst Clinic — Đơn thuốc của bạn";
-            var html = BuildPrescriptionHtml(
-                patientName, doctorName, issuedAt, details, notes);
-
-            await SendAsync(toEmail, patientName, subject, html);
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // HTML TEMPLATES
-        // ════════════════════════════════════════════════════════════
-
-        private string BuildAppointmentBookedHtml(
-            string patientName, string doctorName, string specialtyName,
-            DateTime workDate, TimeSpan startTime, TimeSpan endTime, string? reason)
-        {
-            return $@"
-<!DOCTYPE html>
-<html>
-<head><meta charset='utf-8'></head>
-<body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;'>
-
-  <div style='background: #1D9E75; padding: 24px; border-radius: 8px 8px 0 0; text-align: center;'>
-    <h1 style='color: white; margin: 0; font-size: 22px;'>CareFirst Clinic</h1>
-    <p style='color: #E1F5EE; margin: 8px 0 0;'>Đặt lịch hẹn thành công</p>
-  </div>
-
-  <div style='background: #f9f9f9; padding: 24px; border: 1px solid #e0e0e0; border-top: none;'>
-    <p>Xin chào <strong>{patientName}</strong>,</p>
-    <p>Lịch hẹn khám của bạn đã được đặt thành công. Vui lòng xem thông tin chi tiết bên dưới:</p>
-
-    <div style='background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 16px 0;'>
-      <table style='width: 100%; border-collapse: collapse;'>
-        <tr>
-          <td style='padding: 8px 0; color: #666; width: 40%;'>Bác sĩ</td>
-          <td style='padding: 8px 0; font-weight: bold;'>{doctorName}</td>
-        </tr>
-        <tr>
-          <td style='padding: 8px 0; color: #666;'>Chuyên khoa</td>
-          <td style='padding: 8px 0;'>{specialtyName}</td>
-        </tr>
-        <tr>
-          <td style='padding: 8px 0; color: #666;'>Ngày khám</td>
-          <td style='padding: 8px 0; font-weight: bold; color: #1D9E75;'>
-            {workDate:dddd, dd/MM/yyyy}
-          </td>
-        </tr>
-        <tr>
-          <td style='padding: 8px 0; color: #666;'>Giờ khám</td>
-          <td style='padding: 8px 0; font-weight: bold;'>
-            {startTime:hh\\:mm} — {endTime:hh\\:mm}
-          </td>
-        </tr>
-        {(string.IsNullOrWhiteSpace(reason) ? "" : $@"
-        <tr>
-          <td style='padding: 8px 0; color: #666;'>Lý do khám</td>
-          <td style='padding: 8px 0;'>{reason}</td>
-        </tr>")}
-      </table>
-    </div>
-
-    <div style='background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 4px 4px 0; margin: 16px 0;'>
-      <p style='margin: 0; font-size: 14px; color: #666;'>
-        Vui lòng đến đúng giờ. Nếu cần hủy lịch, hãy thực hiện trước 24 giờ.
-      </p>
-    </div>
-
-    <p style='color: #666; font-size: 13px;'>Trân trọng,<br><strong>CareFirst Clinic</strong></p>
-  </div>
-
-  <div style='text-align: center; padding: 16px; color: #999; font-size: 12px;'>
-    Email này được gửi tự động, vui lòng không trả lời.
-  </div>
-</body>
-</html>";
-        }
-
-        private string BuildReminderHtml(
-            string patientName, string doctorName, string specialtyName,
-            DateTime workDate, TimeSpan startTime, TimeSpan endTime)
-        {
-            return $@"
-<!DOCTYPE html>
-<html>
-<head><meta charset='utf-8'></head>
-<body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;'>
-
-  <div style='background: #185FA5; padding: 24px; border-radius: 8px 8px 0 0; text-align: center;'>
-    <h1 style='color: white; margin: 0; font-size: 22px;'>CareFirst Clinic</h1>
-    <p style='color: #E6F1FB; margin: 8px 0 0;'>Nhắc nhở lịch khám</p>
-  </div>
-
-  <div style='background: #f9f9f9; padding: 24px; border: 1px solid #e0e0e0; border-top: none;'>
-    <p>Xin chào <strong>{patientName}</strong>,</p>
-    <p>Đây là lời nhắc nhở — bạn có lịch khám <strong>vào ngày mai</strong>:</p>
-
-    <div style='background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 16px 0;'>
-      <table style='width: 100%; border-collapse: collapse;'>
-        <tr>
-          <td style='padding: 8px 0; color: #666; width: 40%;'>Bác sĩ</td>
-          <td style='padding: 8px 0; font-weight: bold;'>{doctorName}</td>
-        </tr>
-        <tr>
-          <td style='padding: 8px 0; color: #666;'>Chuyên khoa</td>
-          <td style='padding: 8px 0;'>{specialtyName}</td>
-        </tr>
-        <tr>
-          <td style='padding: 8px 0; color: #666;'>Ngày khám</td>
-          <td style='padding: 8px 0; font-weight: bold; color: #185FA5;'>
-            {workDate:dddd, dd/MM/yyyy}
-          </td>
-        </tr>
-        <tr>
-          <td style='padding: 8px 0; color: #666;'>Giờ khám</td>
-          <td style='padding: 8px 0; font-weight: bold; font-size: 18px; color: #185FA5;'>
-            {startTime:hh\\:mm} — {endTime:hh\\:mm}
-          </td>
-        </tr>
-      </table>
-    </div>
-
-    <div style='background: #E6F1FB; border-left: 4px solid #185FA5; padding: 12px 16px; border-radius: 0 4px 4px 0;'>
-      <p style='margin: 0; font-size: 14px; color: #185FA5;'>
-        Nhớ mang theo CMND/CCCD và các kết quả xét nghiệm trước đây (nếu có).
-      </p>
-    </div>
-
-    <p style='color: #666; font-size: 13px; margin-top: 16px;'>Trân trọng,<br><strong>CareFirst Clinic</strong></p>
-  </div>
-
-  <div style='text-align: center; padding: 16px; color: #999; font-size: 12px;'>
-    Email này được gửi tự động, vui lòng không trả lời.
-  </div>
-</body>
-</html>";
-        }
-
-        private string BuildPrescriptionHtml(
-            string patientName, string doctorName,
+            string toEmail, string patientName, string doctorName,
             DateTime issuedAt, List<PrescriptionEmailItem> details, string? notes)
         {
-            // Build bảng thuốc
+            var subject = "CareFirst Clinic — Đơn thuốc của bạn";
             var rows = new StringBuilder();
             foreach (var d in details)
             {
                 rows.Append($@"
                 <tr>
-                  <td style='padding: 10px 12px; border-bottom: 1px solid #f0f0f0;'><strong>{d.MedicineName}</strong></td>
-                  <td style='padding: 10px 12px; border-bottom: 1px solid #f0f0f0; text-align: center;'>{d.Quantity} {d.Unit}</td>
-                  <td style='padding: 10px 12px; border-bottom: 1px solid #f0f0f0;'>{d.Frequency}</td>
-                  <td style='padding: 10px 12px; border-bottom: 1px solid #f0f0f0; text-align: center;'>{d.DurationDays} ngày</td>
-                  <td style='padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #666; font-size: 13px;'>{d.Instructions ?? "—"}</td>
+                  <td style='padding:10px 12px;border-bottom:1px solid #f0f0f0;'>
+                    <strong>{d.MedicineName}</strong>
+                  </td>
+                  <td style='padding:10px 12px;border-bottom:1px solid #f0f0f0;text-align:center;'>
+                    {d.Quantity} {d.Unit}
+                  </td>
+                  <td style='padding:10px 12px;border-bottom:1px solid #f0f0f0;'>{d.Frequency}</td>
+                  <td style='padding:10px 12px;border-bottom:1px solid #f0f0f0;text-align:center;'>
+                    {d.DurationDays} ngày
+                  </td>
+                  <td style='padding:10px 12px;border-bottom:1px solid #f0f0f0;color:#666;font-size:13px;'>
+                    {d.Instructions ?? "—"}
+                  </td>
                 </tr>");
             }
 
-            return $@"
+            var notesHtml = string.IsNullOrWhiteSpace(notes) ? "" : $@"
+            <table width='100%' cellpadding='12' cellspacing='0' style='margin-top:16px;'>
+              <tr><td style='background:#EEEDFE;border-left:4px solid #534AB7;border-radius:0 4px 4px 0;'>
+                <p style='margin:0;font-size:14px;'>
+                  <strong>Lưu ý từ bác sĩ:</strong> {notes}
+                </p>
+              </td></tr>
+            </table>";
+
+            var html = $@"
 <!DOCTYPE html>
 <html>
 <head><meta charset='utf-8'></head>
-<body style='font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; color: #333;'>
+<body style='margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;'>
+  <table width='100%' cellpadding='0' cellspacing='0'>
+    <tr><td align='center' style='padding:40px 20px;'>
+      <table width='620' cellpadding='0' cellspacing='0'
+             style='background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);'>
 
-  <div style='background: #534AB7; padding: 24px; border-radius: 8px 8px 0 0; text-align: center;'>
-    <h1 style='color: white; margin: 0; font-size: 22px;'>CareFirst Clinic</h1>
-    <p style='color: #EEEDFE; margin: 8px 0 0;'>Đơn thuốc điện tử</p>
-  </div>
+        <tr><td style='background:#534AB7;padding:32px;text-align:center;'>
+          <h1 style='color:white;margin:0;font-size:24px;'>CareFirst Clinic</h1>
+          <p style='color:#EEEDFE;margin:8px 0 0;font-size:14px;'>
+            Đơn thuốc điện tử — {issuedAt:dd/MM/yyyy}
+          </p>
+        </td></tr>
 
-  <div style='background: #f9f9f9; padding: 24px; border: 1px solid #e0e0e0; border-top: none;'>
-    <p>Xin chào <strong>{patientName}</strong>,</p>
-    <p>Bác sĩ <strong>{doctorName}</strong> đã kê đơn thuốc cho bạn sau buổi khám ngày <strong>{issuedAt:dd/MM/yyyy}</strong>.</p>
+        <tr><td style='padding:32px;'>
+          <p style='color:#333;'>Xin chào <strong>{patientName}</strong>,</p>
+          <p style='color:#555;'>
+            Bác sĩ <strong>{doctorName}</strong> đã kê đơn thuốc sau buổi khám ngày
+            <strong>{issuedAt:dd/MM/yyyy}</strong>.
+          </p>
 
-    <h3 style='margin: 20px 0 12px; font-size: 16px;'>Danh sách thuốc</h3>
-    <div style='overflow-x: auto;'>
-      <table style='width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;'>
-        <thead>
-          <tr style='background: #534AB7;'>
-            <th style='padding: 12px; color: white; text-align: left; font-weight: 500;'>Tên thuốc</th>
-            <th style='padding: 12px; color: white; text-align: center; font-weight: 500;'>Số lượng</th>
-            <th style='padding: 12px; color: white; text-align: left; font-weight: 500;'>Liều dùng</th>
-            <th style='padding: 12px; color: white; text-align: center; font-weight: 500;'>Số ngày</th>
-            <th style='padding: 12px; color: white; text-align: left; font-weight: 500;'>Hướng dẫn</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows}
-        </tbody>
+          <table width='100%' cellpadding='0' cellspacing='0'
+                 style='border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin:16px 0;'>
+            <tr style='background:#534AB7;'>
+              <th style='padding:12px;color:white;text-align:left;font-weight:500;font-size:13px;'>Tên thuốc</th>
+              <th style='padding:12px;color:white;text-align:center;font-weight:500;font-size:13px;'>Số lượng</th>
+              <th style='padding:12px;color:white;text-align:left;font-weight:500;font-size:13px;'>Liều dùng</th>
+              <th style='padding:12px;color:white;text-align:center;font-weight:500;font-size:13px;'>Số ngày</th>
+              <th style='padding:12px;color:white;text-align:left;font-weight:500;font-size:13px;'>Hướng dẫn</th>
+            </tr>
+            {rows}
+          </table>
+
+          {notesHtml}
+
+          <table width='100%' cellpadding='12' cellspacing='0' style='margin-top:16px;'>
+            <tr><td style='background:#FFF8E1;border-left:4px solid #FFA000;border-radius:0 4px 4px 0;'>
+              <p style='margin:0;font-size:13px;color:#666;'>
+                Uống thuốc đúng theo hướng dẫn. Nếu có triệu chứng bất thường hãy liên hệ phòng khám ngay.
+              </p>
+            </td></tr>
+          </table>
+          <p style='color:#555;margin-top:24px;'>Trân trọng,<br><strong>CareFirst Clinic</strong></p>
+        </td></tr>
+
+        <tr><td style='background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #eee;'>
+          <p style='margin:0;color:#bbb;font-size:12px;'>Email tự động — vui lòng không trả lời</p>
+        </td></tr>
       </table>
-    </div>
-
-    {(string.IsNullOrWhiteSpace(notes) ? "" : $@"
-    <div style='background: #EEEDFE; border-left: 4px solid #534AB7; padding: 12px 16px; border-radius: 0 4px 4px 0; margin: 16px 0;'>
-      <p style='margin: 0; font-size: 14px;'><strong>Lưu ý từ bác sĩ:</strong> {notes}</p>
-    </div>")}
-
-    <div style='background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 4px 4px 0; margin: 16px 0;'>
-      <p style='margin: 0; font-size: 13px; color: #666;'>
-        Uống thuốc đúng theo hướng dẫn. Nếu có triệu chứng bất thường, hãy liên hệ phòng khám ngay.
-      </p>
-    </div>
-
-    <p style='color: #666; font-size: 13px;'>Trân trọng,<br><strong>CareFirst Clinic</strong></p>
-  </div>
-
-  <div style='text-align: center; padding: 16px; color: #999; font-size: 12px;'>
-    Email này được gửi tự động, vui lòng không trả lời.
-  </div>
+    </td></tr>
+  </table>
 </body>
 </html>";
+            await SendAsync(toEmail, patientName, subject, html);
         }
     }
 }
