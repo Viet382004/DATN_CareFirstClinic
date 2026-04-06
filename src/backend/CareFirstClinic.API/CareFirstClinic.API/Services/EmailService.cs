@@ -17,9 +17,10 @@ namespace CareFirstClinic.API.Services
         }
 
         private string ResendApiKey =>
-            Environment.GetEnvironmentVariable("Resend:ApiKey")
-            ?? _config["Resend:ApiKey"]
-            ?? throw new Exception("Resend:ApiKey chưa được cấu hình trên Render.");
+    Environment.GetEnvironmentVariable("RESEND_API_KEY")
+    ?? _config["Resend:ApiKey"]
+    ?? _config["Resend__ApiKey"]
+    ?? throw new Exception("RESEND_API_KEY chưa được cấu hình trên Render.");
 
         private async Task SendAsync(string toEmail, string subject, string htmlContent)
         {
