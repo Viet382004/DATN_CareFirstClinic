@@ -1,5 +1,6 @@
-using SendGrid;
-using SendGrid.Helpers.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using System.Text;
 
 namespace CareFirstClinic.API.Services
@@ -15,76 +16,116 @@ namespace CareFirstClinic.API.Services
             _logger = logger;
         }
 
-        // ════════════════════════════════════════════════════════
-        // ĐỌC CONFIG — thử Environment Variable trước, fallback về appsettings
-        // Lý do: bạn dùng .env nên biến nằm trong Environment,
-        //        không phải trong _config["SendGrid:ApiKey"]
-        // ════════════════════════════════════════════════════════
-        private string ApiKey =>
-            Environment.GetEnvironmentVariable("SENDGRID_API_KEY")
-            ?? _config["SendGrid:ApiKey"]
+        // ===============================
+        // SMTP CONFIG
+        // ===============================
+        private string SmtpHost =>
+            Environment.GetEnvironmentVariable("EMAIL_SMTP_HOST")
+            ?? _config["Email:SmtpHost"]
+            ?? "smtp.gmail.com";
+
+        private int SmtpPort =>
+            int.TryParse(
+                Environment.GetEnvironmentVariable("EMAIL_SMTP_PORT")
+                ?? _config["Email:SmtpPort"],
+                out var port) ? port : 587;
+
+        private string SmtpUser =>
+            Environment.GetEnvironmentVariable("EMAIL_SMTP_USER")
+            ?? _config["Email:SmtpUser"]
+            ?? string.Empty;
+
+        private string SmtpPass =>
+            Environment.GetEnvironmentVariable("EMAIL_SMTP_PASS")
+            ?? _config["Email:SmtpPass"]
             ?? string.Empty;
 
         private string FromEmail =>
-            Environment.GetEnvironmentVariable("SENDGRID_FROM_EMAIL")
-            ?? _config["SendGrid:FromEmail"]
-            ?? string.Empty;
+            Environment.GetEnvironmentVariable("EMAIL_FROM")
+            ?? _config["Email:FromEmail"]
+            ?? SmtpUser;
 
         private string FromName =>
-            Environment.GetEnvironmentVariable("SENDGRID_FROM_NAME")
-            ?? _config["SendGrid:FromName"]
+            Environment.GetEnvironmentVariable("EMAIL_FROM_NAME")
+            ?? _config["Email:FromName"]
             ?? "CareFirst Clinic";
 
-        // ════════════════════════════════════════════════════════
-        // HÀM GỬI CHUNG
-        // ════════════════════════════════════════════════════════
-        private async Task SendAsync(string toEmail, string toName, string subject, string htmlContent)
+        // ===============================
+        // COMMON SEND METHOD
+        // ===============================
+        private async Task SendAsync(
+            string toEmail,
+            string toName,
+            string subject,
+            string htmlContent)
         {
-            // Log để debug — biết được đang đọc giá trị nào
-            _logger.LogInformation("SendGrid config — ApiKey: {Key}, FromEmail: {Email}",
-                string.IsNullOrWhiteSpace(ApiKey) ? "TRỐNG!" : ApiKey[..Math.Min(10, ApiKey.Length)] + "...",
-                string.IsNullOrWhiteSpace(FromEmail) ? "TRỐNG!" : FromEmail);
-
-            if (string.IsNullOrWhiteSpace(ApiKey))
+            if (string.IsNullOrWhiteSpace(SmtpUser) ||
+                string.IsNullOrWhiteSpace(SmtpPass))
             {
-                _logger.LogError("SENDGRID_API_KEY chưa được set trong .env hoặc appsettings.json");
+                _logger.LogError("SMTP credentials chưa được cấu hình.");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(FromEmail))
+            if (string.IsNullOrWhiteSpace(toEmail))
             {
-                _logger.LogError("SENDGRID_FROM_EMAIL chưa được set trong .env hoặc appsettings.json");
+                _logger.LogWarning("Email người nhận trống.");
                 return;
             }
 
             try
             {
-                var client = new SendGridClient(ApiKey);
-                var from = new EmailAddress(FromEmail, FromName);
-                var to = new EmailAddress(toEmail, toName);
-                var msg = MailHelper.CreateSingleEmail(
-                    from, to, subject,
-                    plainTextContent: null,
-                    htmlContent);
+                var message = new MimeMessage();
 
-                _logger.LogInformation("Đang gửi '{Subject}' → {ToEmail}...", subject, toEmail);
+                message.From.Add(new MailboxAddress(FromName, FromEmail));
+                message.To.Add(new MailboxAddress(toName ?? toEmail, toEmail));
+                message.Subject = subject;
 
-                var response = await client.SendEmailAsync(msg);
-
-                if (response.IsSuccessStatusCode)
+                var builder = new BodyBuilder
                 {
-                    _logger.LogInformation("✅ Gửi email thành công → {ToEmail}", toEmail);
-                }
-                else
-                {
-                    var body = await response.Body.ReadAsStringAsync();
-                    _logger.LogError("❌ SendGrid lỗi {Code}: {Body}",
-                        (int)response.StatusCode, body);
-                }
+                    HtmlBody = htmlContent
+                };
+
+                message.Body = builder.ToMessageBody();
+
+                using var smtp = new SmtpClient();
+
+                smtp.Timeout = 10000;
+
+                _logger.LogInformation(
+                    "SMTP đang kết nối {Host}:{Port} -> {ToEmail}",
+                    SmtpHost, SmtpPort, toEmail);
+
+                await smtp.ConnectAsync(
+                    SmtpHost,
+                    SmtpPort,
+                    SecureSocketOptions.StartTls);
+
+                await smtp.AuthenticateAsync(SmtpUser, SmtpPass);
+
+                await smtp.SendAsync(message);
+
+                await smtp.DisconnectAsync(true);
+
+                _logger.LogInformation(
+                    "✅ Email gửi thành công -> {ToEmail}",
+                    toEmail);
+            }
+            catch (AuthenticationException ex)
+            {
+                _logger.LogError(ex,
+                    "❌ SMTP auth failed. Kiểm tra EMAIL_SMTP_USER/PASS");
+            }
+            catch (SmtpCommandException ex)
+            {
+                _logger.LogError(ex,
+                    "❌ SMTP command lỗi: {StatusCode}",
+                    ex.StatusCode);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Exception khi gửi email → {ToEmail}", toEmail);
+                _logger.LogError(ex,
+                    "❌ Lỗi gửi email -> {ToEmail}",
+                    toEmail);
             }
         }
 

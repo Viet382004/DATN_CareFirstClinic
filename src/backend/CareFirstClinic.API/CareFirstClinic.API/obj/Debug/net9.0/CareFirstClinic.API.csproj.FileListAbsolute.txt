@@ -176,3 +176,6 @@ D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\CareFirstClinic.API.pdb
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\CareFirstClinic.API.genruntimeconfig.cache
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\ref\CareFirstClinic.API.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\BouncyCastle.Cryptography.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\MailKit.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\MimeKit.dll
