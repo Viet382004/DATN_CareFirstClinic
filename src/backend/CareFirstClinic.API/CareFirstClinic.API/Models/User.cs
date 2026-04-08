@@ -7,10 +7,6 @@ namespace CareFirstClinic.API.Models
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        [MaxLength(50)]
-        public string UserName { get; set; } = string.Empty;
-
-        [Required]
         public string PasswordHash { get; set; } = string.Empty;
 
         [Required]

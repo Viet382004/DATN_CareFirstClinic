@@ -131,10 +131,6 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 if (await _context.Users.AnyAsync(u => u.Email == doctor.User.Email))
                     throw new InvalidOperationException("Email đã được sử dụng.");
 
-                // Kiểm tra username trùng
-                if (await _context.Users.AnyAsync(u => u.UserName == doctor.User.UserName))
-                    throw new InvalidOperationException("Tên đăng nhập đã tồn tại.");
-
                 // Tìm role Doctor
                 var doctorRole = await _context.Roles
                     .FirstOrDefaultAsync(r => r.Name == "Doctor" && r.IsActive);

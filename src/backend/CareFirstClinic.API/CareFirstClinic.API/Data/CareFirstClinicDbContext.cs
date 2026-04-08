@@ -53,7 +53,6 @@ namespace CareFirstClinic.API.Data
             modelBuilder.Entity<User>(e =>
             {
                 e.HasKey(x => x.Id);
-                e.Property(x => x.UserName).IsRequired().HasMaxLength(50);
                 e.Property(x => x.Email).IsRequired().HasMaxLength(150);
                 e.HasIndex(x => x.Email).IsUnique();
                 e.Property(x => x.OtpCode).HasMaxLength(6);

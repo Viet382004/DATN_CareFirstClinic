@@ -49,7 +49,6 @@ namespace CareFirstClinic.API.Data
                 var adminUser = new User
                 {
                     Id = Guid.NewGuid(),
-                    UserName = "admin",
                     Email = "admin@clinic.com",
                     FullName = "System Admin",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),

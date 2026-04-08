@@ -37,9 +37,6 @@ namespace CareFirstClinic.API.Controllers
             if (await _context.Users.AnyAsync(x => x.Email == dto.Email))
                 return BadRequest("Email đã được sử dụng.");
 
-            if (await _context.Users.AnyAsync(x => x.UserName == dto.UserName))
-                return BadRequest("Tên đăng nhập đã tồn tại.");
-
             var patientRole = await _context.Roles
                 .FirstOrDefaultAsync(r => r.Name == "Patient" && r.IsActive);
 
@@ -55,7 +52,6 @@ namespace CareFirstClinic.API.Controllers
 
                 var user = new User
                 {
-                    UserName = dto.UserName,
                     PasswordHash = passwordHash,
                     Email = dto.Email,
                     FullName = dto.FullName,
@@ -164,7 +160,6 @@ namespace CareFirstClinic.API.Controllers
                 data = new
                 {
                     user.Id,
-                    user.UserName,
                     user.Email,
                     user.FullName,
                     RoleName = user.Role?.Name

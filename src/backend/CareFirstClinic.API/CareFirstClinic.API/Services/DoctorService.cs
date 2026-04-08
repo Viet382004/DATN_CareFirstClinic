@@ -148,7 +148,6 @@ namespace CareFirstClinic.API.Services
                     doctor.User = new User
                     {
                         Id = Guid.NewGuid(),
-                        UserName = dto.UserName,
                         Email = dto.Email,
                         FullName = dto.FullName,
                         PasswordHash = passwordHash,
