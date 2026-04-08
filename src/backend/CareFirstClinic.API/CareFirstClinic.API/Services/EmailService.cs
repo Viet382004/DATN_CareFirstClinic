@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 
 namespace CareFirstClinic.API.Services
 {
@@ -16,45 +17,82 @@ namespace CareFirstClinic.API.Services
             _httpClient = httpClient;
         }
 
-        private string ResendApiKey =>
-    Environment.GetEnvironmentVariable("RESEND_API_KEY")
-    ?? _config["Resend:ApiKey"]
-    ?? _config["Resend__ApiKey"]
-    ?? throw new Exception("RESEND_API_KEY chưa được cấu hình trên Render.");
+        // Lấy API key từ env hoặc config, có log chi tiết
+        private string GetBrevoApiKey()
+        {
+            var key = Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? _config["Brevo:ApiKey"];
+            if (string.IsNullOrEmpty(key))
+            {
+                _logger.LogError("❌ BREVO_API_KEY không được tìm thấy trong Environment hoặc appsettings.json");
+                throw new Exception("BREVO_API_KEY chưa được cấu hình.");
+            }
+            _logger.LogInformation("🔑 BREVO_API_KEY đã được tìm thấy, 5 ký tự đầu: {Prefix}", key.Substring(0, Math.Min(5, key.Length)));
+            return key;
+        }
+
+        private string GetBrevoSenderEmail()
+        {
+            var email = Environment.GetEnvironmentVariable("BREVO_SENDER_EMAIL") ?? _config["Brevo:SenderEmail"];
+            if (string.IsNullOrEmpty(email))
+            {
+                _logger.LogError("❌ BREVO_SENDER_EMAIL không được tìm thấy");
+                throw new Exception("BREVO_SENDER_EMAIL chưa được cấu hình.");
+            }
+            _logger.LogInformation("📧 Sender Email: {Email}", email);
+            return email;
+        }
+
+        private string GetBrevoSenderName()
+        {
+            return Environment.GetEnvironmentVariable("BREVO_SENDER_NAME")
+                   ?? _config["Brevo:SenderName"]
+                   ?? "CareFirst Clinic";
+        }
 
         private async Task SendAsync(string toEmail, string subject, string htmlContent)
         {
-            _logger.LogInformation("=== GỬI EMAIL RESEND ===");
-            _logger.LogInformation("To: {To} | Subject: {Subject}", toEmail, subject);
+            _logger.LogInformation("=== BẮT ĐẦU GỬI EMAIL QUA BREVO ===");
+            _logger.LogInformation("To: {ToEmail}", toEmail);
+            _logger.LogInformation("Subject: {Subject}", subject);
+
+            var apiKey = GetBrevoApiKey();
+            var senderEmail = GetBrevoSenderEmail();
+            var senderName = GetBrevoSenderName();
 
             var payload = new
             {
-                from = "CareFirst Clinic <hello@resend.dev>",
-                to = toEmail,
+                sender = new { email = senderEmail, name = senderName },
+                to = new[] { new { email = toEmail } },
                 subject = subject,
-                html = htmlContent
+                htmlContent = htmlContent
             };
+
+            // Log payload (ẩn html để tránh tràn log)
+            var payloadForLog = new { sender = payload.sender, to = payload.to, subject = payload.subject };
+            _logger.LogDebug("Payload: {Payload}", JsonSerializer.Serialize(payloadForLog));
 
             try
             {
-                _httpClient.DefaultRequestHeaders.Remove("Authorization");
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ResendApiKey}");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
+                _httpClient.DefaultRequestHeaders.Add("accept", "application/json");
 
-                var response = await _httpClient.PostAsJsonAsync("https://api.resend.com/emails", payload);
+                var response = await _httpClient.PostAsJsonAsync("https://api.brevo.com/v3/smtp/email", payload);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation("✅ Resend gửi email thành công đến {ToEmail}", toEmail);
+                    _logger.LogInformation("✅ Brevo gửi email thành công đến {ToEmail}", toEmail);
                 }
                 else
                 {
-                    var error = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("❌ Resend thất bại: {Error}", error);
+                    _logger.LogError("❌ Brevo thất bại. Status Code: {StatusCode}", response.StatusCode);
+                    _logger.LogError("Response Body: {ResponseBody}", responseBody);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Lỗi khi gọi Resend API đến {ToEmail}", toEmail);
+                _logger.LogError(ex, "❌ Lỗi ngoại lệ khi gọi Brevo API đến {ToEmail}", toEmail);
             }
         }
 

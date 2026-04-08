@@ -166,7 +166,6 @@ D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\staticwebassets.build.json.cache
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\staticwebassets.development.json
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\CareFirs.56CCFBB8.Up2Date
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\CareFirstClinic.API.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\refint\CareFirstClinic.API.dll
@@ -176,3 +175,4 @@ D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\BouncyCastle.Cryptography.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\MailKit.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\MimeKit.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

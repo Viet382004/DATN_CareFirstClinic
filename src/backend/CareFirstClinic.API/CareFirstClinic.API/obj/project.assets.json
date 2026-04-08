@@ -4939,6 +4939,7 @@
       "Microsoft.EntityFrameworkCore >= 9.0.13",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.13",
       "Microsoft.EntityFrameworkCore.Tools >= 9.0.13",
+      "MimeKit >= 4.15.1",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 9.0.4",
       "Swashbuckle.AspNetCore.Swagger >= 9.0.6",
       "Swashbuckle.AspNetCore.SwaggerGen >= 9.0.6",
@@ -5025,6 +5026,10 @@
             "suppressParent": "All",
             "target": "Package",
             "version": "[9.0.13, )"
+          },
+          "MimeKit": {
+            "target": "Package",
+            "version": "[4.15.1, )"
           },
           "Npgsql.EntityFrameworkCore.PostgreSQL": {
             "target": "Package",
