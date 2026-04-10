@@ -228,10 +228,11 @@ app.UseCors("AllowFrontend");
 
 // Bật Swagger cho cả môi trường Production trên Render
 app.UseSwagger();
+app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("v1/swagger.json", "CareFirst Clinic API v1");
-    c.RoutePrefix = "swagger"; 
+    c.RoutePrefix = "swagger";
     c.DocumentTitle = "CareFirst Clinic API Documentation";
 });
 
