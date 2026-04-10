@@ -171,6 +171,27 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
+        // POST /api/appointment/admin — Admin đặt lịch hộ bệnh nhân
+        [HttpPost("admin/{patientId:guid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateForPatient(Guid patientId, CreateAppointmentDTO dto)
+        {
+            try
+            {
+                var created = await _appointmentService.CreateForPatientAsync(patientId, dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id },
+                    new { message = "Đặt lịch hộ thành công.", data = created });
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return Conflict(ex.Message); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi Admin Create appointment.");
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
         // PUT /api/appointment/{id} — Patient sửa lý do/ghi chú khi còn Pending
         [HttpPut("{id:guid}")]
         [Authorize(Roles = "Patient")]

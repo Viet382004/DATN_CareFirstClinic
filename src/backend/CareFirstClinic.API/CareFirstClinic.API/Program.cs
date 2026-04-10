@@ -13,6 +13,7 @@ using CareFirstClinic.API.Services.Background;
 using CareFirstClinic.API.Services.ScheduleSeeder;
 using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -27,6 +28,12 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development
 }
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Cấu hình Forwarded Headers (Bắt buộc để Swagger/Auth chạy đúng trên Render)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 builder.Services.AddCors(options =>
 {
@@ -155,12 +162,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "CareFirstClinic API",
-        Version = "v1",
-        Description = "API cho hệ thống phòng khám CareFirst Clinic"
-    });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CareFirstClinic API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -169,7 +171,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Nhập token theo định dạng: Bearer {token}"
+        Description = "Nhập token: Bearer {token}"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -221,26 +223,21 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Đã xảy ra lỗi khi seed dữ liệu.");
     }
 }
+app.UseForwardedHeaders(); 
 app.UseCors("AllowFrontend");
 
+// Bật Swagger cho cả môi trường Production trên Render
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CareFirstClinic.API v1");
-    c.RoutePrefix = "swagger";
+    c.SwaggerEndpoint("v1/swagger.json", "CareFirst Clinic API v1");
+    c.RoutePrefix = "swagger"; 
     c.DocumentTitle = "CareFirst Clinic API Documentation";
 });
 
 app.UseStaticFiles();
-
-if (!app.Environment.IsDevelopment())
-{
-    // app.UseHttpsRedirection();  
-}
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

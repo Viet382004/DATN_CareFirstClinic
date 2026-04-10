@@ -10,6 +10,7 @@ namespace CareFirstClinic.API.Services
         Task<List<AppointmentDTO>> GetMyAppointmentsAsync(Guid patientId);
         Task<List<AppointmentDTO>> GetByDoctorIdAsync(Guid doctorId);
         Task<AppointmentDTO> CreateAsync(Guid patientId, CreateAppointmentDTO dto);
+        Task<AppointmentDTO> CreateForPatientAsync(Guid patientId, CreateAppointmentDTO dto);
         Task<AppointmentDTO?> UpdateAsync(Guid id, Guid patientId, UpdateAppointmentDTO dto);
         Task<AppointmentDTO?> ConfirmAsync(Guid id);
         Task<AppointmentDTO?> ToWaitingAsync(Guid id);
