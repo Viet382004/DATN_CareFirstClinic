@@ -87,17 +87,25 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
         }
 
         // GET BY SPECIALTY — Lọc theo chuyên khoa
-        public async Task<List<Doctor>> GetBySpecialtyAsync(Guid specialtyId)
+        public async Task<List<Doctor>> GetBySpecialtyAsync(Guid specialtyId, string? search = null)
         {
             if (specialtyId == Guid.Empty)
                 throw new ArgumentException("SpecialtyId không hợp lệ.", nameof(specialtyId));
 
             try
             {
-                return await _context.Doctors
+                var q = _context.Doctors
                     .Include(d => d.Specialty)
                     .Include(d => d.User)
-                    .Where(d => d.SpecialtyId == specialtyId && d.User.IsActive)
+                    .Where(d => d.SpecialtyId == specialtyId && d.User.IsActive);
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var s = search.Trim().ToLower();
+                    q = q.Where(d => d.FullName.ToLower().Contains(s) || (d.Specialty != null && d.Specialty.Name.ToLower().Contains(s)));
+                }
+
+                return await q
                     .OrderBy(d => d.FullName)
                     .ToListAsync();
             }
@@ -281,7 +289,12 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 .AsQueryable();
 
             // tìm kiếm 
-            if (!string.IsNullOrWhiteSpace(query.Name))
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                var search = query.Search.Trim().ToLower();
+                q = q.Where(d => d.FullName.ToLower().Contains(search) || (d.Specialty != null && d.Specialty.Name.ToLower().Contains(search)));
+            }
+            else if (!string.IsNullOrWhiteSpace(query.Name))
             {
                 var name = query.Name.Trim().ToLower();
                 q = q.Where(d => d.FullName.ToLower().Contains(name));
@@ -299,7 +312,7 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 "yearsOfExperience" => query.IsAscending
                     ? q.OrderBy(d => d.YearsOfExperience)
                     : q.OrderByDescending(d => d.YearsOfExperience),
-                _ => query.IsAscending  // mặc định sort theo tên
+                _ => query.IsAscending  
                     ? q.OrderBy(d => d.FullName)
                     : q.OrderByDescending(d => d.FullName)
             };

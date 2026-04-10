@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.DTOs.Specialty;
+using CareFirstClinic.API.DTOs.Specialty;
+using CareFirstClinic.API.Common;
 using System.Threading.Tasks;
 
 namespace CareFirstClinic.API.Services
@@ -11,5 +12,6 @@ namespace CareFirstClinic.API.Services
         Task<SpecialtyDTO> UpdateAsync(Guid id, UpdateSpecialtyDTO dto);
         Task<bool> DeleteAsync(Guid id);
         Task<bool> ToggleActiveAsync(Guid id);
+        Task<PagedResult<SpecialtyDTO>> GetPagedAsync(SpecialtyQueryParams query);
     }
 }

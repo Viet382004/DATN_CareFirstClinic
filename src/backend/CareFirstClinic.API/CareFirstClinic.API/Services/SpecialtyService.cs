@@ -1,6 +1,7 @@
-﻿using CareFirstClinic.API.DTOs;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.Specialty;
 using CareFirstClinic.API.Models;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Repositories.SpecialtyRepo;
 
 namespace CareFirstClinic.API.Services
@@ -123,11 +124,11 @@ namespace CareFirstClinic.API.Services
             }
             catch (KeyNotFoundException)
             {
-                throw; // Để Controller trả 404
+                throw; 
             }
             catch (InvalidOperationException)
             {
-                throw; // Tên trùng hoặc xung đột — để Controller trả 409
+                throw; 
             }
             catch (Exception ex)
             {
@@ -152,7 +153,7 @@ namespace CareFirstClinic.API.Services
             }
             catch (InvalidOperationException)
             {
-                throw; // Còn bác sĩ active — để Controller trả 409
+                throw;
             }
             catch (Exception ex)
             {
@@ -177,16 +178,37 @@ namespace CareFirstClinic.API.Services
             }
             catch (KeyNotFoundException)
             {
-                throw; // Để Controller trả 404
+                throw; 
             }
             catch (InvalidOperationException)
             {
-                throw; // Còn bác sĩ active — để Controller trả 409
+                throw; 
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi toggle active chuyên khoa Id: {Id}", id);
                 throw new ApplicationException("Không thể thay đổi trạng thái chuyên khoa.", ex);
+            }
+        }
+
+        public async Task<PagedResult<SpecialtyDTO>> GetPagedAsync(SpecialtyQueryParams query)
+        {
+            try
+            {
+                var (items, total) = await _specialtyRepository.GetPagedAsync(query);
+                
+                return new PagedResult<SpecialtyDTO>
+                {
+                    Items = items.Select(MapToDTO).ToList(),
+                    TotalItems = total,
+                    Page = query.Page,
+                    PageSize = query.PageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách chuyên khoa phân trang.");
+                throw new ApplicationException("Không thể lấy danh sách chuyên khoa phân trang.", ex);
             }
         }
 

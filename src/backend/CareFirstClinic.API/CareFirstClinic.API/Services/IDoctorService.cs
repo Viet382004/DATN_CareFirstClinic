@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 
 namespace CareFirstClinic.API.Services
@@ -8,7 +8,7 @@ namespace CareFirstClinic.API.Services
         Task<List<DoctorDTO>> GetAllAsync();
         Task<DoctorDTO?> GetByIdAsync(Guid id);
         Task<DoctorDTO?> GetByUserIdAsync(Guid userId);
-        Task<List<DoctorDTO>> GetBySpecialtyAsync(Guid specialtyId);
+        Task<List<DoctorDTO>> GetBySpecialtyAsync(Guid specialtyId, string? search = null);
         Task<DoctorDTO> CreateAsync(CreateDoctorDTO dto);
         Task<DoctorDTO?> UpdateAsync(Guid id, UpdateDoctorDTO dto);
         Task<bool> DeleteAsync(Guid id);

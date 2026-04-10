@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CareFirstClinic.API.Models
 {
@@ -11,7 +12,7 @@ namespace CareFirstClinic.API.Models
         [Required]
         [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
-
+        [Column(TypeName = "date")]
         public DateTime DateOfBirth { get; set; }
 
         [Required]

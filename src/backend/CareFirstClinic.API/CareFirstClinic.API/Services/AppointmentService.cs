@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
@@ -114,6 +114,16 @@ namespace CareFirstClinic.API.Services
 
             try
             {
+                var patient = await _context.Patients.FindAsync(patientId);
+                if (patient != null)
+                {
+                    patient.FullName = dto.FullName;
+                    patient.DateOfBirth = dto.Dob;
+                    patient.Gender = dto.Gender;
+                    patient.PhoneNumber = dto.Phone;
+                    _context.Patients.Update(patient);
+                }
+
                 var appointment = new Appointment
                 {
                     Id = Guid.NewGuid(),
@@ -301,7 +311,7 @@ namespace CareFirstClinic.API.Services
                 appointment.CancelledAt = DateTime.UtcNow;
                 appointment.UpdatedAt = DateTime.UtcNow;
 
-                var updated = await _appointmentRepo.UpdateAsync(appointment);
+                var updated = await _appointmentRepo.CancelAsync(appointment, appointment.TimeSlot!);
                 return MapToDTO(updated);
             }
             catch (ArgumentException) { throw; }

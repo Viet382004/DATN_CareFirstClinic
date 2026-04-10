@@ -93,12 +93,13 @@ namespace CareFirstClinic.API.Controllers
         // Public — lọc bác sĩ theo chuyên khoa
         [HttpGet("specialty/{specialtyId:guid}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetBySpecialty(Guid specialtyId)
+        public async Task<IActionResult> GetBySpecialty(Guid specialtyId, [FromQuery] DoctorQueryParams query)
         {
             try
             {
-                var doctors = await _doctorService.GetBySpecialtyAsync(specialtyId);
-                return Ok(doctors);
+                query.SpecialtyId = specialtyId;
+                var result = await _doctorService.GetPagedAsync(query);
+                return Ok(result);
             }
             catch (ArgumentException ex)
             {

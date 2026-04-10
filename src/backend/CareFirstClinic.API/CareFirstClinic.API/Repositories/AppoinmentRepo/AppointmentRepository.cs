@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Data;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
 using CareFirstClinic.API.Common;
@@ -133,6 +133,14 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
                     throw new InvalidOperationException("TimeSlot đã được đặt. Vui lòng chọn slot khác.");
 
                 slot.IsBooked = true;
+
+                var schedule = await _context.Schedules.FindAsync(slot.ScheduleId);
+                if (schedule != null)
+                {
+                    schedule.AvailableSlots = Math.Max(0, schedule.AvailableSlots - 1);
+                    _context.Schedules.Update(schedule);
+                }
+
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -188,9 +196,62 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
                 throw new InvalidOperationException("Không thể cập nhật lịch hẹn. Vui lòng thử lại.", ex);
             }
         }
+
+        public async Task<Appointment> CancelAsync(Appointment appointment, TimeSlot timeSlot)
+        {
+            ArgumentNullException.ThrowIfNull(appointment, nameof(appointment));
+            ArgumentNullException.ThrowIfNull(timeSlot, nameof(timeSlot));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Giải phóng TimeSlot
+                var slot = await _context.TimeSlots.FindAsync(timeSlot.Id);
+                if (slot != null)
+                {
+                    slot.IsBooked = false;
+                    _context.TimeSlots.Update(slot);
+                }
+
+                // 2. Tăng lại AvailableSlots trong Schedule
+                var schedule = await _context.Schedules.FindAsync(timeSlot.ScheduleId);
+                if (schedule != null)
+                {
+                    schedule.AvailableSlots += 1;
+                    // Đảm bảo schedule ở trạng thái IsAvailable nếu trước đó bị hết chỗ
+                    schedule.IsAvailable = true;
+                    _context.Schedules.Update(schedule);
+                }
+
+                // 3. Cập nhật trạng thái Appointment
+                _context.Appointments.Update(appointment);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return appointment;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Lỗi khi hủy lịch hẹn và phục hồi slot: {Id}", appointment.Id);
+                throw new InvalidOperationException("Không thể xử lý yêu cầu hủy lịch. Vui lòng thử lại.", ex);
+            }
+        }
+
         public async Task<(List<Appointment> Items, int Total)> GetPagedAsync(AppointmentQueryParams query)
         {
             var q = BaseQuery();
+
+            // tìm kiếm (doctor name, specialty name, reason)
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                var s = query.Search.Trim().ToLower();
+                q = q.Where(a => 
+                    (a.TimeSlot != null && a.TimeSlot.Schedule != null && a.TimeSlot.Schedule.Doctor != null && a.TimeSlot.Schedule.Doctor.FullName.ToLower().Contains(s)) ||
+                    (a.TimeSlot != null && a.TimeSlot.Schedule != null && a.TimeSlot.Schedule.Doctor != null && a.TimeSlot.Schedule.Doctor.Specialty != null && a.TimeSlot.Schedule.Doctor.Specialty.Name.ToLower().Contains(s)) ||
+                    (a.Reason != null && a.Reason.ToLower().Contains(s))
+                );
+            }
 
             // lọc theo lịch hôm nay — ưu tiên hơn FromDate/ToDate
             if (query.Today == true)

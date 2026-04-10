@@ -4,6 +4,8 @@ namespace CareFirstClinic.API.Models
     {
         Pending,
         Confirmed,
+        Waiting,
+        InProgress,
         Completed,
         Cancelled
     }

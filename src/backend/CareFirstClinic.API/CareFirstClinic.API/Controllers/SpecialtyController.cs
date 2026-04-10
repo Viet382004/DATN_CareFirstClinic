@@ -1,6 +1,7 @@
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.Specialty;
 using CareFirstClinic.API.Services;
+using CareFirstClinic.API.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,24 @@ namespace CareFirstClinic.API.Controllers
         {
             _specialtyService = specialtyService;
             _logger = logger;
+        }
+
+        // GET /api/specialty/paged
+        // Public — ai cũng xem được danh sách chuyên khoa phân trang
+        [HttpGet("paged")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPaged([FromQuery] SpecialtyQueryParams query)
+        {
+            try
+            {
+                var result = await _specialtyService.GetPagedAsync(query);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged specialties.");
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
         }
 
         // GET /api/specialty

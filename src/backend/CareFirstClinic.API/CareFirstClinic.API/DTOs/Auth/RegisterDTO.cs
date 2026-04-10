@@ -4,10 +4,6 @@ namespace CareFirstClinic.API.DTOs.Auth
 {
     public class RegisterDTO
     {
-        [Required(ErrorMessage = "Tên đăng nhập không được để trống.")]
-        [MinLength(3, ErrorMessage = "Tên đăng nhập phải có ít nhất 3 ký tự.")]
-        [MaxLength(50, ErrorMessage = "Tên đăng nhập tối đa 50 ký tự.")]
-        public string UserName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Mật khẩu không được để trống.")]
         [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]

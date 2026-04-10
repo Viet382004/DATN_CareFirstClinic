@@ -1,5 +1,6 @@
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
+using CareFirstClinic.API.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareFirstClinic.API.Repositories.SpecialtyRepo
@@ -190,6 +191,38 @@ namespace CareFirstClinic.API.Repositories.SpecialtyRepo
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi toggle active chuyên khoa Id: {Id}", id);
+                throw;
+            }
+        }
+
+        public async Task<(List<Specialty> Items, int Total)> GetPagedAsync(SpecialtyQueryParams query)
+        {
+            try
+            {
+                var q = _context.Specialties
+                    .Include(s => s.Doctors.Where(d => d.User.IsActive))
+                    .Where(s => s.IsActive)
+                    .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(query.Search))
+                {
+                    var search = query.Search.Trim().ToLower();
+                    q = q.Where(s => s.Name.ToLower().Contains(search) || (s.Description != null && s.Description.ToLower().Contains(search)));
+                }
+
+                var total = await q.CountAsync();
+
+                var items = await q
+                    .OrderBy(s => s.Name)
+                    .Skip((query.Page - 1) * query.PageSize)
+                    .Take(query.PageSize)
+                    .ToListAsync();
+
+                return (items, total);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetPaged specialties.");
                 throw;
             }
         }

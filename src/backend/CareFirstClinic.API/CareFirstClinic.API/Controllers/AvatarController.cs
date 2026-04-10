@@ -31,7 +31,7 @@ namespace CareFirstClinic.API.Controllers
         // POST /api/avatar/doctor
         [HttpPost("doctor")]
         [Authorize(Roles = "Doctor,Admin")]
-        public async Task<IActionResult> UploadDoctorAvatar(IFormFile file)
+        public async Task<IActionResult> UploadDoctorAvatar([FromForm] IFormFile file)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace CareFirstClinic.API.Controllers
         // POST /api/avatar/doctor/{doctorId}
         [HttpPost("doctor/{doctorId:guid}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UploadDoctorAvatarById(Guid doctorId, IFormFile file)
+        public async Task<IActionResult> UploadDoctorAvatarById(Guid doctorId, [FromForm] IFormFile file)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace CareFirstClinic.API.Controllers
         // POST /api/avatar/patient
         [HttpPost("patient")]
         [Authorize(Roles = "Patient,Admin")]
-        public async Task<IActionResult> UploadPatientAvatar(IFormFile file)
+        public async Task<IActionResult> UploadPatientAvatar([FromForm] IFormFile file)
         {
             try
             {
@@ -139,7 +139,7 @@ namespace CareFirstClinic.API.Controllers
         // POST /api/avatar/patient/{patientId}
         [HttpPost("patient/{patientId:guid}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UploadPatientAvatarById(Guid patientId, IFormFile file)
+        public async Task<IActionResult> UploadPatientAvatarById(Guid patientId, [FromForm] IFormFile file)
         {
             try
             {

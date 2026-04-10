@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Models;
 
 namespace CareFirstClinic.API.Repositories.DoctorRepo
@@ -8,7 +8,7 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
         Task<List<Doctor>> GetAllAsync();
         Task<Doctor?> GetByIdAsync(Guid id);
         Task<Doctor?> GetByUserIdAsync(Guid userId);
-        Task<List<Doctor>> GetBySpecialtyAsync(Guid specialtyId);
+        Task<List<Doctor>> GetBySpecialtyAsync(Guid specialtyId, string? search = null);
         Task<Doctor> AddAsync(Doctor doctor);
         Task<Doctor> UpdateAsync(Doctor doctor);
         Task<bool> SoftDeleteAsync(Guid id);

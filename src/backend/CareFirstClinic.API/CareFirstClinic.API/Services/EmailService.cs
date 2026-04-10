@@ -8,13 +8,16 @@ namespace CareFirstClinic.API.Services
     {
         private readonly IConfiguration _config;
         private readonly ILogger<EmailService> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public EmailService(IConfiguration config, ILogger<EmailService> logger, HttpClient httpClient)
+        public EmailService(
+        IConfiguration config,
+        ILogger<EmailService> logger,
+        IHttpClientFactory httpClientFactory)   // ← Sửa ở đây
         {
             _config = config;
             _logger = logger;
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
         }
 
         // Lấy API key từ env hoặc config, có log chi tiết
@@ -23,10 +26,10 @@ namespace CareFirstClinic.API.Services
             var key = Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? _config["Brevo:ApiKey"];
             if (string.IsNullOrEmpty(key))
             {
-                _logger.LogError("❌ BREVO_API_KEY không được tìm thấy trong Environment hoặc appsettings.json");
+                _logger.LogError("BREVO_API_KEY không được tìm thấy trong Environment hoặc appsettings.json");
                 throw new Exception("BREVO_API_KEY chưa được cấu hình.");
             }
-            _logger.LogInformation("🔑 BREVO_API_KEY đã được tìm thấy, 5 ký tự đầu: {Prefix}", key.Substring(0, Math.Min(5, key.Length)));
+            _logger.LogInformation("BREVO_API_KEY đã được tìm thấy, 5 ký tự đầu: {Prefix}", key.Substring(0, Math.Min(5, key.Length)));
             return key;
         }
 
@@ -35,10 +38,10 @@ namespace CareFirstClinic.API.Services
             var email = Environment.GetEnvironmentVariable("BREVO_SENDER_EMAIL") ?? _config["Brevo:SenderEmail"];
             if (string.IsNullOrEmpty(email))
             {
-                _logger.LogError("❌ BREVO_SENDER_EMAIL không được tìm thấy");
+                _logger.LogError("BREVO_SENDER_EMAIL không được tìm thấy");
                 throw new Exception("BREVO_SENDER_EMAIL chưa được cấu hình.");
             }
-            _logger.LogInformation("📧 Sender Email: {Email}", email);
+            _logger.LogInformation("Sender Email: {Email}", email);
             return email;
         }
 
@@ -52,8 +55,6 @@ namespace CareFirstClinic.API.Services
         private async Task SendAsync(string toEmail, string subject, string htmlContent)
         {
             _logger.LogInformation("=== BẮT ĐẦU GỬI EMAIL QUA BREVO ===");
-            _logger.LogInformation("To: {ToEmail}", toEmail);
-            _logger.LogInformation("Subject: {Subject}", subject);
 
             var apiKey = GetBrevoApiKey();
             var senderEmail = GetBrevoSenderEmail();
@@ -67,37 +68,36 @@ namespace CareFirstClinic.API.Services
                 htmlContent = htmlContent
             };
 
-            // Log payload (ẩn html để tránh tràn log)
-            var payloadForLog = new { sender = payload.sender, to = payload.to, subject = payload.subject };
-            _logger.LogDebug("Payload: {Payload}", JsonSerializer.Serialize(payloadForLog));
-
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
-                _httpClient.DefaultRequestHeaders.Add("accept", "application/json");
+                // Tạo HttpClient mới mỗi lần gửi → tránh disposed
+                using var client = _httpClientFactory.CreateClient();
 
-                var response = await _httpClient.PostAsJsonAsync("https://api.brevo.com/v3/smtp/email", payload);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("api-key", apiKey);
+                client.DefaultRequestHeaders.Add("accept", "application/json");
+
+                var response = await client.PostAsJsonAsync("https://api.brevo.com/v3/smtp/email", payload);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation("✅ Brevo gửi email thành công đến {ToEmail}", toEmail);
+                    _logger.LogInformation("Brevo gửi email thành công đến {ToEmail}", toEmail);
                 }
                 else
                 {
-                    _logger.LogError("❌ Brevo thất bại. Status Code: {StatusCode}", response.StatusCode);
-                    _logger.LogError("Response Body: {ResponseBody}", responseBody);
+                    _logger.LogError("Brevo thất bại. Status: {StatusCode} | Body: {Body}",
+                        response.StatusCode, responseBody);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Lỗi ngoại lệ khi gọi Brevo API đến {ToEmail}", toEmail);
+                _logger.LogError(ex, "Lỗi ngoại lệ khi gọi Brevo API đến {ToEmail}", toEmail);
             }
         }
 
-        // 1. GỬI OTP
-        public async Task SendOtpAsync(string toEmail, string userName, string otpCode)
+// 1. GỬI OTP
+public async Task SendOtpAsync(string toEmail, string userName, string otpCode)
         {
             var subject = "CareFirst Clinic - Mã xác thực tài khoản";
 
@@ -148,12 +148,25 @@ namespace CareFirstClinic.API.Services
         }
 
         // 2. ĐẶT LỊCH THÀNH CÔNG
-        public async Task SendAppointmentBookedAsync(string toEmail, string patientName, string doctorName,
-            string specialtyName, DateTime workDate, TimeSpan startTime, TimeSpan endTime, string? reason)
+        public async Task SendAppointmentBookedAsync(
+    string toEmail,
+    string patientName,
+    string doctorName,
+    string specialtyName,
+    DateTime workDate,
+    TimeSpan startTime,
+    TimeSpan endTime,
+    string? reason)
         {
             var subject = "CareFirst Clinic - Đặt lịch hẹn thành công";
 
-            var reasonRow = string.IsNullOrWhiteSpace(reason) ? "" : $"<tr><td style='padding:10px 0;color:#555555;width:40%;'>Lý do khám</td><td style='padding:10px 0;'>{reason}</td></tr>";
+            // === SỬA Ở ĐÂY: Format TimeSpan đúng cách ===
+            string startTimeStr = startTime.ToString(@"hh\:mm");
+            string endTimeStr = endTime.ToString(@"hh\:mm");
+
+            var reasonRow = string.IsNullOrWhiteSpace(reason)
+                ? ""
+                : $"<tr><td style='padding:10px 0;color:#555555;width:40%;'>Lý do khám</td><td style='padding:10px 0;'>{reason}</td></tr>";
 
             var html = $@"
 <!DOCTYPE html>
@@ -163,25 +176,36 @@ namespace CareFirstClinic.API.Services
   <table width='100%' cellpadding='0' cellspacing='0'>
     <tr><td align='center' style='padding:40px 20px;'>
       <table width='600' cellpadding='0' cellspacing='0' style='background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05);'>
+        
         <tr><td style='background:#0d6efd; padding:30px; text-align:center;'>
           <h1 style='color:#ffffff; margin:0; font-size:26px;'>CareFirst Clinic</h1>
         </td></tr>
+        
         <tr><td style='padding:40px 30px;'>
-          <p style='font-size:16px; color:#333333;'>Xin chào <strong>{patientName}</strong>,</p>
-          <p style='font-size:16px; color:#555555;'>Lịch hẹn của bạn đã được đặt thành công với thông tin sau:</p>
-          
+          <p style='font-size:16px; color:#333333; margin:0 0 20px 0;'>Xin chào <strong>{patientName}</strong>,</p>
+          <p style='font-size:16px; color:#555555; line-height:1.6;'>
+            Lịch hẹn của bạn đã được đặt thành công với thông tin sau:
+          </p>
+         
           <table width='100%' cellpadding='0' cellspacing='0' style='background:#f8f9fa; border-radius:8px; padding:20px; margin:20px 0; border:1px solid #e9ecef;'>
-            <tr><td style='padding:10px 0; color:#555555; width:40%;'>Bác sĩ</td><td style='padding:10px 0; font-weight:600;'>{doctorName}</td></tr>
-            <tr><td style='padding:10px 0; color:#555555;'>Chuyên khoa</td><td style='padding:10px 0;'>{specialtyName}</td></tr>
-            <tr><td style='padding:10px 0; color:#555555;'>Ngày khám</td><td style='padding:10px 0; font-weight:600;'>{workDate:dd/MM/yyyy}</td></tr>
-            <tr><td style='padding:10px 0; color:#555555;'>Giờ khám</td><td style='padding:10px 0; font-weight:600;'>{startTime:hh\\:mm} - {endTime:hh\\:mm}</td></tr>
+            <tr><td style='padding:10px 0; color:#555555; width:40%;'>Bác sĩ</td>
+                <td style='padding:10px 0; font-weight:600;'>{doctorName}</td></tr>
+            <tr><td style='padding:10px 0; color:#555555;'>Chuyên khoa</td>
+                <td style='padding:10px 0;'>{specialtyName}</td></tr>
+            <tr><td style='padding:10px 0; color:#555555;'>Ngày khám</td>
+                <td style='padding:10px 0; font-weight:600;'>{workDate:dd/MM/yyyy}</td></tr>
+            <tr><td style='padding:10px 0; color:#555555;'>Giờ khám</td>
+                <td style='padding:10px 0; font-weight:600;'>{startTimeStr} - {endTimeStr}</td></tr>
             {reasonRow}
           </table>
 
           <p style='font-size:14px; color:#666666;'>Vui lòng đến đúng giờ. Nếu cần thay đổi hoặc hủy lịch, vui lòng thực hiện trước 24 giờ.</p>
         </td></tr>
+
         <tr><td style='background:#f8f9fa; padding:25px; text-align:center; border-top:1px solid #eeeeee;'>
-          <p style='font-size:13px; color:#888888; margin:0;'>© 2026 CareFirst Clinic - Phòng khám chăm sóc sức khỏe</p>
+          <p style='font-size:13px; color:#888888; margin:0;'>
+            © 2026 CareFirst Clinic - Phòng khám chăm sóc sức khỏe
+          </p>
         </td></tr>
       </table>
     </td></tr>

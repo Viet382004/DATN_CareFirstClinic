@@ -70,7 +70,7 @@ namespace CareFirstClinic.API.Controllers
                     Id = Guid.NewGuid(),
                     UserId = user.Id,
                     FullName = user.FullName,
-                    DateOfBirth = dto.DateOfBirth,
+                    DateOfBirth = DateTime.SpecifyKind(dto.DateOfBirth, DateTimeKind.Utc),
                     Gender = dto.Gender,
                     PhoneNumber = "",
                     CreatedAt = DateTime.UtcNow,

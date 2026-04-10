@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories.ScheduleRepo;
@@ -95,7 +95,8 @@ namespace CareFirstClinic.API.Services
 
             try
             {
-                var schedules = await _Schedulerepo.GetAvailableByDoctorAndDateAsync(doctorId, date);
+                var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+                var schedules = await _Schedulerepo.GetAvailableByDoctorAndDateAsync(doctorId, utcDate);
 
                 var availableSchedules = schedules
                     .Where(s => s.TimeSlots.Any(ts => !ts.IsBooked)) 
@@ -121,7 +122,8 @@ namespace CareFirstClinic.API.Services
                 throw new ArgumentException("Ngày bắt đầu không được ở quá khứ.");
             try
             {
-                return (await _Schedulerepo.GetAvailableByDoctorIdAsync(doctorId, fromDate)).Select(MapToDTO).ToList();
+                var utcDate = DateTime.SpecifyKind(fromDate.Date, DateTimeKind.Utc);
+                return (await _Schedulerepo.GetAvailableByDoctorIdAsync(doctorId, utcDate)).Select(MapToDTO).ToList();
             }
             catch (ArgumentException) { throw; }
             catch (Exception ex)
@@ -174,7 +176,7 @@ namespace CareFirstClinic.API.Services
                 {
                     Id = Guid.NewGuid(),
                     DoctorId = dto.DoctorId,
-                    WorkDate = dto.WorkDate.Date,
+                    WorkDate = DateTime.SpecifyKind(dto.WorkDate.Date, DateTimeKind.Utc),
                     StartTime = dto.StartTime,
                     EndTime = dto.EndTime,
                     SlotDurationMinutes = dto.SlotDurationMinutes,

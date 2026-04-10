@@ -3432,16 +3432,10 @@
           "email",
           "fullName",
           "gender",
-          "password",
-          "userName"
+          "password"
         ],
         "type": "object",
         "properties": {
-          "userName": {
-            "maxLength": 50,
-            "minLength": 3,
-            "type": "string"
-          },
           "password": {
             "minLength": 6,
             "type": "string"

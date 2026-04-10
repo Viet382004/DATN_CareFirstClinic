@@ -1,4 +1,4 @@
-﻿namespace CareFirstClinic.API.Common
+namespace CareFirstClinic.API.Common
 {
     public abstract class BaseQueryParams
     {
@@ -16,7 +16,9 @@
             set => _pageSize = value < 1 ? 10 : value > 50 ? 50 : value;
         }
 
-        public string SortBy { get; set; } = "createdAt";
+        public string? SortBy { get; set; } = "createdAt";
+
+        public string? Search { get; set; }
 
         private string _sortDir = "desc";
         public string SortDir

@@ -93,14 +93,14 @@ namespace CareFirstClinic.API.Services
         }
 
         // GET BY SPECIALTY
-        public async Task<List<DoctorDTO>> GetBySpecialtyAsync(Guid specialtyId)
+        public async Task<List<DoctorDTO>> GetBySpecialtyAsync(Guid specialtyId, string? search = null)
         {
             if (specialtyId == Guid.Empty)
                 throw new ArgumentException("SpecialtyId không được để trống.", nameof(specialtyId));
 
             try
             {
-                var doctors = await _doctorRepository.GetBySpecialtyAsync(specialtyId);
+                var doctors = await _doctorRepository.GetBySpecialtyAsync(specialtyId, search);
                 return doctors.Select(MapToDTO).ToList();
             }
             catch (ArgumentException)
