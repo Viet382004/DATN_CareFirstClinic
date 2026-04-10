@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -214,6 +214,53 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Confirm appointment Id: {Id}", id);
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // PATCH /api/appointment/{id}/waiting — Admin check-in (Waiting)
+        [HttpPatch("{id:guid}/waiting")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToWaiting(Guid id)
+        {
+            try
+            {
+                var updated = await _appointmentService.ToWaitingAsync(id);
+                if (updated is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
+                return Ok(new { message = "Bệnh nhân đã đến (Check-in thành công).", data = updated });
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (InvalidOperationException ex) { return Conflict(ex.Message); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi Waiting appointment Id: {Id}", id);
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // PATCH /api/appointment/{id}/start-examination — Doctor bắt đầu khám (InProgress)
+        [HttpPatch("{id:guid}/start-examination")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> StartExamination(Guid id)
+        {
+            try
+            {
+                var userId = GetUserIdFromClaim();
+                if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+
+                var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
+                if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
+
+                var updated = await _appointmentService.StartExaminationAsync(id, doctor.Id);
+                if (updated is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
+                return Ok(new { message = "Bắt đầu khám thành công.", data = updated });
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (UnauthorizedAccessException) { return Forbid(); }
+            catch (InvalidOperationException ex) { return Conflict(ex.Message); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi StartExamination appointment Id: {Id}", id);
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }

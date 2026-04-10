@@ -237,6 +237,67 @@ namespace CareFirstClinic.API.Services
             }
         }
 
+        public async Task<AppointmentDTO?> ToWaitingAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id không được để trống.", nameof(id));
+            try
+            {
+                var appointment = await _appointmentRepo.GetByIdAsync(id);
+                if (appointment is null) return null;
+
+                if (appointment.Status != AppointmentStatus.Confirmed)
+                    throw new InvalidOperationException(
+                        $"Chỉ có thể check-in cho lịch hẹn đã xác nhận. Trạng thái hiện tại: '{appointment.Status}'.");
+
+                appointment.Status = AppointmentStatus.Waiting;
+                appointment.UpdatedAt = DateTime.UtcNow;
+
+                var updated = await _appointmentRepo.UpdateAsync(appointment);
+                return MapToDTO(updated);
+            }
+            catch (ArgumentException) { throw; }
+            catch (InvalidOperationException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi Chuyển sang Waiting appointment Id: {Id}", id);
+                throw new ApplicationException("Không thể chuyển trạng thái lịch hẹn sang Đang chờ.", ex);
+            }
+        }
+
+        public async Task<AppointmentDTO?> StartExaminationAsync(Guid id, Guid doctorId)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id không được để trống.", nameof(id));
+
+            try
+            {
+                var appointment = await _appointmentRepo.GetByIdAsync(id);
+                if (appointment is null) return null;
+
+                var appointmentDoctorId = appointment.TimeSlot?.Schedule?.DoctorId;
+                if (appointmentDoctorId != doctorId)
+                    throw new UnauthorizedAccessException("Bạn không có quyền bắt đầu khám cho lịch hẹn này.");
+
+                if (appointment.Status != AppointmentStatus.Waiting)
+                    throw new InvalidOperationException($"Chỉ có thể bắt đầu khám cho lịch hẹn đang chờ. Trạng thái hiện tại: '{appointment.Status}'.");
+
+                appointment.Status = AppointmentStatus.InProgress;
+                appointment.UpdatedAt = DateTime.UtcNow;
+
+                var updated = await _appointmentRepo.UpdateAsync(appointment);
+                return MapToDTO(updated);
+            }
+            catch (ArgumentException) { throw; }
+            catch (UnauthorizedAccessException) { throw; }
+            catch (InvalidOperationException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi StartExamination appointment Id: {Id}", id);
+                throw new ApplicationException("Không thể bắt đầu quá trình khám.", ex);
+            }
+        }
+
         public async Task<AppointmentDTO?> CompleteAsync(Guid id, Guid doctorId)
         {
             if (id == Guid.Empty)
@@ -253,8 +314,8 @@ namespace CareFirstClinic.API.Services
                 if (appointmentDoctorId != doctorId)
                     throw new UnauthorizedAccessException("Bạn không có quyền hoàn thành lịch hẹn này.");
 
-                if (appointment.Status != AppointmentStatus.Confirmed)
-                    throw new InvalidOperationException($"Không thể hoàn thành lịch hẹn đang ở trạng thái '{appointment.Status}'.");
+                if (appointment.Status != AppointmentStatus.InProgress)
+                    throw new InvalidOperationException($"Không thể hoàn thành lịch hẹn. Trạng thái yêu cầu: InProgress. Trạng thái hiện tại: '{appointment.Status}'.");
 
 
                 appointment.Status = AppointmentStatus.Completed;

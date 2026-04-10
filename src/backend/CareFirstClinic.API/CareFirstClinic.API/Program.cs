@@ -15,6 +15,7 @@ using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Npgsql;
 using System.Text;
 
@@ -144,6 +145,7 @@ builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
 builder.Services.AddHttpClient<EmailService>();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IEmailService, EmailService>(); 
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddHostedService<AppointmentReminderService>();
@@ -151,35 +153,31 @@ builder.Services.AddHostedService<AppointmentReminderService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "CareFirstClinic.API",
+        Title = "CareFirstClinic API",
         Version = "v1",
-        Description = "API cho hệ thống CareFirst Clinic"
+        Description = "API cho hệ thống phòng khám CareFirst Clinic"
     });
 
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Type = SecuritySchemeType.Http,
         Scheme = "Bearer",
         BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        In = ParameterLocation.Header,
         Description = "Nhập token theo định dạng: Bearer {token}"
     });
 
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            new OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
@@ -225,22 +223,24 @@ using (var scope = app.Services.CreateScope())
 }
 app.UseCors("AllowFrontend");
 
-if (app.Environment.IsDevelopment() || true)   
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CareFirstClinic.API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CareFirstClinic.API v1");
+    c.RoutePrefix = "swagger";
+    c.DocumentTitle = "CareFirst Clinic API Documentation";
+});
 
 app.UseStaticFiles();
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();   
+    // app.UseHttpsRedirection();  
 }
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
