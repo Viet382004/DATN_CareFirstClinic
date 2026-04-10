@@ -175,6 +175,15 @@ namespace CareFirstClinic.API.Services
             }
         }
 
+        public async Task<AppointmentDTO> CreateForPatientAsync(Guid patientId, CreateAppointmentDTO dto)
+        {
+            // Tạo lịch hẹn giống CreateAsync
+            var appointment = await CreateAsync(patientId, dto);
+            // Sau khi tạo, có thể thực hiện thêm các thao tác như gửi thông báo, log, v.v.
+            _logger.LogInformation("Đã tạo lịch hẹn mới cho bệnh nhân Id: {PatientId}, Appointment Id: {AppointmentId}", patientId, appointment.Id);
+            return appointment;
+        }
+
         public async Task<AppointmentDTO?> UpdateAsync(Guid id, Guid patientId, UpdateAppointmentDTO dto)
         {
             if (id == Guid.Empty)
