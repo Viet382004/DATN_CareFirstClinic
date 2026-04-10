@@ -153,6 +153,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "CareFirstClinic.API",
+        Version = "v1",
+        Description = "API cho hệ thống CareFirst Clinic"
+    });
+
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -218,10 +225,14 @@ using (var scope = app.Services.CreateScope())
 }
 app.UseCors("AllowFrontend");
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || true)   
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CareFirstClinic.API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
 app.UseStaticFiles();
