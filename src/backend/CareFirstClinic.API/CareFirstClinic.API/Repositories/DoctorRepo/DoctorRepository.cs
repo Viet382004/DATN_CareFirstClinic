@@ -2,7 +2,6 @@ using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
-using CareFirstClinic.API.Common;
 
 
 namespace CareFirstClinic.API.Repositories.DoctorRepo

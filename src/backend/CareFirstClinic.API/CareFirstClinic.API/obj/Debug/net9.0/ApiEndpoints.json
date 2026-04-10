@@ -178,6 +178,59 @@
   },
   {
     "ContainingType": "CareFirstClinic.API.Controllers.AppointmentController",
+    "Method": "StartExamination",
+    "RelativePath": "api/Appointment/{id}/start-examination",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AppointmentController",
+    "Method": "ToWaiting",
+    "RelativePath": "api/Appointment/{id}/waiting",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AppointmentController",
+    "Method": "CreateForPatient",
+    "RelativePath": "api/Appointment/admin/{patientId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "patientId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "CareFirstClinic.API.DTOs.CreateAppointmentDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AppointmentController",
     "Method": "GetByDoctorId",
     "RelativePath": "api/Appointment/doctor/{doctorId}",
     "HttpMethod": "GET",

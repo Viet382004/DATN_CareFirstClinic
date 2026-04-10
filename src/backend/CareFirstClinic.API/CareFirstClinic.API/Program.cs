@@ -152,7 +152,7 @@ builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
 builder.Services.AddHttpClient<EmailService>();
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<ImageService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); 
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddHostedService<AppointmentReminderService>();
@@ -231,7 +231,7 @@ app.UseSwagger();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("v1/swagger.json", "CareFirst Clinic API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CareFirst Clinic API v1");
     c.RoutePrefix = "swagger";
     c.DocumentTitle = "CareFirst Clinic API Documentation";
 });
