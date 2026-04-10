@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../../contexts/useAuth';
-import styles from './BookingSuccess.module.css';
+import styles from './Bookingsuccess.module.css';
 import Header from '../../home/components/Header';
 
 const getBookingData = () => {
