@@ -3,33 +3,36 @@ import { apiGet, apiPost, apiPut, apiPatch } from './apiClient';
 export interface Appointment {
   id: string;
   patientId: string;
+  patientName: string;
+  timeSlotId: string;
   doctorId: string;
-  scheduleId: string;
+  doctorName: string;
+  specialtyName: string;
   workDate: string;
-  timeSlot: string;
-  reason?: string;
-  diagnosis?: string;
+  startTime: string;
+  endTime: string;
   status: string;
+  reason?: string;
+  cancelReason?: string;
+  cancelledAt?: string;
+  notes?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface CreateAppointmentDTO {
-  doctorId: string;
-  scheduleId: string;
-  workDate: string;
-  timeSlot: string;
+  timeSlotId: string;
   reason?: string;
+  notes?: string;
 }
 
 export interface UpdateAppointmentDTO {
   reason?: string;
-  diagnosis?: string;
-  status?: string;
+  notes?: string;
 }
 
 export interface CancelAppointmentDTO {
-  reason?: string;
+  cancelReason: string;
 }
 
 export interface AppointmentQueryParams {
@@ -41,6 +44,7 @@ export interface AppointmentQueryParams {
   pageSize?: number;
   sortBy?: string;
   sortDir?: string;
+  search?: string;
 }
 
 export interface PagedResult<T> {
@@ -90,35 +94,35 @@ export const appointmentService = {
   /**
    * Tạo lịch hẹn mới (Requires: Patient role)
    */
-  async create(data: CreateAppointmentDTO): Promise<Appointment> {
+  async create(data: CreateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
     return apiPost('/appointment', data);
   },
 
   /**
    * Cập nhật lịch hẹn (Requires: Patient role)
    */
-  async update(id: string, data: UpdateAppointmentDTO): Promise<Appointment> {
+  async update(id: string, data: UpdateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
     return apiPut(`/appointment/${id}`, data);
   },
 
   /**
    * Xác nhận lịch hẹn (Requires: Admin, Doctor role)
    */
-  async confirm(id: string): Promise<Appointment> {
+  async confirm(id: string): Promise<{ message: string; data: Appointment }> {
     return apiPatch(`/appointment/${id}/confirm`);
   },
 
   /**
    * Hoàn thành lịch hẹn (Requires: Doctor role)
    */
-  async complete(id: string): Promise<Appointment> {
+  async complete(id: string): Promise<{ message: string; data: Appointment }> {
     return apiPatch(`/appointment/${id}/complete`);
   },
 
   /**
    * Hủy lịch hẹn (Requires: all roles)
    */
-  async cancel(id: string, data?: CancelAppointmentDTO): Promise<Appointment> {
+  async cancel(id: string, data: CancelAppointmentDTO): Promise<{ message: string; data: Appointment }> {
     return apiPatch(`/appointment/${id}/cancel`, data);
   },
 };

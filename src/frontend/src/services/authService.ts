@@ -2,16 +2,17 @@ import { apiPost } from './apiClient';
 
 export interface LoginResponse {
   accessToken: string;
-  user: {
+  tokenType: string;
+  message: string;
+  data: {
     id: string;
     email: string;
     fullName: string;
-    role: string;
+    roleName: string;
   };
 }
 
 export interface RegisterRequest {
-  userName: string;
   email: string;
   password: string;
   fullName: string;
@@ -21,12 +22,21 @@ export interface RegisterRequest {
 
 export interface VerifyOtpRequest {
   email: string;
-  otp: string;
+  otpCode: string;
 }
 
 export interface VerifyOtpResponse {
   message: string;
-  isVerified: boolean;
+  token: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+  email: string;
+}
+
+export interface ResendOtpResponse {
+  message: string;
 }
 
 export interface ResendOtpRequest {
@@ -37,8 +47,8 @@ export const authService = {
   /**
    * Đăng ký tài khoản mới
    */
-  async register(data: RegisterRequest): Promise<any> {
-    return apiPost('/auth/register', data);
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
+    return apiPost<RegisterResponse>('/auth/register', data);
   },
 
   /**
@@ -49,13 +59,18 @@ export const authService = {
       email,
       password,
     });
-    
+
     // Lưu token vào localStorage
     if (response.accessToken) {
       localStorage.setItem('token', response.accessToken);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('user', JSON.stringify({
+        id: response.data.id,
+        email: response.data.email,
+        fullName: response.data.fullName,
+        role: response.data.roleName,
+      }));
     }
-    
+
     return response;
   },
 
@@ -63,14 +78,28 @@ export const authService = {
    * Xác thực OTP
    */
   async verifyOtp(data: VerifyOtpRequest): Promise<VerifyOtpResponse> {
-    return apiPost('/auth/verify-otp', data);
+    console.log('Verifying OTP for email:', data.email);
+    const response = await apiPost<VerifyOtpResponse>('/auth/verify-otp', data);
+    
+    console.log('OTP verification response:', response);
+    
+    // Lưu token nếu có
+    if (response.token) {
+      console.log('Token received, storing in localStorage');
+      localStorage.setItem('token', response.token);
+    } else {
+      console.warn('No token in response:', response);
+    }
+    
+    return response;
   },
 
   /**
    * Gửi lại OTP
    */
-  async resendOtp(data: ResendOtpRequest): Promise<any> {
-    return apiPost('/auth/resend-otp', data);
+  async resendOtp(data: ResendOtpRequest): Promise<ResendOtpResponse> {
+    console.log('Resending OTP for email:', data.email);
+    return apiPost<ResendOtpResponse>('/auth/resend-otp', data);
   },
 
   /**
@@ -98,7 +127,12 @@ export const authService = {
   /**
    * Lấy thông tin user
    */
-  getUser(): any {
+  getUser(): {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+  } | null {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },

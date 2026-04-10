@@ -2,35 +2,44 @@ import { apiGet, apiPost, apiPut, apiPatch, apiDelete } from './apiClient';
 
 export interface Doctor {
   id: string;
-  userId: string;
-  fullName: string;
-  specialtyId: string;
-  specialtyName?: string;
-  licenseNumber: string;
-  yearsOfExperience: number;
-  bio?: string;
   avatarUrl?: string;
+  fullName: string;
+  specialtyName: string;
+  academicTitle: string;
+  position: string;
+  description: string;
+  yearsOfExperience: number;
+  phoneNumber: string;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  userId?: string;
+  email?: string;
+  totalAppointments: number;
+  averageRating: number;
 }
 
 export interface CreateDoctorDTO {
-  userId: string;
+  fullName: string;
   specialtyId: string;
-  licenseNumber: string;
+  academicTitle: string;
+  position: string;
+  description?: string;
   yearsOfExperience: number;
-  bio?: string;
-  avatarUrl?: string;
+  phoneNumber: string;
+  userId?: string;
+  email: string;
+  userName: string;
+  password: string;
 }
 
 export interface UpdateDoctorDTO {
-  specialtyId?: string;
-  licenseNumber?: string;
-  yearsOfExperience?: number;
-  bio?: string;
-  avatarUrl?: string;
-  isActive?: boolean;
+  fullName: string;
+  specialtyId: string;
+  academicTitle: string;
+  position: string;
+  description?: string;
+  yearsOfExperience: number;
+  phoneNumber: string;
+  email: string;
 }
 
 export interface DoctorQueryParams {
@@ -40,6 +49,7 @@ export interface DoctorQueryParams {
   pageSize?: number;
   sortBy?: string;
   sortDir?: string;
+  search?: string;
 }
 
 export interface PagedResult<T> {
@@ -75,42 +85,42 @@ export const doctorService = {
   /**
    * Lấy danh sách bác sĩ theo chuyên khoa (Public)
    */
-  async getBySpecialty(specialtyId: string): Promise<Doctor[]> {
-    return apiGet(`/doctor/specialty/${specialtyId}`);
+  async getBySpecialty(specialtyId: string, params?: DoctorQueryParams): Promise<PagedResult<Doctor>> {
+    return apiGet(`/doctor/specialty/${specialtyId}`, params);
   },
 
   /**
    * Tạo bác sĩ mới (Requires: Admin role)
    */
-  async create(data: CreateDoctorDTO): Promise<Doctor> {
+  async create(data: CreateDoctorDTO): Promise<{ message: string; data: Doctor }> {
     return apiPost('/doctor', data);
   },
 
   /**
    * Cập nhật hồ sơ bác sĩ (Requires: Admin role)
    */
-  async update(id: string, data: UpdateDoctorDTO): Promise<Doctor> {
+  async update(id: string, data: UpdateDoctorDTO): Promise<{ message: string; data: Doctor }> {
     return apiPut(`/doctor/${id}`, data);
   },
 
   /**
    * Cập nhật hồ sơ bác sĩ hiện tại (Requires: Doctor role)
    */
-  async updateMe(data: UpdateDoctorDTO): Promise<Doctor> {
+  async updateMe(data: UpdateDoctorDTO): Promise<{ message: string; data: Doctor }> {
     return apiPut('/doctor/me', data);
   },
 
   /**
    * Xóa bác sĩ (Soft delete) (Requires: Admin role)
    */
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<{ message: string }> {
     return apiDelete(`/doctor/${id}`);
   },
 
   /**
    * Bật/tắt trạng thái bác sĩ (Requires: Admin role)
    */
-  async toggleActive(id: string): Promise<Doctor> {
+  async toggleActive(id: string): Promise<{ message: string; isActive: boolean }> {
     return apiPatch(`/doctor/${id}/toggle`);
   },
 };

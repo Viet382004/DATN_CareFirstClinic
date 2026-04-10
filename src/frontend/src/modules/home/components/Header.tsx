@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
@@ -10,6 +11,8 @@ import {
   MessageCircle,
   PlayCircle,
 } from "lucide-react";
+import { useAuth } from "../../../contexts/useAuth";
+import { LogOut, User as UserIcon, CalendarDays } from "lucide-react";
 
 type TopNavLinkProps = {
   children: ReactNode;
@@ -44,6 +47,9 @@ const NavMenuItem = ({
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
@@ -72,25 +78,70 @@ const Header = () => {
           </div>
 
           <div className="ml-8 flex items-center gap-5 xl:ml-10">
-  <button className="flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:bg-amber-600 hover:shadow-md">
-    <Smartphone size={16} />
-    Tải ứng dụng
-  </button>
+            <button className="flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:bg-amber-600 hover:shadow-md">
+              <Smartphone size={16} />
+              Tải ứng dụng
+            </button>
 
-  <button className="flex items-center gap-2 rounded-full border border-teal-600 px-5 py-2 text-sm font-bold text-teal-600 shadow-sm transition-all duration-300 hover:bg-teal-50 hover:shadow-md">
-    <UserCircle size={16} />
-    Tài khoản
-  </button>
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 200)}
+                  className="flex items-center gap-2 rounded-full border border-teal-600 px-5 py-2 text-sm font-bold text-teal-600 transition-all duration-300 hover:bg-teal-50"
+                >
+                  Xin chào, {user?.fullName ?? 'Người dùng'}
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-100 bg-white shadow-lg overflow-hidden z-50">
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                      <UserIcon size={16} className="text-teal-600" />
+                      Thông tin cá nhân
+                    </Link>
+                    <Link
+                      to="/patient/appointments"
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                      <CalendarDays size={16} className="text-teal-600" />
+                      Lịch hẹn của tôi
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        navigate('/', { replace: true });
+                      }}
+                      className="w-full text-left flex items-center gap-2 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors border-t border-slate-100"
+                    >
+                      <LogOut size={16} />
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 rounded-full border border-teal-600 px-5 py-2 text-sm font-bold text-teal-600 shadow-sm transition-all duration-300 hover:bg-teal-50 hover:shadow-md"
+              >
+                <UserCircle size={16} />
+                Đăng nhập
+              </Link>
+            )}
 
-  <div className="flex cursor-pointer items-center gap-2 pl-2 transition-colors hover:text-teal-600">
-    <img
-      src="https://flagcdn.com/w20/vn.png"
-      alt="VN"
-      className="h-4 w-6 rounded-sm object-cover shadow-sm"
-    />
-    <ChevronDown size={14} />
-  </div>
-</div>
+            <div className="flex cursor-pointer items-center gap-2 pl-2 transition-colors hover:text-teal-600">
+              <img
+                src="https://flagcdn.com/w20/vn.png"
+                alt="VN"
+                className="h-4 w-6 rounded-sm object-cover shadow-sm"
+              />
+              <ChevronDown size={14} />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -180,9 +231,24 @@ const Header = () => {
             </a>
 
             <div className="flex items-center justify-between pt-4">
-              <button className="flex items-center gap-2 rounded-full border border-teal-600 px-4 py-2 font-bold text-teal-600">
-                <UserCircle size={18} /> Đăng nhập
+              {isAuthenticated ? (
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/', { replace: true });
+                }}
+                className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-bold text-slate-700"
+              >
+                <UserCircle size={18} /> Đăng xuất
               </button>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 rounded-full border border-teal-600 px-4 py-2 font-bold text-teal-600"
+              >
+                <UserCircle size={18} /> Đăng nhập
+              </Link>
+            )}
 
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500">

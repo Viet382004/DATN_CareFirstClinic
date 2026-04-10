@@ -1,37 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { authService } from '../services/authService';
-
-export interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  role: string;
-}
-
-export interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: {
-    userName: string;
-    email: string;
-    password: string;
-    fullName: string;
-    dateOfBirth: string;
-    gender: string;
-  }) => Promise<void>;
-  logout: () => void;
-  verifyOtp: (email: string, otp: string) => Promise<void>;
-  resendOtp: (email: string) => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export interface AuthProviderProps {
-  children: ReactNode;
-}
+import { useState, useEffect } from 'react';
+import { authService } from '../services/authService.ts';
+import { patientService } from '../services/patientService';
+import { AuthContext } from './AuthContextCore';
+import type { AuthContextType, AuthProviderProps, User } from './AuthContextTypes';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -71,14 +42,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.login(email, password);
       setToken(response.accessToken);
-      setUser(response.user);
+      setUser({
+        id: response.data.id,
+        email: response.data.email,
+        fullName: response.data.fullName,
+        role: response.data.roleName,
+      });
     } finally {
       setIsLoading(false);
     }
   };
-
   const register = async (data: {
-    userName: string;
     email: string;
     password: string;
     fullName: string;
@@ -101,21 +75,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authService.logout();
   };
 
-  const verifyOtp = async (email: string, otp: string) => {
-    setIsLoading(true);
-    try {
-      await authService.verifyOtp({ email, otp });
-    } finally {
-      setIsLoading(false);
+const verifyOtp = async (email: string, otp: string) => {
+  setIsLoading(true);
+  try {
+    const response = await authService.verifyOtp({ email, otpCode: otp });
+
+    if (response.token) {
+      // Store token in localStorage và state
+      localStorage.setItem('token', response.token);
+      setToken(response.token);
+
+      // Small delay để ensure token được update
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Load patient profile after OTP verification
+      try {
+        const profile = await patientService.getMe();
+        const newUser: User = {
+          id: profile.userId ?? profile.id ?? '',
+          email: email,
+          fullName: profile.fullName,
+          role: 'Patient',
+        };
+        setUser(newUser);
+        localStorage.setItem('user', JSON.stringify(newUser));
+      } catch (profileError) {
+        console.error('Error loading patient profile:', profileError);
+        // Create user from OTP data if profile load fails
+        const newUser: User = {
+          id: '',
+          email,
+          fullName: '',
+          role: 'Patient',
+        };
+        setUser(newUser);
+        localStorage.setItem('user', JSON.stringify(newUser));
+      }
+    } else {
+      throw new Error('Không nhận được token từ server');
     }
-  };
+
+    return;
+  } catch (error: any) {
+    console.error('Verify OTP error:', error);
+    const message = error?.message || 'Xác thực OTP thất bại';
+    throw new Error(message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const resendOtp = async (email: string) => {
-    setIsLoading(true);
+    // Don't set isLoading here to avoid disabling buttons
     try {
       await authService.resendOtp({ email });
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      console.error('Resend OTP error:', error);
+      throw error;
     }
   };
 
@@ -132,12 +148,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

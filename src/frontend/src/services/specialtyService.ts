@@ -23,12 +23,36 @@ export interface UpdateSpecialtyDTO {
   isActive?: boolean;
 }
 
+export interface SpecialtyQueryParams {
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDir?: string;
+  search?: string;
+  popular?: boolean;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
 export const specialtyService = {
   /**
    * Lấy danh sách tất cả chuyên khoa (Public)
    */
   async getAll(): Promise<Specialty[]> {
     return apiGet('/specialty');
+  },
+
+  /**
+   * Lấy danh sách chuyên khoa phân trang (Public)
+   */
+  async getPaged(params?: SpecialtyQueryParams): Promise<PagedResult<Specialty>> {
+    return apiGet('/specialty/paged', params);
   },
 
   /**

@@ -68,7 +68,7 @@ export function HowItWorks() {
         
         <div className="mt-16 text-center">
           <a
-            href="#book"
+            href="/patient/booking"
             className="inline-flex justify-center items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] text-lg"
           >
             Bắt đầu Đặt khám <ArrowRight className="h-5 w-5" />

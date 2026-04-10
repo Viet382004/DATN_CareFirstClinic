@@ -1,6 +1,8 @@
 // API Client base cho tất cả requests
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
+const API_BASE_URL = import.meta.env.VITE_API_URL ;
+if (!API_BASE_URL) {
+  console.error('VITE_API_URL chưa được cấu hình trong .env');
+}
 export class ApiError extends Error {
   status: number;
   statusText: string;
@@ -58,9 +60,14 @@ export async function apiRequest<T>(
       try {
         errorData = await response.json();
       } catch {
-        errorData = { message: response.statusText };
+        const text = await response.text().catch(() => '');
+        errorData = text ? { message: text } : { message: response.statusText };
       }
-      
+
+      if (typeof errorData === 'string' || !errorData) {
+        errorData = { message: String(errorData) };
+      }
+
       // Handle 401 - token expired or invalid
       if (response.status === 401) {
         localStorage.removeItem('token');

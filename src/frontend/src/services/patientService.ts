@@ -7,19 +7,21 @@ export interface Patient {
   dateOfBirth: string;
   gender: string;
   phoneNumber: string;
+  email?: string;
   address?: string;
   medicalHistory?: string;
-  allergies?: string;
+  avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface UpdatePatientDTO {
-  fullName?: string;
+  fullName: string;
+  dateOfBirth: string;
+  gender: string;
   phoneNumber?: string;
   address?: string;
   medicalHistory?: string;
-  allergies?: string;
 }
 
 export const patientService = {
@@ -48,7 +50,8 @@ export const patientService = {
    * Cập nhật hồ sơ bệnh nhân hiện tại (Requires: Patient role)
    */
   async updateMe(data: UpdatePatientDTO): Promise<Patient> {
-    return apiPut('/patient/me', data);
+    const response = await apiPut<{ message: string; data: Patient }>('/patient/me', data);
+    return response.data;
   },
 
   /**
@@ -64,4 +67,33 @@ export const patientService = {
   async delete(id: string): Promise<void> {
     return apiDelete(`/patient/${id}`);
   },
+
+  /**
+   * Cập nhật ảnh đại diện (patient / me)
+   */
+  async uploadAvatar(file: File): Promise<{ message: string; avatarUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/avatar/patient`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Lỗi tải ảnh lên' }));
+      throw new Error(error.message || 'Lỗi tải ảnh lên');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Xóa ảnh đại diện (patient / me)
+   */
+  async deleteAvatar(): Promise<{ message: string }> {
+    return apiDelete('/avatar/patient');
+  }
 };
