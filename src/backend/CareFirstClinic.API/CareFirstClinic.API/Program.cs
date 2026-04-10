@@ -32,14 +32,16 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
-            "http://localhost:5173",           
+            "http://localhost:5173",
             "https://localhost:5173",
-            "http://www.carefirstclinic.site",     
-            "https://www.carefirstclinic.site"
+            "http://carefirstclinic.site",
+            "https://carefirstclinic.site",
+            "https://www.carefirstclinic.site",
+            "https://carefirstclinic.onrender.com"   
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowCredentials();   
+        .AllowCredentials();
     });
 });
 
@@ -160,6 +162,7 @@ builder.Services.AddSwaggerGen(options =>
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Description = "Nhập token theo định dạng: Bearer {token}"
     });
+
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -168,7 +171,7 @@ builder.Services.AddSwaggerGen(options =>
                 Reference = new Microsoft.OpenApi.Models.OpenApiReference
                 {
                     Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id   = "Bearer"
+                    Id = "Bearer"
                 }
             },
             Array.Empty<string>()
@@ -214,13 +217,17 @@ using (var scope = app.Services.CreateScope())
     }
 }
 app.UseCors("AllowFrontend");
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseCors("AllowFrontend");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseStaticFiles();
 if (!app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();
+    app.UseHttpsRedirection();   
 }
 app.UseAuthentication();
 app.UseAuthorization();

@@ -53,6 +53,11 @@
         "IsRequired": false
       },
       {
+        "Name": "Search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
         "Name": "SortDir",
         "Type": "System.String",
         "IsRequired": false
@@ -241,6 +246,11 @@
         "IsRequired": false
       },
       {
+        "Name": "Search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
         "Name": "SortDir",
         "Type": "System.String",
         "IsRequired": false
@@ -304,6 +314,11 @@
       {
         "Name": "PageSize",
         "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
         "IsRequired": false
       },
       {
@@ -392,8 +407,33 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "file",
-        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "Name": "ContentType",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "ContentDisposition",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Headers",
+        "Type": "Microsoft.AspNetCore.Http.IHeaderDictionary",
+        "IsRequired": false
+      },
+      {
+        "Name": "Length",
+        "Type": "System.Int64",
+        "IsRequired": false
+      },
+      {
+        "Name": "Name",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "FileName",
+        "Type": "System.String",
         "IsRequired": false
       }
     ],
@@ -423,8 +463,33 @@
         "IsRequired": true
       },
       {
-        "Name": "file",
-        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "Name": "ContentType",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "ContentDisposition",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Headers",
+        "Type": "Microsoft.AspNetCore.Http.IHeaderDictionary",
+        "IsRequired": false
+      },
+      {
+        "Name": "Length",
+        "Type": "System.Int64",
+        "IsRequired": false
+      },
+      {
+        "Name": "Name",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "FileName",
+        "Type": "System.String",
         "IsRequired": false
       }
     ],
@@ -439,8 +504,33 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "file",
-        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "Name": "ContentType",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "ContentDisposition",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Headers",
+        "Type": "Microsoft.AspNetCore.Http.IHeaderDictionary",
+        "IsRequired": false
+      },
+      {
+        "Name": "Length",
+        "Type": "System.Int64",
+        "IsRequired": false
+      },
+      {
+        "Name": "Name",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "FileName",
+        "Type": "System.String",
         "IsRequired": false
       }
     ],
@@ -470,8 +560,33 @@
         "IsRequired": true
       },
       {
-        "Name": "file",
-        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "Name": "ContentType",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "ContentDisposition",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Headers",
+        "Type": "Microsoft.AspNetCore.Http.IHeaderDictionary",
+        "IsRequired": false
+      },
+      {
+        "Name": "Length",
+        "Type": "System.Int64",
+        "IsRequired": false
+      },
+      {
+        "Name": "Name",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "FileName",
+        "Type": "System.String",
         "IsRequired": false
       }
     ],
@@ -508,6 +623,11 @@
       {
         "Name": "PageSize",
         "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
         "IsRequired": false
       },
       {
@@ -646,6 +766,46 @@
         "Name": "specialtyId",
         "Type": "System.Guid",
         "IsRequired": true
+      },
+      {
+        "Name": "Name",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "SpecialtyId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "SortBy",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "SortDir",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "IsAscending",
+        "Type": "System.Boolean",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -701,6 +861,11 @@
       {
         "Name": "PageSize",
         "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
         "IsRequired": false
       },
       {
@@ -839,6 +1004,11 @@
         "IsRequired": false
       },
       {
+        "Name": "Search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
         "Name": "SortDir",
         "Type": "System.String",
         "IsRequired": false
@@ -902,6 +1072,11 @@
       {
         "Name": "PageSize",
         "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
         "IsRequired": false
       },
       {
@@ -1055,6 +1230,11 @@
         "IsRequired": false
       },
       {
+        "Name": "Search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
         "Name": "SortDir",
         "Type": "System.String",
         "IsRequired": false
@@ -1201,6 +1381,11 @@
         "IsRequired": false
       },
       {
+        "Name": "Search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
         "Name": "SortDir",
         "Type": "System.String",
         "IsRequired": false
@@ -1334,6 +1519,11 @@
       {
         "Name": "PageSize",
         "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
         "IsRequired": false
       },
       {
@@ -1640,6 +1830,52 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "CareFirstClinic.API.Controllers.SpecialtyController",
+    "Method": "GetPaged",
+    "RelativePath": "api/Specialty/paged",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "Popular",
+        "Type": "System.Nullable\u00601[[System.Boolean, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "Page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "SortBy",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "SortDir",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "IsAscending",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "CareFirstClinic.API.Controllers.StockController",
     "Method": "GetPaged",
     "RelativePath": "api/Stock",
@@ -1680,6 +1916,11 @@
       {
         "Name": "PageSize",
         "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Search",
+        "Type": "System.String",
         "IsRequired": false
       },
       {
