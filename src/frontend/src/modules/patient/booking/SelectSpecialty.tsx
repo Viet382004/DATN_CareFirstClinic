@@ -1,7 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,19 +19,17 @@ import {
   Droplets,
   Pill,
   Ear,
+  type LucideIcon
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../../contexts/useAuth";
 import styles from "./SelectSpecialty.module.css";
 import { specialtyService } from "../../../services/specialtyService";
-import Header from "../../../modules/home/components/Header";
-
-// ===== CONSTANTS =====
-// Fetch from backend
+import Header from "../../home/components/Header";
+import type { Specialty } from "../../../types/specialty";
 
 // ===== ICON MAP =====
-const IconMap = {
+const IconMap: Record<string, LucideIcon> = {
   Heart,
   Baby,
   Brain,
@@ -49,30 +43,30 @@ const IconMap = {
   Pill,
   Ear,
 };
-const NAV_ITEMS = [
-  { name: "Trang chủ", path: "/" },
-  { name: "Lịch hẹn", path: "/patient/booking" },
-  { name: "Tin tức", path: "/news" },
-  { name: "Liên hệ", path: "/contact" },
-];
-// ===== MAIN COMPONENT =====
-const SelectSpecialty = () => {
+
+// Extension of Specialty for UI purposes if needed, 
+// though we should try to use the base type as much as possible.
+interface SpecialtyUI extends Specialty {
+  iconName?: string;
+  color?: string;
+  popular?: boolean;
+}
+
+const SelectSpecialty: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [selectedSpecialty, setSelectedSpecialty] = useState(
-    null,
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showOnlyPopular, setShowOnlyPopular] = useState(false);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showOnlyPopular, setShowOnlyPopular] = useState<boolean>(false);
 
-  const [specialties, setSpecialties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [specialties, setSpecialties] = useState<SpecialtyUI[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const pageSize = 12;
 
-  const fetchSpecialties = async (page = 1, search = "") => {
+  const fetchSpecialties = async (page: number = 1, search: string = "") => {
     try {
       setLoading(true);
       const response = await specialtyService.getPaged({
@@ -81,7 +75,7 @@ const SelectSpecialty = () => {
         search,
         popular: showOnlyPopular ? true : undefined
       });
-      setSpecialties(response.items || []);
+      setSpecialties((response.items as SpecialtyUI[]) || []);
       setTotalPages(response.totalPages || 1);
       setTotalCount(response.totalCount || 0);
       setCurrentPage(response.currentPage || 1);
@@ -112,29 +106,21 @@ const SelectSpecialty = () => {
     }
   };
 
-  // filteredSpecialties maps to specialties from paged response for UI compatibility
-  const filteredSpecialties = specialties;
-
-  // Xử lý khi chọn chuyên khoa
-  const handleSelectSpecialty = (id) => {
+  const handleSelectSpecialty = (id: string) => {
     setSelectedSpecialty(id);
   };
 
-  // Xử lý khi nhấn nút tiếp theo
   const handleContinue = () => {
     if (selectedSpecialty) {
       const sp = specialties.find(s => s.id === selectedSpecialty);
-      // Lưu thông tin chuyên khoa đã chọn vào localStorage
       localStorage.setItem("selectedSpecialty", selectedSpecialty);
       if (sp) {
         localStorage.setItem("selectedSpecialtyName", sp.name);
       }
-      // Chuyển đến trang chọn bác sĩ
       navigate("/patient/booking/doctor");
     }
   };
 
-  // Xử lý quay lại
   const handleBack = () => {
     navigate("/");
   };
@@ -143,7 +129,6 @@ const SelectSpecialty = () => {
     <>
       <Header />
       <div className={styles.container}>
-
         <main className={styles.main}>
           {/* Progress Stepper */}
           <div className={styles.stepperContainer}>
@@ -161,23 +146,6 @@ const SelectSpecialty = () => {
                 animate={{ width: "20%" }}
                 className={styles.progressFill}
               />
-            </div>
-
-            <div className={styles.stepLabels}>
-              {[
-                "CHUYÊN KHOA",
-                "BÁC SĨ",
-                "THỜI GIAN",
-                "THÔNG TIN",
-                "XÁC NHẬN",
-              ].map((step, i) => (
-                <div
-                  key={step}
-                  className={`${styles.stepLabel} ${i === 0 ? styles.stepLabelActive : ""}`}
-                >
-                  {step}
-                </div>
-              ))}
             </div>
           </div>
 
@@ -238,11 +206,11 @@ const SelectSpecialty = () => {
               <div className={styles.loadingSpinner}></div>
               Đang tải danh sách chuyên khoa...
             </div>
-          ) : filteredSpecialties.length > 0 ? (
+          ) : specialties.length > 0 ? (
             <>
               <div className={styles.specialtiesGrid}>
-                {filteredSpecialties.map((specialty, index) => {
-                  const Icon = IconMap[specialty.iconName] || Stethoscope;
+                {specialties.map((specialty, index) => {
+                  const Icon = (specialty.iconName && IconMap[specialty.iconName]) || (specialty.icon && IconMap[specialty.icon]) || Stethoscope;
                   const isSelected = selectedSpecialty === specialty.id;
 
                   return (
@@ -258,7 +226,7 @@ const SelectSpecialty = () => {
                       <div className={styles.specialtyCardInner}>
                         <div className={styles.specialtyIconWrapper}>
                           <div
-                            className={`${styles.specialtyIcon} ${styles[specialty.color]}`}
+                            className={`${styles.specialtyIcon} ${specialty.color ? styles[specialty.color] : ""}`}
                           >
                             <Icon size={28} />
                           </div>
@@ -294,8 +262,8 @@ const SelectSpecialty = () => {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className={styles.pagination}>
-                  <button 
-                    className={styles.pageBtn} 
+                  <button
+                    className={styles.pageBtn}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -304,8 +272,8 @@ const SelectSpecialty = () => {
                   <span className={styles.pageInfo}>
                     Trang <strong>{currentPage}</strong> / {totalPages}
                   </span>
-                  <button 
-                    className={styles.pageBtn} 
+                  <button
+                    className={styles.pageBtn}
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >
@@ -322,7 +290,7 @@ const SelectSpecialty = () => {
               </h3>
               <p className={styles.noResultsDesc}>
                 Vui lòng thử lại với từ khóa khác hoặc liên hệ hotline để được tư
-                 vấn.
+                vấn.
               </p>
             </div>
           )}

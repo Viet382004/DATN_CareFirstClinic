@@ -1,44 +1,12 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from './apiClient';
+import type{ 
+  Specialty, 
+  CreateSpecialtyDTO, 
+  UpdateSpecialtyDTO, 
+  SpecialtyQueryParams 
+} from '../types/specialty';
+import type{ PagedResult } from '../types/common';
 
-export interface Specialty {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateSpecialtyDTO {
-  name: string;
-  description?: string;
-  icon?: string;
-}
-
-export interface UpdateSpecialtyDTO {
-  name?: string;
-  description?: string;
-  icon?: string;
-  isActive?: boolean;
-}
-
-export interface SpecialtyQueryParams {
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortDir?: string;
-  search?: string;
-  popular?: boolean;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
 
 export const specialtyService = {
   /**

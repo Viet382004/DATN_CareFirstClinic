@@ -17,7 +17,7 @@ import { useAuth } from '../../../contexts/useAuth';
 import styles from './SelectDoctor.module.css';
 import { doctorService } from '../../../services/doctorService';
 import { specialtyService } from '../../../services/specialtyService';
-import Header from '../../../modules/home/components/Header';
+import Header from '../../home/components/Header';
 
 
 const DEFAULT_AVATAR_URL = '/assets/avatar-default.svg';

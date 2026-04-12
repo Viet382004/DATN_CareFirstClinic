@@ -10,6 +10,7 @@ import {
   Music2,
   MessageCircle,
   PlayCircle,
+  LayoutDashboard,
 } from "lucide-react";
 import { useAuth } from "../../../contexts/useAuth";
 import { LogOut, User as UserIcon, CalendarDays } from "lucide-react";
@@ -32,10 +33,7 @@ type NavMenuItemProps = {
   hasSubmenu?: boolean;
 };
 
-const NavMenuItem = ({
-  children,
-  hasSubmenu = false,
-}: NavMenuItemProps) => (
+const NavMenuItem = ({ children, hasSubmenu = false }: NavMenuItemProps) => (
   <a
     href="#"
     className="flex items-center gap-1 whitespace-nowrap text-sm font-bold text-slate-900 transition-colors hover:text-teal-600"
@@ -50,6 +48,19 @@ const Header = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  // Xác định đường dẫn dashboard dựa trên role
+  const getDashboardPath = () => {
+    const role = user?.role?.toLowerCase();
+    if (role === "doctor") return "/doctor/dashboard";
+    if (role === "admin") return "/admin/dashboard";
+    return "/";
+  };
+
+  const isDoctorOrAdmin = () => {
+    const role = user?.role?.toLowerCase();
+    return role === "doctor" || role === "admin";
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
@@ -90,12 +101,26 @@ const Header = () => {
                   onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 200)}
                   className="flex items-center gap-2 rounded-full border border-teal-600 px-5 py-2 text-sm font-bold text-teal-600 transition-all duration-300 hover:bg-teal-50"
                 >
-                  Xin chào, {user?.fullName ?? 'Người dùng'}
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                  Xin chào, {user?.fullName ?? "Người dùng"}
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""
+                      }`}
+                  />
                 </button>
-                
+
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-100 bg-white shadow-lg overflow-hidden z-50">
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-100 bg-white shadow-lg overflow-hidden z-50">
+                    {/* Nút Trang quản trị - chỉ hiển thị với Doctor/Admin */}
+                    {isDoctorOrAdmin() && (
+                      <Link
+                        to={getDashboardPath()}
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <LayoutDashboard size={16} className="text-indigo-600" />
+                        Trang quản trị
+                      </Link>
+                    )}
                     <Link
                       to="/profile"
                       className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
@@ -113,7 +138,7 @@ const Header = () => {
                     <button
                       onClick={() => {
                         logout();
-                        navigate('/', { replace: true });
+                        navigate("/", { replace: true });
                       }}
                       className="w-full text-left flex items-center gap-2 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors border-t border-slate-100"
                     >
@@ -208,57 +233,89 @@ const Header = () => {
             >
               Cơ sở y tế
             </a>
-
             <a
               href="#"
               className="border-b border-slate-50 py-2 font-bold text-slate-800"
             >
               Dịch vụ y tế
             </a>
-
             <a
               href="#"
               className="border-b border-slate-50 py-2 font-bold text-slate-800"
             >
               Khám sức khỏe
             </a>
-
             <a
               href="#"
               className="border-b border-slate-50 py-2 font-bold text-slate-800"
             >
               Tin tức
             </a>
+            <a
+              href="#"
+              className="border-b border-slate-50 py-2 font-bold text-slate-800"
+            >
+              Hướng dẫn
+            </a>
 
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
               {isAuthenticated ? (
-              <button
-                onClick={() => {
-                  logout();
-                  navigate('/', { replace: true });
-                }}
-                className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-bold text-slate-700"
-              >
-                <UserCircle size={18} /> Đăng xuất
-              </button>
-            ) : (
-              <Link
-                to="/login"
-                className="flex items-center gap-2 rounded-full border border-teal-600 px-4 py-2 font-bold text-teal-600"
-              >
-                <UserCircle size={18} /> Đăng nhập
-              </Link>
-            )}
+                <>
+                  {/* Mobile: nút Trang quản trị nếu là doctor/admin */}
+                  {isDoctorOrAdmin() && (
+                    <Link
+                      to={getDashboardPath()}
+                      className="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 font-bold text-indigo-700"
+                    >
+                      <LayoutDashboard size={18} />
+                      Trang quản trị
+                    </Link>
+                  )}
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-bold text-slate-700"
+                  >
+                    <UserIcon size={18} />
+                    Thông tin cá nhân
+                  </Link>
+                  <Link
+                    to="/patient/appointments"
+                    className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 font-bold text-slate-700"
+                  >
+                    <CalendarDays size={18} />
+                    Lịch hẹn của tôi
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      navigate("/", { replace: true });
+                    }}
+                    className="flex items-center gap-2 rounded-full border border-red-200 px-4 py-2 font-bold text-red-600"
+                  >
+                    <LogOut size={18} />
+                    Đăng xuất
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 rounded-full border border-teal-600 px-4 py-2 font-bold text-teal-600"
+                >
+                  <UserCircle size={18} />
+                  Đăng nhập
+                </Link>
+              )}
 
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500">
-                  <Phone size={20} fill="currentColor" />
-                </div>
-
-                <div>
-                  <p className="text-xl font-black leading-none text-amber-500">
-                    1900 2115
-                  </p>
+              <div className="flex items-center justify-between pt-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500">
+                    <Phone size={20} fill="currentColor" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-black leading-none text-amber-500">
+                      1900 2115
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

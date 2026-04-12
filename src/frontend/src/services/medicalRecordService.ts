@@ -1,57 +1,6 @@
 import { apiGet, apiPost, apiPut } from './apiClient';
+import type { MedicalRecord, CreateMedicalRecordDTO, UpdateMedicalRecordDTO, MedicalRecordQueryParams, PagedResult } from '../types/medicalRecord';
 
-export interface MedicalRecord {
-  id: string;
-  appointmentId: string;
-  patientId: string;
-  doctorId: string;
-  diagnosis: string;
-  symptoms?: string;
-  treatment?: string;
-  notes?: string;
-  followUpDate?: string;
-  hasFollowUp: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateMedicalRecordDTO {
-  appointmentId: string;
-  diagnosis: string;
-  symptoms?: string;
-  treatment?: string;
-  notes?: string;
-  followUpDate?: string;
-  hasFollowUp?: boolean;
-}
-
-export interface UpdateMedicalRecordDTO {
-  diagnosis?: string;
-  symptoms?: string;
-  treatment?: string;
-  notes?: string;
-  followUpDate?: string;
-  hasFollowUp?: boolean;
-}
-
-export interface MedicalRecordQueryParams {
-  patientId?: string;
-  doctorId?: string;
-  diagnosis?: string;
-  hasFollowUp?: boolean;
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortDir?: string;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
 
 export const medicalRecordService = {
   /**
@@ -92,14 +41,18 @@ export const medicalRecordService = {
   /**
    * Tạo hồ sơ bệnh án mới (Requires: Doctor role)
    */
-  async create(data: CreateMedicalRecordDTO): Promise<MedicalRecord> {
+  async create(data: CreateMedicalRecordDTO): Promise<{
+    message: string;
+    data: MedicalRecord
+  }> {
     return apiPost('/medicalrecord', data);
   },
-
   /**
    * Cập nhật hồ sơ bệnh án (Requires: Doctor, Admin role)
    */
-  async update(id: string, data: UpdateMedicalRecordDTO): Promise<MedicalRecord> {
+  async update(id: string, data: UpdateMedicalRecordDTO): Promise<{
+    message: string; data: MedicalRecord
+  }> {
     return apiPut(`/medicalrecord/${id}`, data);
   },
 };

@@ -1,32 +1,57 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Homepage from "../modules/home/pages/Homepage";
-import SelectSpecialty from "../modules/patient/book/SelectSpecialty";
-import SelectDoctor from "../modules/patient/book/SelectDoctor";
-import SelectTime from "../modules/patient/book/SelectTime";
-import BookingSuccess from "../modules/patient/book/BookingSuccess";
-import PatientInfo from "../modules/patient/book/PatientInfo";
 import LoginPage from "../modules/auth/pages/LoginPage";
 import RegisterPage from "../modules/auth/pages/RegisterPage";
 import { ProtectedRoute } from "../components/common/ProtectedRoute";
+
+// Patient imports
+import SelectSpecialty from "../modules/patient/booking/SelectSpecialty";
+import SelectDoctor from "../modules/patient/booking/SelectDoctor";
+import SelectTime from "../modules/patient/booking/SelectTime";
+import PatientInfo from "../modules/patient/booking/PatientInfo";
+import BookingSuccess from "../modules/patient/booking/BookingSuccess";
 import ProfilePage from "../modules/patient/profile/pages/PatientProfilePage";
 import MyAppointments from "../modules/patient/appointments/MyAppointments";
+
+// Doctor imports
+import DoctorLayout from "../modules/doctor/layout/DoctorLayout";
+import DoctorDashboard from "../modules/doctor/pages/DoctorDashboard";
+import DoctorProfilePage from "../modules/doctor/pages/DoctorProfilePage";
+import DoctorSchedulePage from "../modules/doctor/pages/DoctorSchedulePage";
+import DoctorAppointments from "../modules/doctor/pages/DoctorAppointments";
+
+// Admin imports
+import AdminLayout from "../modules/admin/layout/AdminLayout";
+import Dashboard from "../modules/admin/pages/Dashboard";
+import AdminAppointments from "../modules/admin/pages/AdminAppointments";
+import AdminPatients from "../modules/admin/pages/AdminPatients";
+import AdminDoctors from "../modules/admin/pages/AdminDoctors";
+import AdminSpecialties from "../modules/admin/pages/AdminSpecialties";
+import WalkInBooking from "../modules/admin/pages/WalkInBooking";
+import AdminInventory from "../modules/admin/pages/AdminInventory";
+import AdminBilling from "../modules/admin/pages/AdminBilling";
+import AdminReports from "../modules/admin/pages/AdminReports";
+import AdminSchedules from "../modules/admin/pages/AdminSchedules";
+import AdminSettings from "../modules/admin/pages/AdminSettings";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component: Homepage,
+    element: <Homepage />,
   },
   {
     path: "/login",
-    Component: LoginPage,
+    element: <LoginPage />,
   },
   {
     path: "/register",
-    Component: RegisterPage,
+    element: <RegisterPage />,
   },
+
+  // ====================== PATIENT ROUTES ======================
   {
     path: "/profile",
-    Component: () => (
+    element: (
       <ProtectedRoute>
         <ProfilePage />
       </ProtectedRoute>
@@ -34,7 +59,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/patient/appointments",
-    Component: () => (
+    element: (
       <ProtectedRoute>
         <MyAppointments />
       </ProtectedRoute>
@@ -42,15 +67,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/patient/booking",
-    Component: () => (
-      <ProtectedRoute>
-        <Navigate to="/patient/booking/specialty" replace />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/patient/booking/specialty",
-    Component: () => (
+    element: (
       <ProtectedRoute>
         <SelectSpecialty />
       </ProtectedRoute>
@@ -58,7 +75,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/patient/booking/doctor",
-    Component: () => (
+    element: (
       <ProtectedRoute>
         <SelectDoctor />
       </ProtectedRoute>
@@ -66,7 +83,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/patient/booking/time",
-    Component: () => (
+    element: (
       <ProtectedRoute>
         <SelectTime />
       </ProtectedRoute>
@@ -74,7 +91,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/patient/booking/info",
-    Component: () => (
+    element: (
       <ProtectedRoute>
         <PatientInfo />
       </ProtectedRoute>
@@ -82,20 +99,104 @@ export const router = createBrowserRouter([
   },
   {
     path: "/patient/booking/success",
-    Component: () => (
+    element: (
       <ProtectedRoute>
         <BookingSuccess />
       </ProtectedRoute>
     ),
   },
+
+  // ====================== DOCTOR ROUTES ======================
   {
-    path: "/patient/booking/info",
-    Component: () => (
-      <ProtectedRoute>
-        <PatientInfo />
+    path: "/doctor",
+    element: (
+      <ProtectedRoute requiredRoles={["Doctor"]}>
+        <DoctorLayout />
       </ProtectedRoute>
     ),
-  }
+    children: [
+      {
+        index: true,
+        element: <Navigate to="dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <DoctorDashboard />,
+      },
+      {
+        path: "appointments",
+        element: <DoctorAppointments />,
+      },
+      {
+        path: "profile",
+        element: <DoctorProfilePage />,
+      },
+      {
+        path: "schedule",
+        element: <DoctorSchedulePage />,
+      },
+    ],
+  },
+
+  // ====================== ADMIN ROUTES ======================
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute requiredRoles={["Admin", "SystemAdmin"]}>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <Dashboard />,
+      },
+      {
+        path: "appointments",
+        element: <AdminAppointments />,
+      },
+      {
+        path: "patients",
+        element: <AdminPatients />,
+      },
+      {
+        path: "doctors",
+        element: <AdminDoctors />,
+      },
+      {
+        path: "specialties",
+        element: <AdminSpecialties />,
+      },
+      {
+        path: "walk-in",
+        element: <WalkInBooking />,
+      },
+      {
+        path: "inventory",
+        element: <AdminInventory />,
+      },
+      {
+        path: "billing",
+        element: <AdminBilling />,
+      },
+      {
+        path: "reports",
+        element: <AdminReports />,
+      },
+      {
+        path: "schedule",
+        element: <AdminSchedules />,
+      },
+      {
+        path: "settings",
+        element: <AdminSettings />,
+      },
+    ],
+  },
 ]);
 
 export default router;

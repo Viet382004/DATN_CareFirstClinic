@@ -1,47 +1,7 @@
 import { apiPost } from './apiClient';
+import type { LoginResponse, RegisterRequest, VerifyOtpRequest, VerifyOtpResponse, RegisterResponse, ResendOtpResponse, ResendOtpRequest } from '../types/auth';
 
-export interface LoginResponse {
-  accessToken: string;
-  tokenType: string;
-  message: string;
-  data: {
-    id: string;
-    email: string;
-    fullName: string;
-    roleName: string;
-  };
-}
 
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  fullName: string;
-  dateOfBirth: string;
-  gender: string;
-}
-
-export interface VerifyOtpRequest {
-  email: string;
-  otpCode: string;
-}
-
-export interface VerifyOtpResponse {
-  message: string;
-  token: string;
-}
-
-export interface RegisterResponse {
-  message: string;
-  email: string;
-}
-
-export interface ResendOtpResponse {
-  message: string;
-}
-
-export interface ResendOtpRequest {
-  email: string;
-}
 
 export const authService = {
   /**
@@ -80,9 +40,9 @@ export const authService = {
   async verifyOtp(data: VerifyOtpRequest): Promise<VerifyOtpResponse> {
     console.log('Verifying OTP for email:', data.email);
     const response = await apiPost<VerifyOtpResponse>('/auth/verify-otp', data);
-    
+
     console.log('OTP verification response:', response);
-    
+
     // Lưu token nếu có
     if (response.token) {
       console.log('Token received, storing in localStorage');
@@ -90,7 +50,7 @@ export const authService = {
     } else {
       console.warn('No token in response:', response);
     }
-    
+
     return response;
   },
 

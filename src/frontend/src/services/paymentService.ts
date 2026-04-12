@@ -1,41 +1,5 @@
 import { apiGet, apiPost, apiPatch } from './apiClient';
-
-export interface Payment {
-  id: string;
-  appointmentId: string;
-  patientId: string;
-  amount: number;
-  method: string;
-  status: string;
-  transactionCode?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreatePaymentDTO {
-  appointmentId: string;
-  amount: number;
-  method: string;
-}
-
-export interface PaymentQueryParams {
-  appointmentId?: string;
-  patientId?: string;
-  status?: string;
-  method?: string;
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortDir?: string;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
+import type { Payment, CreatePaymentDTO, PaymentQueryParams, PagedResult } from '../types/payment';
 
 export const paymentService = {
   /**

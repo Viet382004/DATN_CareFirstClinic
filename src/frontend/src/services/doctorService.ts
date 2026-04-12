@@ -1,64 +1,12 @@
 import { apiGet, apiPost, apiPut, apiPatch, apiDelete } from './apiClient';
+import type{ 
+  Doctor, 
+  CreateDoctorDTO, 
+  UpdateDoctorDTO, 
+  DoctorQueryParams 
+} from '../types/doctor';
+import type{ PagedResult } from '../types/common';
 
-export interface Doctor {
-  id: string;
-  avatarUrl?: string;
-  fullName: string;
-  specialtyName: string;
-  academicTitle: string;
-  position: string;
-  description: string;
-  yearsOfExperience: number;
-  phoneNumber: string;
-  isActive: boolean;
-  userId?: string;
-  email?: string;
-  totalAppointments: number;
-  averageRating: number;
-}
-
-export interface CreateDoctorDTO {
-  fullName: string;
-  specialtyId: string;
-  academicTitle: string;
-  position: string;
-  description?: string;
-  yearsOfExperience: number;
-  phoneNumber: string;
-  userId?: string;
-  email: string;
-  userName: string;
-  password: string;
-}
-
-export interface UpdateDoctorDTO {
-  fullName: string;
-  specialtyId: string;
-  academicTitle: string;
-  position: string;
-  description?: string;
-  yearsOfExperience: number;
-  phoneNumber: string;
-  email: string;
-}
-
-export interface DoctorQueryParams {
-  name?: string;
-  specialtyId?: string;
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortDir?: string;
-  search?: string;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
 
 export const doctorService = {
   /**

@@ -7,9 +7,12 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../../contexts/useAuth';
-import { patientService, type Patient } from '../../../../services/patientService';
+import type { Patient } from '../../../../types/patient';
+import { patientService } from '../../../../services/patientService';
 import { avatarService } from '../../../../services/avatarService';
-import { medicalRecordService, type MedicalRecord } from '../../../../services/medicalRecordService';
+import type { MedicalRecord } from '../../../../types/medicalRecord';
+import { medicalRecordService } from '../../../../services/medicalRecordService';
+import { formatDate } from '../../../../utils/format';
 import styles from '../styles/PatientProfile.module.css';
 
 const NAV_ITEMS = [
@@ -47,8 +50,8 @@ const PatientProfilePage = () => {
   const [medicalHistory, setMedicalHistory] = useState<MedicalRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
 
   const [form, setForm] = useState({
     fullName: '',
@@ -76,7 +79,10 @@ const PatientProfilePage = () => {
     try {
       const response = await patientService.getMe();
       setProfile(response);
+
+      // Cập nhật avatarUrl từ backend
       setAvatarUrl(response.avatarUrl || DEFAULT_AVATAR_URL);
+
       setForm({
         fullName: response.fullName || '',
         phoneNumber: response.phoneNumber || '',
@@ -91,6 +97,7 @@ const PatientProfilePage = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadProfile();
@@ -123,14 +130,15 @@ const PatientProfilePage = () => {
 
   const handleSave = async () => {
     if (!form.fullName.trim()) {
-      setError('Vui lòng nhập họ và tên.');
+      setError("Vui lòng nhập họ và tên.");
       return;
     }
 
     setSaving(true);
-    setError('');
+    setError("");
 
     try {
+      // Cập nhật thông tin bệnh nhân
       const updated = await patientService.updateMe({
         fullName: form.fullName,
         phoneNumber: form.phoneNumber,
@@ -139,24 +147,28 @@ const PatientProfilePage = () => {
         address: form.address,
       });
 
+      // Nếu có file avatar thì upload
       if (avatarFile) {
         const uploadResult = await avatarService.uploadPatientAvatar(avatarFile);
         if (!uploadResult.avatarUrl) {
-          throw new Error('Không nhận được đường dẫn ảnh đại diện từ server.');
+          throw new Error("Không nhận được đường dẫn ảnh đại diện từ server.");
         }
-        setAvatarUrl(uploadResult.avatarUrl);
+        setAvatarUrl(uploadResult.avatarUrl); // cập nhật state ngay
         setAvatarFile(null);
         updated.avatarUrl = uploadResult.avatarUrl;
       }
 
       setProfile(updated);
       setEditing(false);
-      setSaveMsg('Cập nhật hồ sơ thành công!');
+      setSaveMsg("Cập nhật hồ sơ thành công!");
+
+      // Refetch để đồng bộ avatar mới từ backend
       await loadProfile();
-      setTimeout(() => setSaveMsg(''), 3000);
+
+      setTimeout(() => setSaveMsg(""), 3000);
     } catch (err: unknown) {
-      console.error('Error updating profile:', err);
-      setError(err instanceof Error ? err.message : 'Không thể cập nhật hồ sơ.');
+      console.error("Error updating profile:", err);
+      setError(err instanceof Error ? err.message : "Không thể cập nhật hồ sơ.");
     } finally {
       setSaving(false);
     }
@@ -178,14 +190,18 @@ const PatientProfilePage = () => {
     setError('');
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAvatarFile(file);
-      const url = URL.createObjectURL(file);
-      setAvatarUrl(url);
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      try {
+        const res = await avatarService.uploadPatientAvatar(file);
+        setAvatarUrl(res.avatarUrl); // cập nhật state ngay
+      } catch (err) {
+        console.error("Upload avatar error:", err);
+      }
     }
   };
+
 
   const handleChangePassword = async () => {
     setPwError('');
@@ -264,15 +280,16 @@ const PatientProfilePage = () => {
               >
                 <div className={styles.avatarWrapper}>
                   <img
-                    src={avatarUrl || DEFAULT_AVATAR_URL}
+                    src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : DEFAULT_AVATAR_URL}
                     alt="Avatar"
-                    className={styles.avatarImg}
+                    className={styles.avatarDisplay}
                     onError={(e) => {
                       if (e.currentTarget.src !== DEFAULT_AVATAR_URL) {
                         e.currentTarget.src = DEFAULT_AVATAR_URL;
                       }
                     }}
                   />
+
                 </div>
                 <h2 className={styles.profileName}>{profile?.fullName || 'Chưa cập nhật'}</h2>
                 <p className={styles.profileRole}>Bệnh nhân</p>
@@ -364,9 +381,8 @@ const PatientProfilePage = () => {
                             )}
                           </div>
                         ) : (
-                          <div className={styles.fieldValue}>
                           <img
-                            src={avatarUrl || DEFAULT_AVATAR_URL}
+                            src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : DEFAULT_AVATAR_URL}
                             alt="Avatar"
                             className={styles.avatarDisplay}
                             onError={(e) => {
@@ -375,7 +391,6 @@ const PatientProfilePage = () => {
                               }
                             }}
                           />
-                        </div>
                         )}
                       </div>
 
@@ -428,7 +443,7 @@ const PatientProfilePage = () => {
                             onChange={e => updateForm('dateOfBirth', e.target.value)}
                           />
                         ) : (
-                          <div className={styles.fieldValue}>{profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}</div>
+                          <div className={styles.fieldValue}>{profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : 'Chưa cập nhật'}</div>
                         )}
                       </div>
 
@@ -566,7 +581,7 @@ const PatientProfilePage = () => {
                           <article key={record.id} className={styles.historyItem}>
                             <div className={styles.historyHeader}>
                               <div className={styles.historyDate}>
-                                <Calendar size={16} /> {record.createdAt ? new Date(record.createdAt).toLocaleDateString('vi-VN') : 'Ngày chưa xác định'}
+                                <Calendar size={16} /> {formatDate(record.createdAt)}
                               </div>
                               <div className={styles.historyDoctor}>
                                 <UserRound size={16} /> Bác sĩ: {record.doctorId || 'Chưa có thông tin'}
@@ -581,10 +596,6 @@ const PatientProfilePage = () => {
                                 <span className={styles.historyLabel}>Triệu chứng</span>
                                 <p className={styles.historyText}>{record.symptoms || 'Không có dữ liệu'}</p>
                               </div>
-                              <div className={styles.historySection}>
-                                <span className={styles.historyLabel}>Phác đồ điều trị</span>
-                                <p className={styles.historyText}>{record.treatment || 'Không có dữ liệu'}</p>
-                              </div>
                               {record.notes && (
                                 <div className={styles.historySection}>
                                   <span className={styles.historyLabel}>Ghi chú</span>
@@ -594,9 +605,10 @@ const PatientProfilePage = () => {
                               {record.followUpDate && (
                                 <div className={styles.historySection}>
                                   <span className={styles.historyLabel}>Ngày tái khám</span>
-                                  <p className={styles.historyText}>{new Date(record.followUpDate).toLocaleDateString('vi-VN')}</p>
+                                  <p className={styles.historyText}>{formatDate(record.followUpDate)}</p>
                                 </div>
                               )}
+
                             </div>
                           </article>
                         ))}

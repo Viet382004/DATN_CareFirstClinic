@@ -1,10 +1,6 @@
 // Avatar service cho upload và quản lý ảnh đại diện
 import { apiRequest } from './apiClient';
-
-export interface UploadAvatarResponse {
-  message: string;
-  avatarUrl?: string;
-}
+import type { UploadAvatarResponse } from '../types/avatar';
 
 // Hàm upload file với FormData
 async function apiUploadFile<T>(
@@ -58,32 +54,26 @@ async function apiUploadFile<T>(
 }
 
 export const avatarService = {
-  // Upload avatar cho doctor (tự upload)
   async uploadDoctorAvatar(file: File): Promise<UploadAvatarResponse> {
-    return apiUploadFile<UploadAvatarResponse>('/avatar/doctor', file, 'POST');
+    return apiUploadFile<UploadAvatarResponse>('/api/avatar/doctor', file, 'POST');
   },
 
-  // Admin upload avatar cho doctor cụ thể
   async uploadDoctorAvatarById(doctorId: string, file: File): Promise<UploadAvatarResponse> {
-    return apiUploadFile<UploadAvatarResponse>(`/avatar/doctor/${doctorId}`, file, 'POST');
+    return apiUploadFile<UploadAvatarResponse>(`/api/avatar/doctor/${doctorId}`, file, 'POST');
   },
 
-  // Upload avatar cho patient (tự upload)
   async uploadPatientAvatar(file: File): Promise<UploadAvatarResponse> {
-    return apiUploadFile<UploadAvatarResponse>('/avatar/patient', file, 'POST');
+    return apiUploadFile<UploadAvatarResponse>('/api/avatar/patient', file, 'POST');
   },
 
-  // Admin upload avatar cho patient cụ thể
   async uploadPatientAvatarById(patientId: string, file: File): Promise<UploadAvatarResponse> {
-    return apiUploadFile<UploadAvatarResponse>(`/avatar/patient/${patientId}`, file, 'POST');
+    return apiUploadFile<UploadAvatarResponse>(`/api/avatar/patient/${patientId}`, file, 'POST');
   },
 
-  // Xóa avatar doctor
   async deleteDoctorAvatar(): Promise<{ message: string }> {
     return apiRequest<{ message: string }>('/api/avatar/doctor', { method: 'DELETE' });
   },
 
-  // Xóa avatar patient
   async deletePatientAvatar(): Promise<{ message: string }> {
     return apiRequest<{ message: string }>('/api/avatar/patient', { method: 'DELETE' });
   },

@@ -27,7 +27,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  // Listen for logout events (e.g., from 401 responses)
   useEffect(() => {
     const handleLogout = () => {
       logout();
@@ -41,13 +40,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await authService.login(email, password);
+
+      const rawRole = response.data.roleName
+        || 'Patient';
+
+      const newUser: User = {
+        id: response.data.id || response.data.id || '',
+        email: response.data.email || response.data.email || email,
+        fullName: response.data.fullName || response.data.fullName || '',
+        role: rawRole.toString().trim(),
+      };
+
+      // Lưu vào localStorage trước
+      localStorage.setItem('token', response.accessToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+
+      // Cập nhật state
       setToken(response.accessToken);
-      setUser({
-        id: response.data.id,
-        email: response.data.email,
-        fullName: response.data.fullName,
-        role: response.data.roleName,
-      });
+      setUser(newUser);
+
+      console.log('Login thành công!');
+      console.log('   - Token:', response.accessToken ? 'Có' : 'Không');
+      console.log('   - Role nhận được:', newUser.role);
+      console.log('   - User object:', newUser);
+
+      // Đợi state Context cập nhật xong trước khi navigate (rất quan trọng)
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      return { success: true, user: newUser, token: response.accessToken };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +80,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string;
     fullName: string;
     dateOfBirth: string;
-    gender: string;
+    gender: 'Male' | 'Female' | 'Other';
+    phoneNumber: string;
+    address: string;
   }) => {
     setIsLoading(true);
     try {
@@ -75,55 +100,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authService.logout();
   };
 
-const verifyOtp = async (email: string, otp: string) => {
-  setIsLoading(true);
-  try {
-    const response = await authService.verifyOtp({ email, otpCode: otp });
-
-    if (response.token) {
-      // Store token in localStorage và state
-      localStorage.setItem('token', response.token);
-      setToken(response.token);
-
-      // Small delay để ensure token được update
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Load patient profile after OTP verification
-      try {
-        const profile = await patientService.getMe();
-        const newUser: User = {
-          id: profile.userId ?? profile.id ?? '',
-          email: email,
-          fullName: profile.fullName,
-          role: 'Patient',
-        };
-        setUser(newUser);
-        localStorage.setItem('user', JSON.stringify(newUser));
-      } catch (profileError) {
-        console.error('Error loading patient profile:', profileError);
-        // Create user from OTP data if profile load fails
-        const newUser: User = {
-          id: '',
-          email,
-          fullName: '',
-          role: 'Patient',
-        };
-        setUser(newUser);
-        localStorage.setItem('user', JSON.stringify(newUser));
-      }
-    } else {
-      throw new Error('Không nhận được token từ server');
+  const verifyOtp = async (email: string, otp: string) => {
+    setIsLoading(true);
+    try {
+      await authService.verifyOtp({ email, otpCode: otp });
+      return; // Chỉ cần thành công
+    } catch (error: any) {
+      console.error('Verify OTP error:', error);
+      const message = error?.message || 'Xác thực OTP thất bại';
+      throw new Error(message);
+    } finally {
+      setIsLoading(false);
     }
-
-    return;
-  } catch (error: any) {
-    console.error('Verify OTP error:', error);
-    const message = error?.message || 'Xác thực OTP thất bại';
-    throw new Error(message);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const resendOtp = async (email: string) => {
     // Don't set isLoading here to avoid disabling buttons

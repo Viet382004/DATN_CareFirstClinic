@@ -1,59 +1,13 @@
 import { apiGet, apiPost, apiPut, apiPatch } from './apiClient';
+import type{ 
+  Appointment, 
+  CreateAppointmentDTO, 
+  UpdateAppointmentDTO, 
+  CancelAppointmentDTO, 
+  AppointmentQueryParams 
+} from '../types/appointment';
+import type{ PagedResult } from '../types/common';
 
-export interface Appointment {
-  id: string;
-  patientId: string;
-  patientName: string;
-  timeSlotId: string;
-  doctorId: string;
-  doctorName: string;
-  specialtyName: string;
-  workDate: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-  reason?: string;
-  cancelReason?: string;
-  cancelledAt?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface CreateAppointmentDTO {
-  timeSlotId: string;
-  reason?: string;
-  notes?: string;
-}
-
-export interface UpdateAppointmentDTO {
-  reason?: string;
-  notes?: string;
-}
-
-export interface CancelAppointmentDTO {
-  cancelReason: string;
-}
-
-export interface AppointmentQueryParams {
-  patientId?: string;
-  doctorId?: string;
-  today?: boolean;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortDir?: string;
-  search?: string;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
 
 export const appointmentService = {
   /**
@@ -99,6 +53,13 @@ export const appointmentService = {
   },
 
   /**
+   * Tạo lịch hẹn hộ bệnh nhân (Requires: Admin role)
+   */
+  async createForPatient(patientId: string, data: CreateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
+    return apiPost(`/appointment/admin/${patientId}`, data);
+  },
+
+  /**
    * Cập nhật lịch hẹn (Requires: Patient role)
    */
   async update(id: string, data: UpdateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
@@ -117,6 +78,20 @@ export const appointmentService = {
    */
   async complete(id: string): Promise<{ message: string; data: Appointment }> {
     return apiPatch(`/appointment/${id}/complete`);
+  },
+
+  /**
+   * Chuyển trạng thái sang Đang chờ (Requires: Admin role)
+   */
+  async toWaiting(id: string): Promise<{ message: string; data: Appointment }> {
+    return apiPatch(`/appointment/${id}/waiting`);
+  },
+
+  /**
+   * Bắt đầu khám (Requires: Doctor role)
+   */
+  async startExamination(id: string): Promise<{ message: string; data: Appointment }> {
+    return apiPatch(`/appointment/${id}/start-examination`);
   },
 
   /**

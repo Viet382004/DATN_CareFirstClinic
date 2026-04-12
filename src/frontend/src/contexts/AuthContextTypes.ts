@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 export interface User {
   id: string;
@@ -12,13 +12,15 @@ export interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean; user: User; token: string }>;
   register: (data: {
     email: string;
     password: string;
     fullName: string;
     dateOfBirth: string;
-    gender: string;
+    gender: 'Male' | 'Female' | 'Other';
+    phoneNumber?: string;
+    address?: string;
   }) => Promise<void>;
   logout: () => void;
   verifyOtp: (email: string, otp: string) => Promise<void>;

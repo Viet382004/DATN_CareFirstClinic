@@ -1,37 +1,6 @@
 import { apiGet, apiPost, apiPatch } from './apiClient';
+import type { Prescription, CreatePrescriptionDTO, PrescriptionResponse } from '../types/prescription';
 
-export interface PrescriptionMedicine {
-  id: string;
-  medicineName: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  notes?: string;
-}
-
-export interface Prescription {
-  id: string;
-  medicalRecordId: string;
-  doctorId: string;
-  prescriptionDate: string;
-  medicines: PrescriptionMedicine[];
-  instructions?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreatePrescriptionDTO {
-  medicalRecordId: string;
-  medicines: Array<{
-    medicineName: string;
-    dosage: string;
-    frequency: string;
-    duration: string;
-    notes?: string;
-  }>;
-  instructions?: string;
-}
 
 export const prescriptionService = {
   /**
@@ -51,7 +20,7 @@ export const prescriptionService = {
   /**
    * Tạo đơn thuốc mới (Requires: Doctor role)
    */
-  async create(data: CreatePrescriptionDTO): Promise<Prescription> {
+  async create(data: CreatePrescriptionDTO): Promise<PrescriptionResponse> {
     return apiPost('/prescription', data);
   },
 

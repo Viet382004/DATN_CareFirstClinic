@@ -10,8 +10,9 @@ export interface Stock {
   minQuantity: number;
   unitPrice: number;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  isLowStock: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateStockDTO {

@@ -13,13 +13,38 @@ import {
   User,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../../contexts/useAuth';
 import styles from './Patientinfo.module.css';
 import { appointmentService } from '../../../services/appointmentService';
 import { patientService } from '../../../services/patientService';
-import Header from '../../../modules/home/components/Header';
+import { useAuth } from '../../../contexts/useAuth';
+import Header from '../../home/components/Header';
+import type { CreateAppointmentDTO } from '../../../types/appointment';
+import { formatDate } from '../../../utils/format';
 
-const getBookingSummary = () => {
+interface BookingSummary {
+  specialty: string;
+  doctor: string;
+  date: string;
+  time: string;
+  location: string;
+}
+
+interface FormState {
+  fullName: string;
+  dob: string;
+  gender: string;
+  phone: string;
+  email: string;
+  reason: string;
+  notes: string;
+}
+
+interface FormErrors {
+  reason?: string;
+  [key: string]: string | undefined;
+}
+
+const getBookingSummary = (): BookingSummary => {
   return {
     specialty: localStorage.getItem('selectedSpecialtyName') || localStorage.getItem('selectedDoctorSub') || 'Chuyên khoa',
     doctor: localStorage.getItem('selectedDoctorName') || 'Bác sĩ',
@@ -29,11 +54,11 @@ const getBookingSummary = () => {
   };
 };
 
-const PatientInfo = () => {
+const PatientInfo: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     fullName: '',
     dob: '',
     gender: '',
@@ -42,9 +67,9 @@ const PatientInfo = () => {
     reason: '',
     notes: '',
   });
-  
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [loading, setLoading] = useState(false);
+
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const BOOKING_SUMMARY = getBookingSummary();
 
   useEffect(() => {
@@ -72,15 +97,15 @@ const PatientInfo = () => {
     fetchProfile();
   }, []);
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
-  const update = (field, value) => {
+  const update = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const validate = () => {
-    const newErrors = {};
+  const validate = (): FormErrors => {
+    const newErrors: FormErrors = {};
     if (!form.reason.trim()) newErrors.reason = 'Vui lòng mô tả lý do khám';
     return newErrors;
   };
@@ -101,9 +126,9 @@ const PatientInfo = () => {
       }
 
       // Normalize gender to match backend
-      const normalizedGender = form.gender.charAt(0).toUpperCase() + form.gender.slice(1);
+      const normalizedGender = form.gender ? form.gender.charAt(0).toUpperCase() + form.gender.slice(1) : 'Male';
 
-      const payload = {
+      const payload: CreateAppointmentDTO = {
         timeSlotId: timeSlotId,
         reason: form.reason || "Khám tổng quát",
         notes: form.notes || "",
@@ -115,12 +140,12 @@ const PatientInfo = () => {
       };
 
       const res = await appointmentService.create(payload);
-      const appointmentData = res.data || res;
-      const bookingCode = appointmentData.id || appointmentData.bookingCode || 'CF-' + Date.now();
-      
+      const appointmentData = res.data;
+      const bookingCode = appointmentData.id || 'CF-' + Date.now();
+
       localStorage.setItem('bookingCode', bookingCode);
       navigate('/patient/booking/success');
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg = error.response?.data?.message || "Đã có lỗi xảy ra khi đặt lịch. Vui lòng thử lại.";
       alert(errorMsg);
     } finally {
@@ -158,9 +183,8 @@ const PatientInfo = () => {
               {['CHUYÊN KHOA', 'BÁC SĨ', 'THỜI GIAN', 'THÔNG TIN', 'XÁC NHẬN'].map((step, i) => (
                 <div
                   key={step}
-                  className={`${styles.stepLabel} ${
-                    i < 3 ? styles.stepLabelDone : i === 3 ? styles.stepLabelActive : ''
-                  }`}
+                  className={`${styles.stepLabel} ${i < 3 ? styles.stepLabelDone : i === 3 ? styles.stepLabelActive : ''
+                    }`}
                 >
                   {step}
                 </div>
@@ -189,7 +213,7 @@ const PatientInfo = () => {
           <div className={styles.formWrapper}>
             {/* Left: Form Content */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
-              
+
               {/* Profile Summary (Read-only) */}
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
@@ -220,11 +244,11 @@ const PatientInfo = () => {
                     </div>
                     <div className={styles.summaryInfoItem}>
                       <label>Ngày sinh</label>
-                      <div>{form.dob ? new Date(form.dob).toLocaleDateString('vi-VN') : '---'}</div>
+                      <div>{form.dob ? formatDate(form.dob) : '---'}</div>
                     </div>
                     <div className={styles.summaryInfoItem}>
                       <label>Giới tính</label>
-                      <div>{form.gender === 'male' ? 'Nam' : form.gender === 'female' ? 'Nữ' : 'Khác'}</div>
+                      <div>{form.gender.toLowerCase() === 'male' || form.gender === 'Nam' ? 'Nam' : form.gender.toLowerCase() === 'female' || form.gender === 'Nữ' ? 'Nữ' : 'Khác'}</div>
                     </div>
                   </div>
                 )}
@@ -322,7 +346,7 @@ const PatientInfo = () => {
               <ArrowRight size={18} />
             </motion.button>
           </div>
-          
+
           {/* Help Section */}
           <div className={styles.helpSection}>
             <div className={styles.helpIcon}><Headphones size={24} /></div>
