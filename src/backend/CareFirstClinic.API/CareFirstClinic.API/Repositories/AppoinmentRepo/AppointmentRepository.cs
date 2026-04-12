@@ -1,7 +1,8 @@
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
-using CareFirstClinic.API.Common;
+using System.Linq;
 
 namespace CareFirstClinic.API.Repositories.AppoinmentRepo
 {
@@ -240,20 +241,56 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
 
         public async Task<(List<Appointment> Items, int Total)> GetPagedAsync(AppointmentQueryParams query)
         {
+            var now = DateTime.UtcNow;
+
+            // === SỬA PHẦN NÀY: Tự động hủy lịch hẹn pending quá hạn ===
+            try
+            {
+                var expiredPending =  _context.Appointments
+                    .Include(a => a.TimeSlot)
+                        .ThenInclude(ts => ts!.Schedule)
+                    .Where(a => a.Status == AppointmentStatus.Pending &&
+                                a.TimeSlot != null &&
+                                a.TimeSlot.Schedule != null)
+                    .AsEnumerable()                    // Chuyển sang client evaluation
+                    .Where(a => a.TimeSlot!.Schedule!.WorkDate.Date.Add(a.TimeSlot.StartTime) < now)
+                    .ToList();
+
+                if (expiredPending.Any())
+                {
+                    foreach (var app in expiredPending)
+                    {
+                        app.Status = AppointmentStatus.Cancelled;
+                        app.CancelReason = "Không được xác thực (quá giờ)";
+                        app.CancelledAt = now;
+                        app.UpdatedAt = now;
+                    }
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Đã tự động hủy {Count} lịch hẹn pending quá hạn.", expiredPending.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Không thể tự động hủy lịch hẹn pending quá hạn.");
+            }
+
             var q = BaseQuery();
 
-            // tìm kiếm (doctor name, specialty name, reason)
+            // tìm kiếm...
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
                 var s = query.Search.Trim().ToLower();
-                q = q.Where(a => 
-                    (a.TimeSlot != null && a.TimeSlot.Schedule != null && a.TimeSlot.Schedule.Doctor != null && a.TimeSlot.Schedule.Doctor.FullName.ToLower().Contains(s)) ||
-                    (a.TimeSlot != null && a.TimeSlot.Schedule != null && a.TimeSlot.Schedule.Doctor != null && a.TimeSlot.Schedule.Doctor.Specialty != null && a.TimeSlot.Schedule.Doctor.Specialty.Name.ToLower().Contains(s)) ||
+                q = q.Where(a =>
+                    (a.TimeSlot != null && a.TimeSlot.Schedule != null && a.TimeSlot.Schedule.Doctor != null &&
+                     a.TimeSlot.Schedule.Doctor.FullName.ToLower().Contains(s)) ||
+                    (a.TimeSlot != null && a.TimeSlot.Schedule != null && a.TimeSlot.Schedule.Doctor != null &&
+                     a.TimeSlot.Schedule.Doctor.Specialty != null &&
+                     a.TimeSlot.Schedule.Doctor.Specialty.Name.ToLower().Contains(s)) ||
                     (a.Reason != null && a.Reason.ToLower().Contains(s))
                 );
             }
 
-            // lọc theo lịch hôm nay — ưu tiên hơn FromDate/ToDate
+            // lọc theo hôm nay hoặc FromDate/ToDate
             if (query.Today == true)
             {
                 var today = DateTime.UtcNow.Date;
@@ -265,21 +302,18 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
             {
                 if (query.FromDate.HasValue)
                     q = q.Where(a => a.TimeSlot!.Schedule!.WorkDate.Date >= query.FromDate.Value.Date);
-
                 if (query.ToDate.HasValue)
                     q = q.Where(a => a.TimeSlot!.Schedule!.WorkDate.Date <= query.ToDate.Value.Date);
             }
 
-            // lọc theo trạng thái
+            // lọc theo trạng thái, patient, doctor...
             if (!string.IsNullOrWhiteSpace(query.Status) &&
                 Enum.TryParse<AppointmentStatus>(query.Status, true, out var status))
                 q = q.Where(a => a.Status == status);
 
-            // lọc theo bệnh nhân
             if (query.PatientId.HasValue)
                 q = q.Where(a => a.PatientId == query.PatientId.Value);
 
-            // lọc theo bác sĩ (qua TimeSlot → Schedule)
             if (query.DoctorId.HasValue)
                 q = q.Where(a => a.TimeSlot!.Schedule!.DoctorId == query.DoctorId.Value);
 
@@ -291,7 +325,7 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
                 "status" => query.IsAscending
                     ? q.OrderBy(a => a.Status)
                     : q.OrderByDescending(a => a.Status),
-                _ => query.IsAscending  // mặc định sort theo workDate + giờ khám
+                _ => query.IsAscending
                     ? q.OrderBy(a => a.TimeSlot!.Schedule!.WorkDate)
                         .ThenBy(a => a.TimeSlot!.StartTime)
                     : q.OrderByDescending(a => a.TimeSlot!.Schedule!.WorkDate)

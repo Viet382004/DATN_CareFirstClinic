@@ -3,7 +3,7 @@ using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.Payment;
 using CareFirstClinic.API.Models;
-using CareFirstClinic.API.Repositories;
+using CareFirstClinic.API.Repositories.PaymentRepo;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareFirstClinic.API.Services

@@ -646,6 +646,26 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "CareFirstClinic.API.Controllers.DashboardController",
+    "Method": "GetCharts",
+    "RelativePath": "api/Dashboard/charts",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.DashboardController",
+    "Method": "GetStats",
+    "RelativePath": "api/Dashboard/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "CareFirstClinic.API.Controllers.DoctorController",
     "Method": "GetPaged",
     "RelativePath": "api/Doctor",

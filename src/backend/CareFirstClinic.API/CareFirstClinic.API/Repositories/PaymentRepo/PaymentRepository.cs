@@ -4,7 +4,7 @@ using CareFirstClinic.API.Repositories.PatientRepo;
 using Microsoft.EntityFrameworkCore;
 using CareFirstClinic.API.Common;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.PaymentRepo
 {
     public class PaymentRepository : IPaymentRepository
     {

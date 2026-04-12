@@ -24,6 +24,13 @@ namespace CareFirstClinic.API.DTOs.Auth
         [MaxLength(10, ErrorMessage = "Giới tính tối đa 10 ký tự.")]
         public string Gender { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Số điện thoại không được để trống.")]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ.")]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Địa chỉ không được để trống.")]
+        public string Address { get; set; } = string.Empty;
+
         // RoleId đã bị xóa — server tự gán role Patient để tránh leo thang đặc quyền
     }
 }

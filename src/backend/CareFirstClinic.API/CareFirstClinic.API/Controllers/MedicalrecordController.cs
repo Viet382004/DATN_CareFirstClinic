@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +32,7 @@ namespace CareFirstClinic.API.Controllers
         // GET /api/medicalrecord
         // GET /api/medicalrecord?diagnosis=đau&hasFollowUp=true&sortBy=followUpDate&sortDir=asc
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Doctor")]
         public async Task<IActionResult> GetPaged([FromQuery] MedicalRecordQueryParams query)
         {
             try { return Ok(await _medicalService.GetPagedAsync(query)); }
@@ -152,22 +152,42 @@ namespace CareFirstClinic.API.Controllers
             try
             {
                 var userId = GetUserIdFromClaim();
-                if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+                if (userId is null)
+                    return Unauthorized("Không xác định được tài khoản.");
 
                 var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
-                if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
+                if (doctor is null)
+                    return NotFound("Không tìm thấy hồ sơ bác sĩ.");
 
                 var created = await _medicalService.CreateAsync(doctor.Id, dto);
+
                 return CreatedAtAction(nameof(GetById), new { id = created.Id },
                     new { message = "Tạo hồ sơ bệnh án thành công.", data = created });
             }
-            catch (ArgumentException ex) { return BadRequest(ex.Message); }
-            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
-            catch (InvalidOperationException ex) { return Conflict(ex.Message); }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi Create MedicalRecord.");
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Lỗi Create MedicalRecord. Payload: {@Dto}", dto);
+                return StatusCode(500, new
+                {
+                    message = "Lỗi hệ thống khi tạo hồ sơ bệnh án.",
+                    error = ex.Message
+                });
             }
         }
 

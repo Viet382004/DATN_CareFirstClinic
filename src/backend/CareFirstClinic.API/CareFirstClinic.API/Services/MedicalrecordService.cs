@@ -109,21 +109,28 @@ namespace CareFirstClinic.API.Services
         public async Task<MedicalRecordDTO> CreateAsync(Guid doctorId, CreateMedicalRecordDTO dto)
         {
             ArgumentNullException.ThrowIfNull(dto);
+
             if (doctorId == Guid.Empty)
                 throw new ArgumentException("DoctorId không hợp lệ.", nameof(doctorId));
 
+            // Kiểm tra lịch hẹn
             var exists = await _medicalRepo.ExistsByAppointmentIdAsync(dto.AppointmentId);
             if (exists)
                 throw new InvalidOperationException("Lịch hẹn này đã có hồ sơ bệnh án.");
 
             var appointment = await _context.Appointments
+                .Include(a => a.TimeSlot)
+                    .ThenInclude(t => t!.Schedule)
                 .FirstOrDefaultAsync(a => a.Id == dto.AppointmentId);
-            if (appointment is null)
-                throw new KeyNotFoundException("Không tìm thấy lịch hẹn.");
 
-            if (appointment.Status != AppointmentStatus.Confirmed)
-                throw new InvalidOperationException(
-                    "Chỉ có thể tạo hồ sơ bệnh án cho lịch hẹn đã được xác nhận.");
+            if (appointment is null)
+                throw new KeyNotFoundException($"Không tìm thấy lịch hẹn với Id: {dto.AppointmentId}");
+
+            if (appointment.TimeSlot?.Schedule?.DoctorId != doctorId)
+                throw new UnauthorizedAccessException("Bạn không có quyền tạo hồ sơ cho lịch hẹn này.");
+
+            if (appointment.Status != AppointmentStatus.InProgress)
+                throw new InvalidOperationException($"Chỉ có thể tạo hồ sơ khi lịch hẹn đang InProgress. Hiện tại: {appointment.Status}");
 
             try
             {
@@ -133,7 +140,7 @@ namespace CareFirstClinic.API.Services
                     AppointmentId = dto.AppointmentId,
                     PatientId = appointment.PatientId,
                     DoctorId = doctorId,
-                    Diagnosis = dto.Diagnosis.Trim(),
+                    Diagnosis = string.IsNullOrWhiteSpace(dto.Diagnosis) ? "Chẩn đoán tạm thời" : dto.Diagnosis.Trim(),
                     Symptoms = dto.Symptoms?.Trim(),
                     BloodPressure = dto.BloodPressure,
                     HeartRate = dto.HeartRate,
@@ -141,20 +148,27 @@ namespace CareFirstClinic.API.Services
                     Weight = dto.Weight,
                     Height = dto.Height,
                     Notes = dto.Notes?.Trim(),
-                    FollowUpDate = dto.FollowUpDate,
-                    CreatedAt = DateTime.UtcNow
+
+                    FollowUpDate = dto.FollowUpDate.HasValue
+        ? DateTime.SpecifyKind(dto.FollowUpDate.Value, DateTimeKind.Utc)
+        : null,
+
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
 
                 var created = await _medicalRepo.AddAsync(record);
                 var result = await _medicalRepo.GetByIdAsync(created.Id);
-                return MapToDTO(result!);
+
+                if (result == null)
+                    throw new ApplicationException("Không thể lấy hồ sơ vừa tạo.");
+
+                return MapToDTO(result);
             }
-            catch (KeyNotFoundException) { throw; }
-            catch (InvalidOperationException) { throw; }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi Create MedicalRecord.");
-                throw new ApplicationException("Không thể tạo hồ sơ bệnh án.", ex);
+                _logger.LogError(ex, "Lỗi tạo MedicalRecord cho Appointment {AppointmentId}. DTO: {@Dto}", dto.AppointmentId, dto);
+                throw;
             }
         }
 
@@ -183,6 +197,10 @@ namespace CareFirstClinic.API.Services
                 record.Notes = dto.Notes?.Trim();
                 record.FollowUpDate = dto.FollowUpDate;
                 record.UpdatedAt = DateTime.UtcNow;
+                if (dto.FollowUpDate.HasValue)
+                {
+                    record.FollowUpDate = DateTime.SpecifyKind(dto.FollowUpDate.Value, DateTimeKind.Utc);
+                }
 
                 var updated = await _medicalRepo.UpdateAsync(record);
                 return MapToDTO(updated);

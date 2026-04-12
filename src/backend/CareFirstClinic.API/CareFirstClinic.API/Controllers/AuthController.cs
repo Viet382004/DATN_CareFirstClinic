@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Data;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.Auth;
 using CareFirstClinic.API.Models;
@@ -62,6 +62,15 @@ namespace CareFirstClinic.API.Controllers
                     OtpExpiredAt = DateTime.UtcNow.AddMinutes(10)
                 };
 
+                // Nếu người thực hiện đăng ký là Admin, tự động kích hoạt luôn (Walk-in booking)
+                if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("SystemAdmin")))
+                {
+                    user.IsActive = true;
+                    user.IsEmailVerified = true;
+                    user.OtpCode = null;
+                    user.OtpExpiredAt = null;
+                }
+
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
@@ -72,7 +81,8 @@ namespace CareFirstClinic.API.Controllers
                     FullName = user.FullName,
                     DateOfBirth = DateTime.SpecifyKind(dto.DateOfBirth, DateTimeKind.Utc),
                     Gender = dto.Gender,
-                    PhoneNumber = "",
+                    PhoneNumber = dto.PhoneNumber ?? "",
+                    Address = dto.Address ?? "",
                     CreatedAt = DateTime.UtcNow,
                 };
 
@@ -81,23 +91,28 @@ namespace CareFirstClinic.API.Controllers
 
                 await transaction.CommitAsync();
 
-                // Gửi email OTP (fire and forget)
-                _ = Task.Run(async () =>
+                // Gửi email OTP nếu chưa verified
+                if (!user.IsEmailVerified)
                 {
-                    try
+                    _ = Task.Run(async () =>
                     {
-                        await _emailService.SendOtpAsync(user.Email, user.FullName, otp);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Lỗi gửi OTP sau khi đăng ký | Email: {Email}", user.Email);
-                    }
-                });
+                        try
+                        {
+                            await _emailService.SendOtpAsync(user.Email, user.FullName, otp);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Lỗi gửi OTP sau khi đăng ký | Email: {Email}", user.Email);
+                        }
+                    });
+                }
 
                 return Ok(new
                 {
-                    message = "Đăng ký thành công. Vui lòng kiểm tra email để xác thực OTP.",
-                    email = user.Email
+                    message = user.IsEmailVerified ? "Tạo tài khoản bệnh nhân thành công." : "Đăng ký thành công. Vui lòng kiểm tra email để xác thực OTP.",
+                    email = user.Email,
+                    patientId = patient.Id,
+                    isAutoVerified = user.IsEmailVerified
                 });
             }
             catch (Exception ex)

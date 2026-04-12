@@ -4,7 +4,7 @@ using CareFirstClinic.API.Repositories.MedicalRecordRepo;
 using Microsoft.EntityFrameworkCore;
 using CareFirstClinic.API.Common;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.MedicalRecordRepo
 {
     public class MedicalRecordRepository : IMedicalRecordRepository
     {
@@ -128,16 +128,28 @@ namespace CareFirstClinic.API.Repositories
         public async Task<MedicalRecord> AddAsync(MedicalRecord record)
         {
             ArgumentNullException.ThrowIfNull(record);
+
             try
             {
+                // Log chi tiết record trước khi lưu
+                _logger.LogInformation("Đang thêm MedicalRecord. AppointmentId: {AppointmentId}, Diagnosis: {Diagnosis}, FollowUpDate: {FollowUpDate}, CreatedAt Kind: {Kind}",
+                    record.AppointmentId, record.Diagnosis, record.FollowUpDate, record.CreatedAt.Kind);
+
                 _context.MedicalRecords.Add(record);
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Thêm MedicalRecord thành công. Id mới: {Id}", record.Id);
                 return record;
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Lỗi DB khi thêm MedicalRecord.");
-                throw new InvalidOperationException("Không thể tạo hồ sơ bệnh án. Vui lòng thử lại.", ex);
+                _logger.LogError(ex, "DbUpdateException khi thêm MedicalRecord. InnerException: {Inner}", ex.InnerException?.Message);
+                throw new InvalidOperationException($"Không thể lưu hồ sơ bệnh án vào database. Chi tiết: {ex.InnerException?.Message ?? ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi không xác định khi thêm MedicalRecord.");
+                throw;
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Models;
 
-namespace CareFirstClinic.API.Repositories
+namespace CareFirstClinic.API.Repositories.PaymentRepo
 {
     public interface IPaymentRepository
     {
