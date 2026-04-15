@@ -1,4 +1,4 @@
-import { apiGet, apiPut, apiDelete } from './apiClient';
+import { apiGet, apiPut, apiDelete, apiPatch } from './apiClient';
 import type { Patient, UpdatePatientDTO } from '../types/patient';
 
 export const patientService = {
@@ -37,12 +37,20 @@ export const patientService = {
   async updateById(id: string, data: UpdatePatientDTO): Promise<Patient> {
     return apiPut(`/patient/${id}`, data);
   },
+  
 
   /**
    * Xóa bệnh nhân (Soft delete) (Requires: Admin role)
    */
   async delete(id: string): Promise<void> {
     return apiDelete(`/patient/${id}`);
+  },
+
+  /**
+   * Bật/tắt trạng thái bệnh nhân
+   */
+  async toggleActive(id: string): Promise<void> {
+    return apiPatch(`/patient/${id}/toggle`);
   },
 
   /**

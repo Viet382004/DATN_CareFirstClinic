@@ -1,13 +1,13 @@
+// services/appointmentService.ts
 import { apiGet, apiPost, apiPut, apiPatch } from './apiClient';
-import type{ 
-  Appointment, 
-  CreateAppointmentDTO, 
-  UpdateAppointmentDTO, 
-  CancelAppointmentDTO, 
-  AppointmentQueryParams 
+import type {
+  Appointment,
+  CreateAppointmentDTO,
+  UpdateAppointmentDTO,
+  CancelAppointmentDTO,
+  AppointmentQueryParams
 } from '../types/appointment';
-import type{ PagedResult } from '../types/common';
-
+import type { PagedResult } from '../types/common';
 
 export const appointmentService = {
   /**
@@ -55,7 +55,7 @@ export const appointmentService = {
   /**
    * Tạo lịch hẹn hộ bệnh nhân (Requires: Admin role)
    */
-  async createForPatient(patientId: string, data: CreateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
+  async createByAdmin(patientId: string, data: CreateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
     return apiPost(`/appointment/admin/${patientId}`, data);
   },
 
@@ -81,6 +81,13 @@ export const appointmentService = {
   },
 
   /**
+   * Doctor cập nhật phí thuốc sau khi kê đơn
+   */
+  async updateMedicineFee(id: string, medicineFee: number): Promise<{ message: string; data: Appointment }> {
+    return apiPatch(`/appointment/${id}/medicine-fee`, { medicineFee });
+  },
+
+  /**
    * Chuyển trạng thái sang Đang chờ (Requires: Admin role)
    */
   async toWaiting(id: string): Promise<{ message: string; data: Appointment }> {
@@ -100,4 +107,12 @@ export const appointmentService = {
   async cancel(id: string, data: CancelAppointmentDTO): Promise<{ message: string; data: Appointment }> {
     return apiPatch(`/appointment/${id}/cancel`, data);
   },
+
+  /**
+   * Lấy danh sách lịch hẹn chưa thanh toán (Requires: Patient role)
+   */
+  async getUnpaidAppointments(params?: AppointmentQueryParams): Promise<PagedResult<Appointment>> {
+    return apiGet('/appointment/me/unpaid', params);
+  },
+
 };

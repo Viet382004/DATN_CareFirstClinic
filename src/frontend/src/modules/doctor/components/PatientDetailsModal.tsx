@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    X, User, Calendar, Phone, Mail, MapPin, 
-    History, Clipboard, Activity, Pill, Clock, 
+import {
+    X, User, Calendar, Phone, Mail, MapPin,
+    History, Clipboard, Activity, Pill, Clock,
     ChevronDown, ChevronUp, FileText, AlertCircle
 } from 'lucide-react';
-import { patientService, type Patient } from '../../../services/patientService';
-import { medicalRecordService, type MedicalRecord } from '../../../services/medicalRecordService';
-import { prescriptionService, type Prescription } from '../../../services/prescriptionService';
+import { patientService } from '../../../services/patientService';
+import { medicalRecordService } from '../../../services/medicalRecordService';
+import { prescriptionService } from '../../../services/prescriptionService';
+import type { Patient } from '../../../types/patient';
+import type { MedicalRecord } from '../../../types/medicalRecord';
+import type { Prescription } from '../../../types/prescription';
 import { toast } from 'sonner';
 import { formatDate } from '../../../utils/format';
 
@@ -30,7 +33,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
                 patientService.getById(patientId),
                 medicalRecordService.getList({ patientId, pageSize: 50, sortBy: 'createdAt', sortDir: 'desc' })
             ]);
-            
+
             setPatient(patientData);
             setRecords(recordsData.items || []);
         } catch (error) {
@@ -52,7 +55,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
         }
 
         setExpandedRecordId(recordId);
-        
+
         // Fetch prescription if not already loaded and if it exists
         const record = records.find(r => r.id === recordId);
         if (record?.hasPrescription && !prescriptions[recordId]) {
@@ -82,7 +85,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 md:p-8">
             <div className="bg-white w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
-                
+
                 {/* Header */}
                 <div className="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-3">
@@ -100,7 +103,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
                 </div>
 
                 <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-slate-50">
-                    
+
                     {/* Left: Patient Info Sidebar */}
                     <div className="w-full md:w-80 bg-white border-r border-slate-200 p-6 overflow-y-auto shrink-0">
                         <div className="flex flex-col items-center mb-8">
@@ -120,7 +123,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
                         <div className="space-y-4">
                             <InfoItem icon={<Calendar size={14} />} label="Ngày sinh" value={formatDate(patient?.dateOfBirth)} />
                             <InfoItem icon={<Phone size={14} />} label="Số điện thoại" value={patient?.phoneNumber || 'N/A'} />
-                            <InfoItem icon={<Mail size={14} />} label="Email" value={patient?.email || 'N/A'} />
+                            <InfoItem icon={<Mail size={14} />} label="Email" value={patient?.userEmail || 'N/A'} />
                             <InfoItem icon={<MapPin size={14} />} label="Địa chỉ" value={patient?.address || 'N/A'} />
                         </div>
 
@@ -152,7 +155,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
                                 {records.map((record) => (
                                     <div key={record.id} className={`bg-white border rounded-xl overflow-hidden transition-all ${expandedRecordId === record.id ? 'border-indigo-300 shadow-md ring-1 ring-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}>
                                         {/* Record Header (Clickable) */}
-                                        <div 
+                                        <div
                                             onClick={() => toggleRecord(record.id)}
                                             className="p-4 cursor-pointer flex items-center justify-between hover:bg-slate-50 transition-colors"
                                         >
@@ -186,7 +189,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
                                         {expandedRecordId === record.id && (
                                             <div className="px-4 pb-4 bg-white animate-in slide-in-from-top-2 duration-200">
                                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                                                    
+
                                                     {/* Clinical Findings */}
                                                     <div className="space-y-4">
                                                         <div>
@@ -220,7 +223,7 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
                                                         <h5 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                                                             <Pill size={12} className="text-emerald-500" /> Đơn thuốc
                                                         </h5>
-                                                        
+
                                                         {!record.hasPrescription ? (
                                                             <div className="bg-slate-50 p-4 rounded-lg text-center font-bold text-slate-400 text-[10px] uppercase">
                                                                 Không kê đơn thuốc

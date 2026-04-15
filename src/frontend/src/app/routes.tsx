@@ -33,6 +33,7 @@ import AdminBilling from "../modules/admin/pages/AdminBilling";
 import AdminReports from "../modules/admin/pages/AdminReports";
 import AdminSchedules from "../modules/admin/pages/AdminSchedules";
 import AdminSettings from "../modules/admin/pages/AdminSettings";
+import PaymentResultPage from "../modules/home/pages/PaymentResultPage";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
+  },
+  {
+    path: "/payment/:status",
+    element: <PaymentResultPage />,
   },
 
   // ====================== PATIENT ROUTES ======================

@@ -8,55 +8,18 @@ export interface Doctor {
   description: string;
   yearsOfExperience: number;
   phoneNumber: string;
-  isActive: boolean;
   email?: string;
   totalAppointments: number;
   averageRating: number;
   userId?: string;
-}
-
-
-export interface CreateDoctorDTO {
-  fullName: string;
-  specialtyId: string;
-  academicTitle: string;
-  position: string;
-  description?: string;
-  yearsOfExperience: number;
-  phoneNumber: string;
-  email: string;
-  userName: string;
-  password: string;
-  userId?: string;
-}
-
-
-export interface UpdateDoctorDTO {
-  fullName?: string;
-  specialtyId?: string;
-  academicTitle?: string;
-  position?: string;
-  description?: string;
-  yearsOfExperience?: number;
-  phoneNumber?: string;
-  email?: string;
-}
-
-export interface Doctor {
-  id: string;
-  avatarUrl?: string;
-  fullName: string;
-  specialtyName: string;
-  academicTitle: string;
-  position: string;
-  description: string;
-  yearsOfExperience: number;
-  phoneNumber: string;
   isActive: boolean;
-  email?: string;
-  totalAppointments: number;
-  averageRating: number;
-  userId?: string;
+  isEmailVerified: boolean;
+  user?: {
+    id: string;
+    email: string;
+    isActive: boolean;
+    isEmailVerified: boolean;
+  };
 }
 
 

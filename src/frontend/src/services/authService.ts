@@ -1,4 +1,4 @@
-import { apiPost } from './apiClient';
+import { apiPost, apiPatch } from './apiClient';
 import type { LoginResponse, RegisterRequest, VerifyOtpRequest, VerifyOtpResponse, RegisterResponse, ResendOtpResponse, ResendOtpRequest } from '../types/auth';
 
 
@@ -60,6 +60,13 @@ export const authService = {
   async resendOtp(data: ResendOtpRequest): Promise<ResendOtpResponse> {
     console.log('Resending OTP for email:', data.email);
     return apiPost<ResendOtpResponse>('/auth/resend-otp', data);
+  },
+
+  /**
+   * Xác thực nhanh tài khoản
+   */
+  async forceVerifyUser(userId: string): Promise<{ message: string }> {
+    return apiPatch<{ message: string }>(`/auth/force-verify/${userId}`);
   },
 
   /**

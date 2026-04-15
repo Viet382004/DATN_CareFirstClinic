@@ -31,12 +31,12 @@ const DoctorDashboard: React.FC = () => {
         setLoading(true);
         const appointments = await appointmentService.getMyDoctorAppointments({ pageSize: 50 });
         
-        const waiting = appointments.filter(a => a.status === 'Waiting').length;
-        const inProgress = appointments.filter(a => a.status === 'InProgress').length;
-        const completed = appointments.filter(a => a.status === 'Completed').length;
+        const waiting = appointments.items.filter(a => a.status === 'Waiting').length;
+        const inProgress = appointments.items.filter(a => a.status === 'InProgress').length;
+        const completed = appointments.items.filter(a => a.status === 'Completed').length;
         
-        setStats({ waiting, inProgress, completed, total: appointments.length });
-        setRecentAppointments(appointments.slice(0, 5));
+        setStats({ waiting, inProgress, completed, total: appointments.items.length });
+        setRecentAppointments(appointments.items.slice(0, 5));
       } catch (error) {
         console.error("Dashboard data fetch error:", error);
       } finally {

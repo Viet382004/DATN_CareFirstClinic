@@ -69,7 +69,7 @@ const PatientProfilePage = () => {
   const [pwError, setPwError] = useState('');
   const [pwSaving, setPwSaving] = useState(false);
 
-  const profileEmail = profile?.email || user?.email || 'Chưa cập nhật';
+  const profileEmail = profile?.userEmail || user?.email || 'Chưa cập nhật';
   const profileInitial = (profile?.fullName || user?.fullName || 'U').charAt(0).toUpperCase();
 
   const loadProfile = async () => {

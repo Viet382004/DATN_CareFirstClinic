@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPatch } from './apiClient';
+import { apiGet, apiPost, apiPatch, apiPut } from './apiClient';
 import type { Prescription, CreatePrescriptionDTO, PrescriptionResponse } from '../types/prescription';
 
 
@@ -36,5 +36,12 @@ export const prescriptionService = {
    */
   async cancel(id: string): Promise<Prescription> {
     return apiPatch(`/prescription/${id}/cancel`);
+  },
+
+  /**
+   * Cập nhật đơn thuốc (Requires: Doctor role)
+   */
+  async update(id: string, data: any): Promise<PrescriptionResponse> {
+    return apiPut(`/prescription/${id}`, data);
   },
 };

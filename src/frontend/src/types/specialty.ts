@@ -21,3 +21,23 @@ export interface UpdateSpecialtyDTO {
   icon?: string;
   isActive?: boolean;
 }
+
+export interface SpecialtyQueryParams {
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDir?: string;
+  search?: string;
+  isActive?: boolean;
+}
+
+export interface SpecialtyResponse {
+  success: boolean;
+  message: string;
+  data: {
+    items: Specialty[];
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+  };
+}

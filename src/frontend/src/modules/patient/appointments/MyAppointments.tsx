@@ -531,9 +531,9 @@ const MyAppointments = () => {
                           <span>{payment.amount.toLocaleString('vi-VN')} đ</span>
                         </div>
                         <div className={styles.invoiceMeta}>
-                          <div>Phương thức: <strong>{payment.method === 'CASH' ? 'Tiền mặt' : 'Chuyển khoản'}</strong></div>
-                          <div className={payment.status === 'COMPLETED' ? styles.paid : styles.unpaid}>
-                            Trạng thái: <strong>{payment.status === 'COMPLETED' ? 'Đã thanh toán' : 'Chờ thanh toán'}</strong>
+                          <div>Phương thức: <strong>{payment.method.toString() === 'CASH' ? 'Tiền mặt' : 'Chuyển khoản'}</strong></div>
+                          <div className={payment.status.toString() === 'COMPLETED' ? styles.paid : styles.unpaid}>
+                            Trạng thái: <strong>{payment.status.toString() === 'COMPLETED' ? 'Đã thanh toán' : 'Chờ thanh toán'}</strong>
                           </div>
                         </div>
                       </div>

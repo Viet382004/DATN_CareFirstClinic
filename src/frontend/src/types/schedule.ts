@@ -3,6 +3,11 @@ export interface TimeSlot {
   startTime: string;
   endTime: string;
   isBooked: boolean;
+  appointmentId?: string;
+  patientName?: string;
+  patientPhone?: string;
+  status?: string;
+  reason?: string;
 }
 
 export interface Schedule {
@@ -43,12 +48,4 @@ export interface ScheduleQueryParams {
   pageSize?: number;
   sortBy?: string;
   sortDir?: string;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
 }

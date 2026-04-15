@@ -1,15 +1,18 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { 
-  Plus, 
-  Calendar,
+  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Clock,
-  ArrowRightLeft,
-  ClipboardList
+  Activity,
+  User,
+  Info
 } from 'lucide-react';
-import { scheduleService, type Schedule } from '../../../services/scheduleService';
+import { scheduleService } from '../../../services/scheduleService';
 import { toast } from 'sonner';
+import type { Schedule } from '../../../types/schedule';
+import { formatDate } from '../../../utils/format';
+import { cn } from '../../../lib/utils';
 
 const DoctorSchedulePage: React.FC = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -20,7 +23,6 @@ const DoctorSchedulePage: React.FC = () => {
     try {
       setLoading(true);
       const res = await scheduleService.getMySchedules();
-      // Handle { message, data } if exists, but schedules usually direct array in this service
       setSchedules(res || []);
     } catch (error) {
       toast.error("Không thể tải lịch làm việc.");
@@ -33,125 +35,185 @@ const DoctorSchedulePage: React.FC = () => {
     fetchSchedules();
   }, [fetchSchedules]);
 
-  const tableDates = useMemo(() => {
-    const dates = [];
-    const baseDate = new Date();
-    baseDate.setDate(baseDate.getDate() + (currentWeekOffset * 7));
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(baseDate);
-      d.setDate(d.getDate() + i);
-      dates.push(d);
-    }
-    return dates;
+  // Calendar Logic
+  const currentWeekMonday = useMemo(() => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1) + (currentWeekOffset * 7);
+    return new Date(d.setDate(diff));
   }, [currentWeekOffset]);
 
-  const getShiftData = (date: Date, shift: 'morning' | 'afternoon' | 'evening') => {
-    const dateStr = date.toISOString().split('T')[0];
-    return schedules.filter(s => {
-      const sDate = s.workDate.split('T')[0];
-      if (sDate !== dateStr) return false;
-      const hour = parseInt(s.startTime.split(':')[0]);
-      if (shift === 'morning') return hour < 12;
-      if (shift === 'afternoon') return hour >= 12 && hour < 18;
-      if (shift === 'evening') return hour >= 18;
-      return false;
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(currentWeekMonday);
+      d.setDate(d.getDate() + i);
+      return d;
     });
-  };
+  }, [currentWeekMonday]);
+
+  const handlePrevWeek = () => setCurrentWeekOffset(prev => prev - 1);
+  const handleNextWeek = () => setCurrentWeekOffset(prev => prev + 1);
+  const handleToday = () => setCurrentWeekOffset(0);
+
+  // Group schedules by date and session
+  const groupedSchedules = useMemo(() => {
+    const groups: Record<string, Record<string, Schedule[]>> = {};
+
+    schedules.forEach(s => {
+      const dateKey = s.workDate.split('T')[0];
+      if (!groups[dateKey]) {
+        groups[dateKey] = { morning: [], afternoon: [], evening: [] };
+      }
+
+      const hour = parseInt(s.startTime.split(':')[0]);
+      if (hour < 12) groups[dateKey].morning.push(s);
+      else if (hour < 18) groups[dateKey].afternoon.push(s);
+      else groups[dateKey].evening.push(s);
+    });
+
+    return groups;
+  }, [schedules]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
+      
+      {/* Professional Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-             <Calendar size={20} className="text-indigo-600" /> Bảng lịch trực công tác
-          </h1>
-          <p className="text-sm text-slate-500 mt-0.5">Quản lý và theo dõi các ca làm việc đã đăng ký.</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Lịch công tác cá nhân</h1>
+          <p className="mt-1 text-xs font-bold text-slate-400 flex items-center gap-2 tracking-wide uppercase">
+            <Activity size={14} className="text-indigo-500" />
+            Theo dõi và quản lý thời gian trực lâm sàng
+          </p>
         </div>
-        
-        <div className="flex items-center gap-2 bg-white p-1 rounded border border-slate-200 shadow-sm">
-             <button onClick={() => setCurrentWeekOffset(v => v - 1)} className="p-1.5 hover:bg-slate-50 text-slate-400 rounded transition-all"><ChevronLeft size={18} /></button>
-             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 w-28 text-center">Tuần {currentWeekOffset >= 0 ? '+' : ''}{currentWeekOffset}</span>
-             <button onClick={() => setCurrentWeekOffset(v => v + 1)} className="p-1.5 hover:bg-slate-50 text-slate-400 rounded transition-all"><ChevronRight size={18} /></button>
-             <div className="w-px h-4 bg-slate-100 mx-1"></div>
-             <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded font-bold text-xs transition-colors">
-               ĐĂNG KÝ CA TRỰC
-             </button>
+
+        <div className="flex items-center gap-3">
+          <div className="flex bg-white border border-slate-200 p-1 rounded-sm shadow-sm">
+            <button onClick={handlePrevWeek} className="p-2 hover:bg-slate-50 text-slate-400 transition-all"><ChevronLeft size={20} /></button>
+            <button onClick={handleToday} className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-indigo-600">Hôm nay</button>
+            <button onClick={handleNextWeek} className="p-2 hover:bg-slate-50 text-slate-400 transition-all"><ChevronRight size={20} /></button>
+          </div>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden min-h-[500px]">
-          {loading ? (
-             <div className="py-40 text-center text-slate-400 text-xs font-bold animate-pulse">ĐANG ĐỒNG BỘ LỊCH TRỰC...</div>
-          ) : (
-            <div className="overflow-x-auto scrollbar-thin">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200">
-                            <th className="p-4 border-r border-slate-100 w-48">Thời gian</th>
-                            <th className="p-4 border-r border-slate-100 text-center">Ca sáng <br/><span className="text-[8px] opacity-60">07:00 - 12:00</span></th>
-                            <th className="p-4 border-r border-slate-100 text-center">Ca chiều <br/><span className="text-[8px] opacity-60">12:00 - 18:00</span></th>
-                            <th className="p-4 text-center">Ca tối <br/><span className="text-[8px] opacity-60">18:00 - 22:00</span></th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 italic">
-                        {tableDates.map((date) => (
-                            <tr key={date.toISOString()} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="p-4 border-r border-slate-100 bg-white sticky left-0 font-sans not-italic">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`h-10 w-10 rounded flex flex-col items-center justify-center font-bold border ${
-                                          date.toDateString() === new Date().toDateString() ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-100'
-                                        }`}>
-                                            <span className="text-[8px] uppercase">{date.toLocaleDateString('vi-VN', { weekday: 'short' })}</span>
-                                            <span className="text-sm">{date.getDate()}</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-[11px] font-bold text-slate-800 uppercase">Tháng {date.getMonth() + 1}</p>
-                                            <p className="text-[9px] text-slate-400 font-medium">Năm {date.getFullYear()}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="p-2 border-r border-slate-100"><ShiftDisplay data={getShiftData(date, 'morning')} /></td>
-                                <td className="p-2 border-r border-slate-100"><ShiftDisplay data={getShiftData(date, 'afternoon')} /></td>
-                                <td className="p-2"><ShiftDisplay data={getShiftData(date, 'evening')} /></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-          )}
+      {/* Date Range indicator */}
+      <div className="bg-white px-6 py-4 rounded-sm border border-slate-200 shadow-sm flex items-center gap-3 w-fit">
+        <CalendarIcon size={18} className="text-indigo-500" />
+        <span className="text-xs font-black text-slate-700 uppercase tracking-widest">
+          {formatDate(weekDays[0])} — {formatDate(weekDays[6])}
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <SmallCard icon={<Clock size={16} />} label="Tổng giờ trực" value="-- giờ" />
-           <SmallCard icon={<ArrowRightLeft size={16} />} label="Hệ số lấp đầy" value="--" />
-           <SmallCard icon={<ClipboardList size={16} />} label="Số phiên trực" value={`${schedules.length} phiên`} />
+      {/* Timetable Grid */}
+      <div className="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="py-40 text-center">
+             <div className="inline-block h-8 w-8 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin mb-4" />
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Đang đồng bộ dữ liệu lịch trực...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full border-collapse min-w-[1000px]">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-200">
+                  <th className="w-24 p-6 border-r border-slate-200"></th>
+                  {weekDays.map((day, i) => {
+                    const isToday = new Date().toDateString() === day.toDateString();
+                    return (
+                      <th key={i} className={cn(
+                        "p-6 text-center border-r border-slate-200 last:border-r-0",
+                        isToday && "bg-indigo-50/30"
+                      )}>
+                        <span className={cn(
+                          "block text-[10px] font-black uppercase tracking-[0.2em]",
+                          isToday ? "text-indigo-600" : "text-slate-400"
+                        )}>
+                          {day.toLocaleDateString('vi-VN', { weekday: 'short' })}
+                        </span>
+                        <span className={cn(
+                          "mt-1 block text-2xl font-black tabular-nums tracking-tighter",
+                          isToday ? "text-indigo-600" : "text-slate-900"
+                        )}>
+                          {day.getDate()}
+                        </span>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {(['morning', 'afternoon', 'evening'] as const).map(sessionKey => (
+                  <tr key={sessionKey} className="border-b border-slate-100 last:border-b-0">
+                    <td className="p-6 border-r border-slate-200 bg-slate-50/30">
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 rotate-0 md:-rotate-90 md:mb-10">
+                          {sessionKey === 'morning' ? 'Sáng' : sessionKey === 'afternoon' ? 'Chiều' : 'Tối'}
+                        </span>
+                        {sessionKey === 'morning' && <Clock className="text-amber-500" size={18} />}
+                        {sessionKey === 'afternoon' && <Clock className="text-orange-500" size={18} />}
+                        {sessionKey === 'evening' && <Clock className="text-indigo-500" size={18} />}
+                      </div>
+                    </td>
+                    {weekDays.map((day, i) => {
+                      const dateKey = day.toISOString().split('T')[0];
+                      const sessionSchedules = groupedSchedules[dateKey]?.[sessionKey] || [];
+
+                      return (
+                        <td key={i} className="p-4 border-r border-slate-100 last:border-r-0 align-top h-40 hover:bg-slate-50/50 transition-colors">
+                          <div className="space-y-2">
+                            {sessionSchedules.map(s => (
+                              <div
+                                key={s.id}
+                                className="p-3 rounded-sm bg-white border border-slate-200 shadow-sm hover:border-indigo-600 transition-all group"
+                              >
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex justify-between items-start">
+                                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter truncate">
+                                      Ca trực #{s.id.slice(0, 4)}
+                                    </span>
+                                    <div className={cn(
+                                       "h-1.5 w-1.5 rounded-full",
+                                       s.availableSlots === 0 ? "bg-rose-500" : s.availableSlots < s.totalSlots ? "bg-amber-500" : "bg-emerald-500"
+                                    )} />
+                                  </div>
+                                  <div className="mt-2 flex items-center justify-between">
+                                    <span className="text-[10px] font-black tabular-nums text-slate-800">
+                                      {s.startTime.slice(0, 5)} - {s.endTime.slice(0, 5)}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                      {s.totalSlots - s.availableSlots}/{s.totalSlots} Slots
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Legend */}
+      <div className="flex gap-6 mt-4 px-2">
+         <LegendItem color="bg-emerald-500" label="Sẵn sàng" />
+         <LegendItem color="bg-amber-500" label="Gần đầy" />
+         <LegendItem color="bg-rose-500" label="Đã hết chỗ" />
       </div>
     </div>
   );
 };
 
-const ShiftDisplay = ({ data }: { data: Schedule[] }) => {
-    if (data.length === 0) return <div className="text-center py-4 text-[10px] text-slate-300 font-medium">-- Trống --</div>;
-    return (
-        <div className="space-y-1">
-            {data.map(slot => (
-                <div key={slot.id} className="p-2 bg-slate-50 border border-slate-200 rounded text-[10px] font-bold text-slate-600 flex justify-between items-center group cursor-default">
-                    <span>{slot.startTime.slice(0,5)} - {slot.endTime.slice(0,5)}</span>
-                    <div className={`h-1.5 w-1.5 rounded-full ${slot.isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                </div>
-            ))}
-        </div>
-    );
-};
-
-const SmallCard = ({ icon, label, value }: any) => (
-    <div className="bg-white p-4 border border-slate-200 rounded-lg shadow-sm flex items-center gap-4">
-        <div className="p-2 bg-slate-50 text-slate-400 rounded">{icon}</div>
-        <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-            <p className="text-base font-bold text-slate-800">{value}</p>
-        </div>
-    </div>
+const LegendItem = ({ color, label }: any) => (
+  <div className="flex items-center gap-2">
+    <div className={cn("h-2 w-2 rounded-full", color)} />
+    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</span>
+  </div>
 );
 
 export default DoctorSchedulePage;

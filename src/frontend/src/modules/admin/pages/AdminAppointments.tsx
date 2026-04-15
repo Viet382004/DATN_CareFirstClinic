@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { appointmentService } from '../../../services/appointmentService';
+import { paymentService } from '../../../services/paymentService';
 import type { Appointment, AppointmentQueryParams } from '../../../types/appointment';
+import type { Payment } from '../../../types/payment';
 import {
   Search,
   Filter,
@@ -15,11 +17,182 @@ import {
   FileText,
   User,
   Activity,
-  UserPlus
+  UserPlus,
+  CreditCard,
+  Wallet,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
 import { formatDate } from '../../../utils/format';
+
+// ⭐ Modal thanh toán
+interface PaymentModalProps {
+  isOpen: boolean;
+  appointment: Appointment | null;
+  onClose: () => void;
+  onPaymentSuccess: () => void;
+}
+
+const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, appointment, onClose, onPaymentSuccess }) => {
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'VNPay'>('Cash');
+  const [loading, setLoading] = useState(false);
+
+  if (!isOpen || !appointment) return null;
+
+  const handleCashPayment = async () => {
+    setLoading(true);
+    try {
+      const created = await paymentService.create({
+        appointmentId: appointment.id,
+        patientId: appointment.patientId,
+        amount: appointment.consultationFee > 0 ? appointment.consultationFee : 200000,
+        type: 'ConsultationFee',
+        method: 'Cash',
+        notes: `Thanh toán phí khám tại quầy cho lịch hẹn ${appointment.id}`
+      });
+
+      const payment = (created as any)?.data ?? created;
+      if (!payment?.id) {
+        throw new Error('Không lấy được thông tin thanh toán vừa tạo.');
+      }
+
+      await paymentService.complete(payment.id);
+
+      toast.success('Thanh toán thành công, lịch hẹn đã được xác nhận.');
+      onPaymentSuccess();
+      onClose();
+    } catch (error: any) {
+      toast.error(error?.data?.message || error?.message || 'Có lỗi xảy ra khi thanh toán');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVNPayPayment = async () => {
+    setLoading(true);
+    try {
+      const result = await paymentService.createVNPayConsultationByAdmin(appointment.id, appointment.patientId);
+
+      if (result.success && result.data?.paymentUrl) {
+        sessionStorage.setItem('pendingConfirmAppointmentId', appointment.id);
+        sessionStorage.setItem('pendingOrderId', result.data.orderId);
+        window.location.href = result.data.paymentUrl;
+      } else {
+        toast.error(result.message || 'Không thể tạo link thanh toán VNPay');
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || error?.message || 'Có lỗi xảy ra khi tạo thanh toán VNPay');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (paymentMethod === 'Cash') {
+      await handleCashPayment();
+    } else {
+      await handleVNPayPayment();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
+          <h3 className="text-lg font-bold text-white">Thanh toán lịch hẹn</h3>
+          <p className="text-indigo-100 text-sm mt-1">
+            Lịch hẹn với BS. {appointment.doctorName} - {formatDate(appointment.workDate)} {appointment.startTime}
+          </p>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-6">
+          {/* Thông tin thanh toán */}
+          <div className="bg-slate-50 rounded-xl p-4">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-600 font-medium">Tổng tiền:</span>
+              <span className="text-2xl font-bold text-indigo-600">
+                {(appointment.consultationFee > 0 ? appointment.consultationFee : 200000).toLocaleString()}đ
+              </span>
+            </div>
+            <div className="flex justify-between items-center mt-2 text-sm text-slate-500">
+              <span>Dịch vụ:</span>
+              <span>{appointment.serviceName || 'Khám bệnh'}</span>
+            </div>
+          </div>
+
+          {/* Chọn phương thức thanh toán */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-3">Phương thức thanh toán</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setPaymentMethod('Cash')}
+                className={cn(
+                  "flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all",
+                  paymentMethod === 'Cash'
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                )}
+              >
+                <Wallet size={20} />
+                <span className="font-bold">Tiền mặt</span>
+              </button>
+              <button
+                onClick={() => setPaymentMethod('VNPay')}
+                className={cn(
+                  "flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all",
+                  paymentMethod === 'VNPay'
+                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                )}
+              >
+                <CreditCard size={20} />
+                <span className="font-bold">VNPay</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Thông báo */}
+          {paymentMethod === 'VNPay' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-700">
+                🔄 Bạn sẽ được chuyển đến cổng thanh toán VNPay. Sau khi thanh toán thành công,
+                lịch hẹn sẽ được xác nhận.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="bg-slate-50 px-6 py-4 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-100 transition-all"
+            disabled={loading}
+          >
+            Hủy
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Đang xử lý...
+              </>
+            ) : (
+              `Thanh toán ${paymentMethod === 'Cash' ? 'tiền mặt' : 'qua VNPay'}`
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AdminAppointments: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -28,9 +201,13 @@ const AdminAppointments: React.FC = () => {
   const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ⭐ State cho modal thanh toán
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+
   const [query, setQuery] = useState<AppointmentQueryParams>({
     page: 1,
-    pageSize: 12, // Grid 3x4 or 4x3
+    pageSize: 12,
     sortBy: 'workDate',
     sortDir: 'desc',
     status: 'All'
@@ -61,16 +238,45 @@ const AdminAppointments: React.FC = () => {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  const handleConfirm = async (id: string) => {
-    try {
-      await appointmentService.confirm(id);
-      toast.success('Xác nhận lịch hẹn thành công');
-      fetchAppointments();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xác nhận');
-    }
+  useEffect(() => {
+    const finalizeVNPayConfirm = async () => {
+      const pendingOrderId = sessionStorage.getItem('pendingOrderId');
+      const pendingAppointmentId = sessionStorage.getItem('pendingConfirmAppointmentId');
+      const params = new URLSearchParams(window.location.search);
+      const successOrderId = params.get('orderId');
+
+      if (!pendingOrderId || !pendingAppointmentId || !successOrderId || pendingOrderId !== successOrderId) {
+        return;
+      }
+
+      try {
+        const status = await paymentService.getPaymentStatus(pendingOrderId);
+        if (status.status === 'Completed') {
+          toast.success('Thanh toán VNPay thành công, lịch hẹn đã được xác nhận.');
+          sessionStorage.removeItem('pendingOrderId');
+          sessionStorage.removeItem('pendingConfirmAppointmentId');
+          fetchAppointments();
+        }
+      } catch (error: any) {
+        toast.error(error?.data?.message || error?.message || 'Không thể đồng bộ kết quả thanh toán VNPay');
+      }
+    };
+
+    void finalizeVNPayConfirm();
+  }, [fetchAppointments]);
+
+  // ⭐ Xử lý khi nhấn Confirm - Mở modal thanh toán
+  const handleConfirm = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setShowPaymentModal(true);
   };
 
+  // ⭐ Sau khi thanh toán thành công
+  const handlePaymentSuccess = () => {
+    fetchAppointments();
+  };
+
+  // ⭐ Xử lý Check-in (chuyển sang Waiting) - Chỉ dùng cho các trường hợp đặc biệt
   const handleCheckIn = async (id: string) => {
     try {
       await appointmentService.toWaiting(id);
@@ -106,18 +312,6 @@ const AdminAppointments: React.FC = () => {
     Completed: { label: 'Hoàn thành', color: 'text-emerald-700', bg: 'bg-emerald-100' },
     Cancelled: { label: 'Đã hủy', color: 'text-slate-500', bg: 'bg-slate-100' },
   };
-
-  const PageButton = ({ i }: { i: number }) => (
-    <button
-      onClick={() => setQuery(prev => ({ ...prev, page: i + 1 }))}
-      className={cn(
-        "h-9 w-9 flex items-center justify-center rounded-xl text-xs font-black transition-all",
-        query.page === i + 1 ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "text-slate-400 hover:bg-slate-50"
-      )}
-    >
-      {i + 1}
-    </button>
-  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -232,6 +426,11 @@ const AdminAppointments: React.FC = () => {
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-indigo-600 uppercase tracking-tight">{a.specialtyName}</span>
                       <span className="text-xs font-medium text-slate-600 mt-1">BS. {a.doctorName}</span>
+                      {a.consultationFee > 0 && (
+                        <span className="text-[10px] font-bold text-emerald-600 mt-1">
+                          {a.consultationFee.toLocaleString()}đ
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -248,19 +447,27 @@ const AdminAppointments: React.FC = () => {
                     )}>
                       {statusMap[a.status]?.label || a.status}
                     </span>
+                    {a.isConsultationPaid && (
+                      <span className="block text-[9px] text-emerald-600 mt-1">Đã thanh toán</span>
+                    )}
+                    {!a.isConsultationPaid && a.status !== 'Pending' && (
+                      <span className="block text-[9px] text-amber-600 mt-1">Chưa thanh toán</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-2">
+                      {/* ⭐ Confirm - Mở modal thanh toán */}
                       {a.status === 'Pending' && (
                         <button
-                          onClick={() => handleConfirm(a.id)}
+                          onClick={() => handleConfirm(a)}
                           className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-all"
-                          title="Xác nhận"
+                          title="Xác nhận và thanh toán"
                         >
                           <CheckCircle2 size={18} />
                         </button>
                       )}
-                      {a.status === 'Confirmed' && (
+                      {/* ⭐ Chỉ hiển thị Check-in nếu đã thanh toán */}
+                      {a.status === 'Confirmed' && a.isConsultationPaid && (
                         <button
                           onClick={() => handleCheckIn(a.id)}
                           className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-md transition-all"
@@ -331,27 +538,19 @@ const AdminAppointments: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ⭐ Modal thanh toán */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        appointment={selectedAppointment}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setSelectedAppointment(null);
+        }}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };
-
-// Internal icon helper
-const Stethoscope = ({ size, className }: any) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
-    <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
-    <circle cx="20" cy="10" r="2" />
-  </svg>
-);
 
 export default AdminAppointments;

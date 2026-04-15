@@ -1,5 +1,6 @@
 import { apiGet, apiPost, apiPut, apiDelete } from './apiClient';
-import type { Schedule, CreateScheduleDTO, UpdateScheduleDTO, ScheduleQueryParams, PagedResult } from '../types/schedule';
+import type { Schedule, CreateScheduleDTO, UpdateScheduleDTO, ScheduleQueryParams } from '../types/schedule';
+import type { PagedResult } from '../types/common';
 
 export const scheduleService = {
   /**

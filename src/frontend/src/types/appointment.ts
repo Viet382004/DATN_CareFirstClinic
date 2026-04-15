@@ -6,10 +6,18 @@ export interface Appointment {
   doctorId: string;
   doctorName: string;
   specialtyName: string;
+  serviceName?: string;
+  consultationFee: number;
+  medicineFee: number;
+  isConsultationPaid: boolean;
+  isMedicinePaid: boolean;
+  // Backward-compatible fields used by older UI components
+  totalAmount?: number;
+  paymentStatus?: 'Unpaid' | 'Paid' | 'Refunded';
   workDate: string;
   startTime: string;
   endTime: string;
-  status: string;
+  status: 'Pending' | 'Confirmed' | 'Waiting' | 'InProgress' | 'Completed' | 'Cancelled';
   reason?: string;
   cancelReason?: string;
   cancelledAt?: string;
@@ -27,11 +35,15 @@ export interface CreateAppointmentDTO {
   gender: string;
   phone: string;
   email?: string;
+  serviceName?: string;
+  consultationFee: number;
 }
 
 export interface UpdateAppointmentDTO {
   reason?: string;
   notes?: string;
+  status?: 'Pending' | 'Confirmed' | 'Waiting' | 'InProgress' | 'Completed' | 'Cancelled';
+  paymentStatus?: 'Unpaid' | 'Paid' | 'Refunded';
 }
 
 export interface CancelAppointmentDTO {
@@ -43,6 +55,7 @@ export interface AppointmentQueryParams {
   doctorId?: string;
   today?: boolean;
   status?: string;
+  paymentStatus?: 'Unpaid' | 'Paid' | 'Refunded';
   page?: number;
   pageSize?: number;
   fromDate?: string;

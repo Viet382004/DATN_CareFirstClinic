@@ -1,6 +1,6 @@
 import { apiGet, apiPost, apiPut } from './apiClient';
-import type { MedicalRecord, CreateMedicalRecordDTO, UpdateMedicalRecordDTO, MedicalRecordQueryParams, PagedResult } from '../types/medicalRecord';
-
+import type { MedicalRecord, CreateMedicalRecordDTO, UpdateMedicalRecordDTO, MedicalRecordQueryParams } from '../types/medicalRecord';
+import type { PagedResult } from '../types/common';
 
 export const medicalRecordService = {
   /**
