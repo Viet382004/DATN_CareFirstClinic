@@ -1,4 +1,4 @@
-using CareFirstClinic.API.Common;
+﻿using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -226,11 +226,25 @@ namespace CareFirstClinic.API.Controllers
         {
             try
             {
-                var updated = await _appointmentService.ConfirmAsync(id);
+                var role = GetRole();
+                Guid? requesterDoctorId = null;
+
+                if (string.Equals(role, "Doctor", StringComparison.OrdinalIgnoreCase))
+                {
+                    var userId = GetUserIdFromClaim();
+                    if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+
+                    var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
+                    if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
+                    requesterDoctorId = doctor.Id;
+                }
+
+                var updated = await _appointmentService.ConfirmAsync(id, role, requesterDoctorId);
                 if (updated is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
                 return Ok(new { message = "Xác nhận lịch hẹn thành công.", data = updated });
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (UnauthorizedAccessException) { return Forbid(); }
             catch (InvalidOperationException ex) { return Conflict(ex.Message); }
             catch (Exception ex)
             {
@@ -314,6 +328,33 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
+        // PATCH /api/appointment/{id}/medicine-fee — Doctor cập nhật tiền thuốc sau khi kê đơn
+        [HttpPatch("{id:guid}/medicine-fee")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> UpdateMedicineFee(Guid id, [FromBody] UpdateMedicineFeeRequest request)
+        {
+            try
+            {
+                var userId = GetUserIdFromClaim();
+                if (userId is null) return Unauthorized("Không xác định được tài khoản.");
+
+                var doctor = await _doctorService.GetByUserIdAsync(userId.Value);
+                if (doctor is null) return NotFound("Không tìm thấy hồ sơ bác sĩ.");
+
+                var updated = await _appointmentService.UpdateMedicineFeeAsync(id, doctor.Id, request.MedicineFee);
+                if (updated is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
+                return Ok(new { message = "Cập nhật phí thuốc thành công.", data = updated });
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (UnauthorizedAccessException) { return Forbid(); }
+            catch (InvalidOperationException ex) { return Conflict(ex.Message); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi UpdateMedicineFee appointment Id: {Id}", id);
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
         // PATCH /api/appointment/{id}/cancel — Patient/Doctor/Admin hủy
         [HttpPatch("{id:guid}/cancel")]
         [Authorize(Roles = "Admin,Doctor,Patient")]
@@ -370,5 +411,10 @@ namespace CareFirstClinic.API.Controllers
 
         private string GetRole() =>
             User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+    }
+
+    public class UpdateMedicineFeeRequest
+    {
+        public decimal MedicineFee { get; set; }
     }
 }

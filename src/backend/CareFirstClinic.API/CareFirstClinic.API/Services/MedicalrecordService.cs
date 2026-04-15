@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
@@ -186,6 +186,10 @@ namespace CareFirstClinic.API.Services
                 // Chỉ bác sĩ tạo mới được sửa
                 if (record.DoctorId != doctorId)
                     throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa hồ sơ này.");
+
+                // Kiểm tra giới hạn 24h
+                if (record.CreatedAt < DateTime.UtcNow.AddHours(-24))
+                    throw new InvalidOperationException("Chỉ có thể chỉnh sửa hồ sơ bệnh án trong vòng 24 giờ kể từ khi tạo.");
 
                 record.Diagnosis = dto.Diagnosis.Trim();
                 record.Symptoms = dto.Symptoms?.Trim();

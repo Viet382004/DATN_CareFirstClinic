@@ -2,10 +2,10 @@ namespace CareFirstClinic.API.Models
 {
     public enum PrescriptionStatus
     {
-        Issued,
-        Dispensed,
-        Cancelled,
-        Expired
+        Issued, // Ð? ðý?c bác s? kê ðõn nhýng chýa ðý?c nhà thu?c x? l?
+        Dispensed, // Nhà thu?c ð? c?p phát thu?c cho b?nh nhân
+        Cancelled, // Ðõn thu?c ð? b? h?y b?i bác s? ho?c nhà thu?c
+        Expired // Ðõn thu?c ð? h?t h?n (thý?ng là sau m?t kho?ng th?i gian nh?t ð?nh k? t? ngày kê ðõn)
     }
 
     public class Prescription

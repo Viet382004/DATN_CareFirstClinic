@@ -277,6 +277,36 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
+        [HttpPatch("force-verify/{id:guid}")]
+        [Authorize(Roles = "Admin, SystemAdmin")]
+        public async Task<IActionResult> ForceVerify(Guid id)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+                if (user is null)
+                    return NotFound("Không tìm thấy tài khoản.");
+
+                if (user.IsEmailVerified && user.IsActive)
+                    return BadRequest("Tài khoản đã được xác thực và kích hoạt.");
+
+                user.IsEmailVerified = true;
+                user.IsActive = true;
+                user.OtpCode = null;
+                user.OtpExpiredAt = null;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Xác thực tài khoản thành công.", email = user.Email });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi ForceVerify | UserId: {Id}", id);
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+
         private static string GenerateOtp()
         {
             return Random.Shared.Next(100000, 999999).ToString();

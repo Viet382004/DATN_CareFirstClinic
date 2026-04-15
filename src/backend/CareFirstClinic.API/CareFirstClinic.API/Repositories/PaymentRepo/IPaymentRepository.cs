@@ -9,7 +9,9 @@ namespace CareFirstClinic.API.Repositories.PaymentRepo
         Task<Payment?> GetByIdAsync(Guid id);
         Task<Payment?> GetByAppointmentIdAsync(Guid appointmentId);
         Task<List<Payment>> GetByPatientIdAsync(Guid patientId);
+        Task<Payment?> GetByOrderIdAsync(string orderId);
         Task<bool> ExistsByAppointmentIdAsync(Guid appointmentId);
+        Task<bool> ExistsByAppointmentIdAndTypeAsync(Guid appointmentId, PaymentType type);
         Task<Payment> AddAsync(Payment payment);
         Task<Payment> UpdateAsync(Payment payment);
         Task<(List<Payment> Items, int Total)> GetPagedAsync(PaymentQueryParams query);

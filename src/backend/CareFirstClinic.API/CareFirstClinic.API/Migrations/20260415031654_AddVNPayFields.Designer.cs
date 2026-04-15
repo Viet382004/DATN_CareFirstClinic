@@ -3,6 +3,7 @@ using System;
 using CareFirstClinic.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CareFirstClinic.API.Migrations
 {
     [DbContext(typeof(CareFirstClinicDbContext))]
-    partial class CareFirstClinicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260415031654_AddVNPayFields")]
+    partial class AddVNPayFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,30 +38,10 @@ namespace CareFirstClinic.API.Migrations
                     b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("ConsultationFee")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("numeric(18,2)")
-                        .HasDefaultValue(0m);
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("IsConsultationPaid")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsMedicinePaid")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<decimal>("MedicineFee")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("numeric(18,2)")
-                        .HasDefaultValue(0m);
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -66,6 +49,13 @@ namespace CareFirstClinic.API.Migrations
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Unpaid");
 
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
@@ -82,6 +72,11 @@ namespace CareFirstClinic.API.Migrations
 
                     b.Property<Guid>("TimeSlotId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("TotalAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -312,14 +307,10 @@ namespace CareFirstClinic.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("AppointmentId");
+                    b.HasIndex("AppointmentId")
+                        .IsUnique();
 
                     b.HasIndex("OrderId")
                         .IsUnique();
@@ -693,8 +684,8 @@ namespace CareFirstClinic.API.Migrations
             modelBuilder.Entity("CareFirstClinic.API.Models.Payment", b =>
                 {
                     b.HasOne("CareFirstClinic.API.Models.Appointment", "Appointment")
-                        .WithMany("Payments")
-                        .HasForeignKey("AppointmentId")
+                        .WithOne("Payment")
+                        .HasForeignKey("CareFirstClinic.API.Models.Payment", "AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -776,7 +767,7 @@ namespace CareFirstClinic.API.Migrations
                 {
                     b.Navigation("MedicalRecord");
 
-                    b.Navigation("Payments");
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("CareFirstClinic.API.Models.Doctor", b =>

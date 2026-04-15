@@ -241,39 +241,6 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
 
         public async Task<(List<Appointment> Items, int Total)> GetPagedAsync(AppointmentQueryParams query)
         {
-            var now = DateTime.UtcNow;
-
-            // === SỬA PHẦN NÀY: Tự động hủy lịch hẹn pending quá hạn ===
-            try
-            {
-                var expiredPending =  _context.Appointments
-                    .Include(a => a.TimeSlot)
-                        .ThenInclude(ts => ts!.Schedule)
-                    .Where(a => a.Status == AppointmentStatus.Pending &&
-                                a.TimeSlot != null &&
-                                a.TimeSlot.Schedule != null)
-                    .AsEnumerable()                    // Chuyển sang client evaluation
-                    .Where(a => a.TimeSlot!.Schedule!.WorkDate.Date.Add(a.TimeSlot.StartTime) < now)
-                    .ToList();
-
-                if (expiredPending.Any())
-                {
-                    foreach (var app in expiredPending)
-                    {
-                        app.Status = AppointmentStatus.Cancelled;
-                        app.CancelReason = "Không được xác thực (quá giờ)";
-                        app.CancelledAt = now;
-                        app.UpdatedAt = now;
-                    }
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation("Đã tự động hủy {Count} lịch hẹn pending quá hạn.", expiredPending.Count);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Không thể tự động hủy lịch hẹn pending quá hạn.");
-            }
-
             var q = BaseQuery();
 
             // tìm kiếm...

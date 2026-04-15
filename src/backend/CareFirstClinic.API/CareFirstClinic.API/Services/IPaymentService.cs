@@ -11,7 +11,9 @@ namespace CareFirstClinic.API.Services
         Task<PaymentDTO?> GetByAppointmentIdAsync(Guid appointmentId);
         Task<List<PaymentDTO>> GetMyPaymentsAsync(Guid patientId);
         Task<PaymentDTO> CreateAsync(Guid patientId, CreatePaymentDTO dto);
-        Task<PaymentDTO?> CompleteAsync(Guid id, string? transactionId);
+        Task<PaymentDTO?> CompleteAsync(Guid id, string? transactionId, string? bankCode = null);
+        Task<PaymentDTO?> GetByOrderIdAsync(string orderId);
+        Task<PaymentDTO?> FailAsync(Guid id, string? errorCode);
         Task<PaymentDTO?> RefundAsync(Guid id);
         Task<PagedResult<PaymentDTO>> GetPagedAsync(PaymentQueryParams query);
     }

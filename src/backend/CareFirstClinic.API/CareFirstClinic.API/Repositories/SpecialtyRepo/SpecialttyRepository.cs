@@ -22,8 +22,7 @@ namespace CareFirstClinic.API.Repositories.SpecialtyRepo
             try
             {
                 return await _context.Specialties
-                    .Include(s => s.Doctors.Where(d => d.User.IsActive)) // Chỉ đếm bác sĩ còn active
-                    .Where(s => s.IsActive)
+                    .Include(s => s.Doctors) 
                     .OrderBy(s => s.Name)
                     .ToListAsync();
             }
@@ -43,7 +42,7 @@ namespace CareFirstClinic.API.Repositories.SpecialtyRepo
             try
             {
                 return await _context.Specialties
-                    .Include(s => s.Doctors.Where(d => d.User.IsActive))
+                    .Include(s => s.Doctors)
                     .FirstOrDefaultAsync(s => s.Id == id && s.IsActive);
             }
             catch (ArgumentException)
@@ -68,7 +67,6 @@ namespace CareFirstClinic.API.Repositories.SpecialtyRepo
             {
                 return await _context.Specialties
                     .AnyAsync(s => s.Name.ToLower() == name.ToLower().Trim()
-                               && s.IsActive
                                && (!excludeId.HasValue || s.Id != excludeId.Value));
             }
             catch (ArgumentException)
@@ -106,7 +104,7 @@ namespace CareFirstClinic.API.Repositories.SpecialtyRepo
             ArgumentNullException.ThrowIfNull(specialty);
 
             var exists = await _context.Specialties
-                .AnyAsync(s => s.Id == specialty.Id && s.IsActive);
+                .AnyAsync(s => s.Id == specialty.Id);
 
             if (!exists)
                 throw new KeyNotFoundException(
@@ -139,7 +137,7 @@ namespace CareFirstClinic.API.Repositories.SpecialtyRepo
             try
             {
                 var specialty = await _context.Specialties
-                    .FirstOrDefaultAsync(s => s.Id == id && s.IsActive);
+                    .FirstOrDefaultAsync(s => s.Id == id);
 
                 if (specialty is null) return false;
 

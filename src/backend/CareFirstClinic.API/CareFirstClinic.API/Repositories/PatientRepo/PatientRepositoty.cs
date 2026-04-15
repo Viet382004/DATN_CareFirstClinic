@@ -1,4 +1,5 @@
 using CareFirstClinic.API.Data;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,6 @@ public class PatientRepository : IPatientRepository
         {
             return await _context.Patients
                 .Include(p => p.User)
-                .Where(p => p.User.IsActive)
                 .OrderBy(p => p.FullName)
                 .ToListAsync();
         }
@@ -44,7 +44,7 @@ public class PatientRepository : IPatientRepository
         {
             return await _context.Patients
                 .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.Id == id && p.User.IsActive);
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
         catch (Exception ex)
         {
@@ -63,7 +63,7 @@ public class PatientRepository : IPatientRepository
         {
             return await _context.Patients
                 .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.UserId == userId && p.User.IsActive);
+                .FirstOrDefaultAsync(p => p.UserId == userId);
         }
         catch (Exception ex)
         {
@@ -81,7 +81,7 @@ public class PatientRepository : IPatientRepository
         if (patient.UserId.HasValue)
         {
             var exists = await _context.Patients
-                .AnyAsync(p => p.UserId == patient.UserId && p.User.IsActive);
+                .AnyAsync(p => p.UserId == patient.UserId);
 
             if (exists)
                 throw new InvalidOperationException(
@@ -108,7 +108,7 @@ public class PatientRepository : IPatientRepository
 
         // Điều kiện: bệnh nhân phải tồn tại và còn active
         var exists = await _context.Patients
-            .AnyAsync(p => p.Id == patient.Id && p.User.IsActive);
+            .AnyAsync(p => p.Id == patient.Id);
 
         if (!exists)
             throw new KeyNotFoundException(
@@ -142,7 +142,7 @@ public class PatientRepository : IPatientRepository
         {
             var patient = await _context.Patients
                 .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.Id == id && p.User.IsActive);
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (patient is null) return false;
 
@@ -153,6 +153,37 @@ public class PatientRepository : IPatientRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Lỗi khi xóa mềm bệnh nhân Id: {Id}", id);
+            throw;
+        }
+    }
+    public async Task<bool> ToggleActiveAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Id không hợp lệ.", nameof(id));
+
+        try
+        {
+            var patient = await _context.Patients .Include(p => p.User)
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.Id == id);
+
+            if (patient is null)
+                throw new KeyNotFoundException($"Không tìm thấy bệnh nhân với Id: {id}");
+
+            if (patient.User == null)
+                throw new InvalidOperationException("Hồ sơ bệnh nhân này không có tài khoản người dùng tương ứng.");
+
+            patient.User.IsActive = !patient.User.IsActive;
+            await _context.SaveChangesAsync();
+            return patient.User.IsActive;
+        }
+        catch (KeyNotFoundException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi toggle active bệnh nhân Id: {Id}", id);
             throw;
         }
     }

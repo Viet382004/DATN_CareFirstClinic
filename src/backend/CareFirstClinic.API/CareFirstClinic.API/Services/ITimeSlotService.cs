@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.DTOs.TimeSlot;
+using CareFirstClinic.API.DTOs.TimeSlot;
 
 namespace CareFirstClinic.API.Services
 {
@@ -9,5 +9,6 @@ namespace CareFirstClinic.API.Services
         Task<TimeSlotDTO> AddSlotAsync(Guid scheduleId, TimeSpan startTime, TimeSpan endTime);
         Task<TimeSlotDTO?> ToggleBookedAsync(Guid id);
         Task<bool> DeleteAsync(Guid id);
+        Task<List<TimeSlotDTO>> GetByDoctorAndDateAsync(Guid doctorId, DateTime date);
     }
 }

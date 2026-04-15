@@ -1,4 +1,4 @@
-﻿namespace CareFirstClinic.API.DTOs
+namespace CareFirstClinic.API.DTOs
 {
     public class ScheduleDTO
     {
@@ -23,5 +23,10 @@
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public bool IsBooked { get; set; }
+        public Guid? AppointmentId { get; set; }
+        public string? PatientName { get; set; }
+        public string? PatientPhone { get; set; }
+        public string? Status { get; set; }
+        public string? Reason { get; set; }
     }
 }

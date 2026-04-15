@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Models;
+using CareFirstClinic.API.Models;
 
 namespace CareFirstClinic.API.Repositories.TimeSlotRepo
 {
@@ -9,5 +9,6 @@ namespace CareFirstClinic.API.Repositories.TimeSlotRepo
         Task<TimeSlot> AddAsync(TimeSlot timeSlot);
         Task<TimeSlot> UpdateAsync(TimeSlot timeSlot);
         Task<bool> DeleteAsync(Guid id);
+        Task<List<TimeSlot>> GetByDoctorAndDateAsync(Guid doctorId, DateTime date);
     }
 }

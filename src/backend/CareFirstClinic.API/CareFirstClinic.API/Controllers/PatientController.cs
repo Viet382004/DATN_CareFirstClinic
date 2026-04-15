@@ -3,6 +3,7 @@ using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CareFirstClinic.API.Controllers
@@ -89,6 +90,32 @@ namespace CareFirstClinic.API.Controllers
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
+
+        // POST /api/patient — Admin tạo mới (thường sẽ tạo User trước, sau đó mới tạo Patient liên kết)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create(CreatePatientDTO dto)
+        {
+            try
+            {
+                var created = await _patientService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi Create patient.");
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
 
         // PUT /api/patient/me — Bệnh nhân tự cập nhật hồ sơ
         [HttpPut("me")]
@@ -180,6 +207,29 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Delete patient Id: {Id}", id);
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // PATCH /api/patient/{id}/toggle — Admin toggle
+        [HttpPatch("{id:guid}/toggle")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Toggle([FromServices] CareFirstClinic.API.Data.CareFirstClinicDbContext context, Guid id)
+        {
+            try
+            {
+                var patient = await context.Patients.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
+                if (patient == null || patient.User == null)
+                    return NotFound($"Không tìm thấy bệnh nhân với Id: {id}");
+
+                patient.User.IsActive = !patient.User.IsActive;
+                await context.SaveChangesAsync();
+
+                return Ok(new { message = "Cập nhật trạng thái thành công." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi Toggle patient Id: {Id}", id);
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }

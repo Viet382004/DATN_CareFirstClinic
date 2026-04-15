@@ -12,11 +12,13 @@ namespace CareFirstClinic.API.Services
         Task<AppointmentDTO> CreateAsync(Guid patientId, CreateAppointmentDTO dto);
         Task<AppointmentDTO> CreateForPatientAsync(Guid patientId, CreateAppointmentDTO dto);
         Task<AppointmentDTO?> UpdateAsync(Guid id, Guid patientId, UpdateAppointmentDTO dto);
-        Task<AppointmentDTO?> ConfirmAsync(Guid id);
+        Task<AppointmentDTO?> ConfirmAsync(Guid id, string requesterRole, Guid? requesterDoctorId = null);
         Task<AppointmentDTO?> ToWaitingAsync(Guid id);
         Task<AppointmentDTO?> StartExaminationAsync(Guid id, Guid doctorId);
         Task<AppointmentDTO?> CompleteAsync(Guid id, Guid doctorId);
+        Task<AppointmentDTO?> UpdateMedicineFeeAsync(Guid id, Guid doctorId, decimal medicineFee);
         Task<AppointmentDTO?> CancelAsync(Guid id, Guid requesterId, string requesterRole, CancelAppointmentDTO dto);
+        Task<int> AutoCancelExpiredPendingAsync();
         Task<PagedResult<AppointmentDTO>> GetPagedAsync(AppointmentQueryParams query);
     }
 }

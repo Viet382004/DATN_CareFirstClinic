@@ -303,6 +303,8 @@ namespace CareFirstClinic.API.Services
             Description = d.Description,
             UserId = d.UserId,
             Email = d.User?.Email,
+            IsActive = d.User?.IsActive ?? false,
+            IsEmailVerified = d.User?.IsEmailVerified ?? false,
             TotalAppointments = d.Schedules.Count(s => s.IsAvailable) 
         };
     }

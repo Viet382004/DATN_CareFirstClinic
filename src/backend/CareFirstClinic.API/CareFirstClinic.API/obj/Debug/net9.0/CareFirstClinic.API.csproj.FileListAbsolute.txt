@@ -175,3 +175,25 @@ D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\BouncyCastle.Cryptography.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\MailKit.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\MimeKit.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Binder.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\VNPAY.NET.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Json.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.FileProviders.Physical.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Extensions.FileSystemGlobbing.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\System.IO.Pipelines.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\System.Text.Encodings.Web.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\runtimes\win\lib\net9.0\System.Text.Encodings.Web.dll
+D:\temp\carefirst-build\appsettings.Development.json
+D:\temp\carefirst-build\appsettings.json
+D:\temp\carefirst-build\CareFirstClinic.API.staticwebassets.runtime.json
+D:\temp\carefirst-build\CareFirstClinic.API.staticwebassets.endpoints.json
+D:\temp\carefirst-build\CareFirstClinic.API.exe
+D:\temp\carefirst-build\CareFirstClinic.API.deps.json
+D:\temp\carefirst-build\CareFirstClinic.API.runtimeconfig.json
+D:\temp\carefirst-build\CareFirstClinic.API.dll
+D:\temp\carefirst-build\CareFirstClinic.API.pdb

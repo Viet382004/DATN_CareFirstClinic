@@ -178,6 +178,27 @@
   },
   {
     "ContainingType": "CareFirstClinic.API.Controllers.AppointmentController",
+    "Method": "UpdateMedicineFee",
+    "RelativePath": "api/Appointment/{id}/medicine-fee",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "CareFirstClinic.API.Controllers.UpdateMedicineFeeRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AppointmentController",
     "Method": "StartExamination",
     "RelativePath": "api/Appointment/{id}/start-examination",
     "HttpMethod": "PATCH",
@@ -383,6 +404,22 @@
         "Name": "IsAscending",
         "Type": "System.Boolean",
         "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.AuthController",
+    "Method": "ForceVerify",
+    "RelativePath": "api/Auth/force-verify/{id}",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []
@@ -1177,6 +1214,22 @@
   },
   {
     "ContainingType": "CareFirstClinic.API.Controllers.PatientController",
+    "Method": "Create",
+    "RelativePath": "api/Patient",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "CareFirstClinic.API.DTOs.CreatePatientDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PatientController",
     "Method": "GetById",
     "RelativePath": "api/Patient/{id}",
     "HttpMethod": "GET",
@@ -1217,6 +1270,22 @@
     "Method": "Delete",
     "RelativePath": "api/Patient/{id}",
     "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PatientController",
+    "Method": "Toggle",
+    "RelativePath": "api/Patient/{id}/toggle",
+    "HttpMethod": "PATCH",
     "IsController": true,
     "Order": 0,
     "Parameters": [
@@ -1505,6 +1574,27 @@
   },
   {
     "ContainingType": "CareFirstClinic.API.Controllers.PrescriptionController",
+    "Method": "Update",
+    "RelativePath": "api/Prescription/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "CareFirstClinic.API.DTOs.UpdatePrescriptionDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.PrescriptionController",
     "Method": "Cancel",
     "RelativePath": "api/Prescription/{id}/cancel",
     "HttpMethod": "PATCH",
@@ -1560,8 +1650,23 @@
     "Order": 0,
     "Parameters": [
       {
+        "Name": "Page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
         "Name": "DoctorId",
         "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "IsAvailable",
+        "Type": "System.Nullable\u00601[[System.Boolean, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
@@ -1575,23 +1680,13 @@
         "IsRequired": false
       },
       {
-        "Name": "IsAvailable",
-        "Type": "System.Nullable\u00601[[System.Boolean, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "Name": "IsAscending",
+        "Type": "System.Boolean",
         "IsRequired": false
       },
       {
         "Name": "SortBy",
         "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Page",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "PageSize",
-        "Type": "System.Int32",
         "IsRequired": false
       },
       {
@@ -1602,11 +1697,6 @@
       {
         "Name": "SortDir",
         "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "IsAscending",
-        "Type": "System.Boolean",
         "IsRequired": false
       }
     ],
@@ -2207,6 +2297,27 @@
   },
   {
     "ContainingType": "CareFirstClinic.API.Controllers.TimeSlotController",
+    "Method": "GetByDoctorAndDate",
+    "RelativePath": "api/TimeSlot/doctor/{doctorId}/date/{date}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "doctorId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "date",
+        "Type": "System.DateTime",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.TimeSlotController",
     "Method": "GetByScheduleId",
     "RelativePath": "api/TimeSlot/schedule/{scheduleId}",
     "HttpMethod": "GET",
@@ -2237,6 +2348,74 @@
       {
         "Name": "dto",
         "Type": "CareFirstClinic.API.DTOs.TimeSlot.AddTimeSlotDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.VNPayController",
+    "Method": "PaymentIpn",
+    "RelativePath": "api/VNPay/ipn",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.VNPayController",
+    "Method": "PayConsultationFee",
+    "RelativePath": "api/VNPay/pay-consultation",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CareFirstClinic.API.Controllers.PayConsultationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.VNPayController",
+    "Method": "PayMedicineFee",
+    "RelativePath": "api/VNPay/pay-medicine",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CareFirstClinic.API.Controllers.PayMedicineRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.VNPayController",
+    "Method": "PaymentReturn",
+    "RelativePath": "api/VNPay/return",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CareFirstClinic.API.Controllers.VNPayController",
+    "Method": "GetPaymentStatus",
+    "RelativePath": "api/VNPay/status/{orderId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "orderId",
+        "Type": "System.String",
         "IsRequired": true
       }
     ],

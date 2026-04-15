@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Data;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories;
@@ -65,25 +65,19 @@ namespace CareFirstClinic.API.Services
             if (doctorId == Guid.Empty)
                 throw new ArgumentException("DoctorId không hợp lệ.", nameof(doctorId));
 
-            // 1 MedicalRecord chỉ có 1 Prescription
             var exists = await _prescriptionRepo.ExistsByMedicalRecordIdAsync(dto.MedicalRecordId);
             if (exists)
                 throw new InvalidOperationException("Hồ sơ bệnh án này đã có đơn thuốc.");
 
-            // Kiểm tra tất cả Stock tồn tại và còn hàng
+            // Kiểm tra tồn kho và tạo chi tiết
             var details = new List<PrescriptionDetail>();
             foreach (var d in dto.Details)
             {
-                var stock = await _context.Stocks
-                    .FirstOrDefaultAsync(s => s.Id == d.StockId && s.IsActive);
-
+                var stock = await _context.Stocks.FirstOrDefaultAsync(s => s.Id == d.StockId && s.IsActive);
                 if (stock is null)
                     throw new KeyNotFoundException($"Không tìm thấy thuốc với Id: {d.StockId}");
-
                 if (stock.Quantity < d.Quantity)
-                    throw new InvalidOperationException(
-                        $"Thuốc '{stock.MedicineName}' không đủ tồn kho. " +
-                        $"Còn {stock.Quantity} {stock.Unit}, cần {d.Quantity}.");
+                    throw new InvalidOperationException($"Thuốc '{stock.MedicineName}' không đủ tồn kho.");
 
                 details.Add(new PrescriptionDetail
                 {
@@ -96,65 +90,136 @@ namespace CareFirstClinic.API.Services
                 });
             }
 
+            // We don't subtract stock here anymore, it will be subtracted in DispenseAsync
+            // But we keep the check above to warn the doctor if stock is low.
+
+            var prescription = new Prescription
+            {
+                Id = Guid.NewGuid(),
+                MedicalRecordId = dto.MedicalRecordId,
+                Status = PrescriptionStatus.Issued,
+                Notes = dto.Notes?.Trim(),
+                IssuedAt = DateTime.UtcNow,
+                Details = details
+            };
+
+            var created = await _prescriptionRepo.AddAsync(prescription);
+            await _context.SaveChangesAsync();
+
+            var result = await _prescriptionRepo.GetByIdAsync(created.Id);
+
+            // 🔑 Lấy dữ liệu email ngay trong scope
+            var medicalRecord = await _context.MedicalRecords
+                .Include(m => m.Patient).ThenInclude(p => p!.User)
+                .Include(m => m.Doctor)
+                .FirstOrDefaultAsync(m => m.Id == dto.MedicalRecordId);
+
+            var email = medicalRecord?.Patient?.User?.Email;
+            var patientName = medicalRecord?.Patient?.FullName;
+            var doctorName = medicalRecord?.Doctor?.FullName;
+
+            var emailItems = result!.Details.Select(d => new PrescriptionEmailItem
+            {
+                MedicineName = d.Stock?.MedicineName ?? string.Empty,
+                Unit = d.Stock?.Unit,
+                Frequency = d.Frequency,
+                DurationDays = d.DurationDays,
+                Quantity = d.Quantity,
+                Instructions = d.Instructions
+            }).ToList();
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                _ = Task.Run(() => _emailService.SendPrescriptionAsync(
+                    email, patientName!, doctorName!, result.IssuedAt, emailItems, result.Notes));
+            }
+
+            return MapToDTO(result!);
+        }
+
+
+        public async Task<PrescriptionDTO> UpdateAsync(Guid prescriptionId, UpdatePrescriptionDTO dto)
+        {
+            ArgumentNullException.ThrowIfNull(dto);
+            if (prescriptionId == Guid.Empty)
+                throw new ArgumentException("Id đơn thuốc không hợp lệ.", nameof(prescriptionId));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var prescription = new Prescription
-                {
-                    Id = Guid.NewGuid(),
-                    MedicalRecordId = dto.MedicalRecordId,
-                    Status = PrescriptionStatus.Issued,
-                    Notes = dto.Notes?.Trim(),
-                    IssuedAt = DateTime.UtcNow,
-                    Details = details
-                };
+                var p = await _context.Prescriptions
+                    .Include(x => x.Details)
+                    .ThenInclude(d => d.Stock)
+                    .FirstOrDefaultAsync(x => x.Id == prescriptionId);
 
-                var created = await _prescriptionRepo.AddAsync(prescription);
-                var result = await _prescriptionRepo.GetByIdAsync(created.Id);
-                // Lấy email patient từ MedicalRecord → Appointment → Patient → User
-                _ = Task.Run(async () =>
+                if (p == null)
+                    throw new KeyNotFoundException($"Không tìm thấy đơn thuốc với Id: {prescriptionId}");
+
+                // 24h Restriction Check (If doctor dashboard logic is bypassed)
+                var medicalRecord = await _context.MedicalRecords.FindAsync(p.MedicalRecordId);
+                if (medicalRecord != null && (DateTime.UtcNow - medicalRecord.CreatedAt).TotalHours > 24)
                 {
-                    try
+                    throw new InvalidOperationException("Hồ sơ bệnh án đã quá 24h, không thể chỉnh sửa đơn thuốc.");
+                }
+
+                // 1. Phục hồi tồn kho cũ (Chỉ khi đã phát thuốc)
+                if (p.Status == PrescriptionStatus.Dispensed)
+                {
+                    foreach (var oldDetail in p.Details)
                     {
-                        var medicalRecord = await _context.MedicalRecords
-                            .Include(m => m.Patient).ThenInclude(p => p!.User)
-                            .Include(m => m.Doctor)
-                            .FirstOrDefaultAsync(m => m.Id == dto.MedicalRecordId);
-
-                        var email = medicalRecord?.Patient?.User?.Email;
-                        var patientName = medicalRecord?.Patient?.FullName;
-                        var doctorName = medicalRecord?.Doctor?.FullName;
-
-                        if (!string.IsNullOrWhiteSpace(email))
+                        if (oldDetail.Stock != null)
                         {
-                            var emailItems = result!.Details.Select(d => new PrescriptionEmailItem
-                            {
-                                MedicineName = d.Stock?.MedicineName ?? string.Empty,
-                                Unit = d.Stock?.Unit,
-                                Frequency = d.Frequency,
-                                DurationDays = d.DurationDays,
-                                Quantity = d.Quantity,
-                                Instructions = d.Instructions
-                            }).ToList();
-
-                            await _emailService.SendPrescriptionAsync(
-                                email, patientName!, doctorName!,
-                                result.IssuedAt, emailItems, result.Notes);
+                            oldDetail.Stock.Quantity += oldDetail.Quantity;
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Lỗi gửi email đơn thuốc PrescriptionId: {Id}", created.Id);
-                    }
-                });
+                }
 
+                // 2. Xóa các chi tiết cũ
+                _context.PrescriptionDetails.RemoveRange(p.Details);
+
+                // 3. Kiểm tra và trừ tồn kho mới
+                var newDetails = new List<PrescriptionDetail>();
+                foreach (var d in dto.Details)
+                {
+                    var stock = await _context.Stocks.FirstOrDefaultAsync(s => s.Id == d.StockId && s.IsActive);
+                    if (stock is null)
+                        throw new KeyNotFoundException($"Không tìm thấy thuốc với Id: {d.StockId}");
+                    
+                    if (stock.Quantity < d.Quantity)
+                        throw new InvalidOperationException($"Thuốc '{stock.MedicineName}' không đủ tồn kho (Còn {stock.Quantity}).");
+
+                    if (p.Status == PrescriptionStatus.Dispensed)
+                    {
+                        stock.Quantity -= d.Quantity;
+                    }
+
+                    newDetails.Add(new PrescriptionDetail
+                    {
+                        Id = Guid.NewGuid(),
+                        PrescriptionId = prescriptionId,
+                        StockId = d.StockId,
+                        Frequency = d.Frequency.Trim(),
+                        DurationDays = d.DurationDays,
+                        Quantity = d.Quantity,
+                        Instructions = d.Instructions?.Trim()
+                    });
+                }
+
+                p.Notes = dto.Notes?.Trim();
+                p.Details = newDetails;
+                p.IssuedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var result = await _prescriptionRepo.GetByIdAsync(prescriptionId);
                 return MapToDTO(result!);
             }
-            catch (KeyNotFoundException) { throw; }
-            catch (InvalidOperationException) { throw; }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi Create Prescription.");
-                throw new ApplicationException("Không thể tạo đơn thuốc.", ex);
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Lỗi Update Prescription Id: {Id}", prescriptionId);
+                throw;
             }
         }
 

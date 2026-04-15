@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.DTOs;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.DTOs.TimeSlot;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -110,6 +110,23 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Delete Id: {Id}", id);
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // GET /api/timeslot/doctor/{doctorId}/date/{date}
+        [HttpGet("doctor/{doctorId:guid}/date/{date}")]
+        [Authorize(Roles = "Admin,Doctor,Patient")]
+        public async Task<IActionResult> GetByDoctorAndDate(Guid doctorId, DateTime date)
+        {
+            try
+            {
+                return Ok(await _timeSlotService.GetByDoctorAndDateAsync(doctorId, date));
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetByDoctorAndDate: {DoctorId}, Date: {Date}", doctorId, date);
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }

@@ -9,5 +9,6 @@ namespace CareFirstClinic.API.Repositories.PatientRepo
         Task<Patient> AddAsync(Patient patient);
         Task<Patient> UpdateAsync(Patient patient);
         Task<bool> SoftDeleteAsync(Guid id);
+        Task<bool> ToggleActiveAsync(Guid id);
     }
 }

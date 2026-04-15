@@ -32,13 +32,29 @@ namespace CareFirstClinic.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPaged([FromQuery] ScheduleQueryParams query)
         {
-            try { return Ok(await _scheduleService.GetPagedAsync(query)); }
+            try
+            {
+                if (query.Page <= 0) query.Page = 1;
+                if (query.PageSize <= 0 || query.PageSize > 100) query.PageSize = 10;
+
+                if (query.FromDate.HasValue)
+                    query.FromDate = DateTime.SpecifyKind(query.FromDate.Value, DateTimeKind.Utc);
+
+                if (query.ToDate.HasValue)
+                    query.ToDate = DateTime.SpecifyKind(query.ToDate.Value, DateTimeKind.Utc);
+
+                var result = await _scheduleService.GetPagedAsync(query);
+
+                return Ok(result);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi GetPaged Schedule.");
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                return StatusCode(500, "Lỗi hệ thống.");
             }
         }
+
+
 
         // GET /api/schedule/{id}
         [HttpGet("{id:guid}")]

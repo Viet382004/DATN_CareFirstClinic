@@ -11,6 +11,11 @@
         public Guid DoctorId { get; set; }          
         public string DoctorName { get; set; } = string.Empty;
         public string SpecialtyName { get; set; } = string.Empty;
+        public string? ServiceName { get; set; }
+        public decimal ConsultationFee { get; set; }
+        public decimal MedicineFee { get; set; }
+        public bool IsConsultationPaid { get; set; }
+        public bool IsMedicinePaid { get; set; }
         public DateTime WorkDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }

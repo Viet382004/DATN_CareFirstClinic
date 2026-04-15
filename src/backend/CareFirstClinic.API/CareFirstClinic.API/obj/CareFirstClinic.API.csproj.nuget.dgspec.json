@@ -80,6 +80,10 @@
               "target": "Package",
               "version": "[9.0.13, )"
             },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[10.0.6, )"
+            },
             "MimeKit": {
               "target": "Package",
               "version": "[4.15.1, )"
@@ -99,6 +103,10 @@
             "Swashbuckle.AspNetCore.SwaggerUI": {
               "target": "Package",
               "version": "[9.0.6, )"
+            },
+            "VNPAY.NET": {
+              "target": "Package",
+              "version": "[2.1.0, )"
             },
             "dotenv.net": {
               "target": "Package",

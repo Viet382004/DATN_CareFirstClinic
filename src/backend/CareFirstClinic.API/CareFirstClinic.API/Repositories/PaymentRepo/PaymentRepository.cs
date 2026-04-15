@@ -69,7 +69,13 @@ namespace CareFirstClinic.API.Repositories.PaymentRepo
                 throw;
             }
         }
-
+        public async Task<Payment?> GetByOrderIdAsync(string orderId)
+        {
+            return await _context.Payments
+                .Include(p => p.Patient)
+                .Include(p => p.Appointment)
+                .FirstOrDefaultAsync(p => p.OrderId == orderId);
+        }
         public async Task<List<Payment>> GetByPatientIdAsync(Guid patientId)
         {
             if (patientId == Guid.Empty)
@@ -103,6 +109,20 @@ namespace CareFirstClinic.API.Repositories.PaymentRepo
             }
         }
 
+        public async Task<bool> ExistsByAppointmentIdAndTypeAsync(Guid appointmentId, PaymentType type)
+        {
+            try
+            {
+                return await _context.Payments
+                    .AnyAsync(p => p.AppointmentId == appointmentId && p.Type == type);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi ExistsByAppointmentIdAndType: {Id} - {Type}", appointmentId, type);
+                throw;
+            }
+        }
+
         public async Task<Payment> AddAsync(Payment payment)
         {
             ArgumentNullException.ThrowIfNull(payment);
@@ -115,7 +135,7 @@ namespace CareFirstClinic.API.Repositories.PaymentRepo
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Lỗi DB khi thêm Payment.");
-                throw new InvalidOperationException("Không thể tạo thanh toán. Vui lòng thử lại.", ex);
+                throw new InvalidOperationException("Không thể tạo thanh toán. Có thể Appointment này đã có Payment.", ex);
             }
         }
 
@@ -138,8 +158,8 @@ namespace CareFirstClinic.API.Repositories.PaymentRepo
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Lỗi DB khi cập nhật Payment Id: {Id}", payment.Id);
-                throw new InvalidOperationException("Không thể cập nhật thanh toán. Vui lòng thử lại.", ex);
+                _logger.LogError(ex, "Xung đột dữ liệu Payment Id: {Id}", payment.Id);
+                throw new InvalidOperationException("Thanh toán đã bị thay đổi hoặc xóa bởi người khác, vui lòng tải lại.", ex);
             }
         }
         public async Task<(List<Payment> Items, int Total)> GetPagedAsync(PaymentQueryParams query)

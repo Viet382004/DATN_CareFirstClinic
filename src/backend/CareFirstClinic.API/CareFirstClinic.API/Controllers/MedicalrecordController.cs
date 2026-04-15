@@ -178,7 +178,7 @@ namespace CareFirstClinic.API.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message);
+                return Conflict(new { message = "Lịch hẹn này đã có hồ sơ bệnh án, không thể tạo thêm.", detail = ex.Message });
             }
             catch (Exception ex)
             {
@@ -225,7 +225,7 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Update MedicalRecord Id: {Id}", id);
-                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+                return StatusCode(500, new { message = "Lỗi hệ thống khi cập nhật hồ sơ bệnh án.", error = ex.Message });
             }
         }
 

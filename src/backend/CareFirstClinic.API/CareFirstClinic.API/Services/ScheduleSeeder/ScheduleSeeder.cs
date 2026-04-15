@@ -69,6 +69,15 @@ public class ScheduleSeeder : IScheduleSeeder
                     schedules,
                     timeSlots
                 );
+                //  CA TỐI
+                CreateScheduleWithSlots(
+                    doctor.Id,
+                    date,
+                    new TimeSpan(18, 30, 0),
+                    new TimeSpan(23, 0, 0),
+                    schedules,
+                    timeSlots
+                );
             }
         }
 

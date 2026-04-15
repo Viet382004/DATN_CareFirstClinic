@@ -18,6 +18,7 @@
         public string PhoneNumber { get; set; } = string.Empty;
 
         public bool IsActive { get; set; }
+        public bool IsEmailVerified { get; set; }
 
         public Guid? UserId { get; set; }
         public string? Email { get; set; }

@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.DTOs.TimeSlot;
+using CareFirstClinic.API.DTOs.TimeSlot;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories;
 using CareFirstClinic.API.Repositories.TimeSlotRepo;
@@ -142,7 +142,29 @@ namespace CareFirstClinic.API.Services
             EndTime = t.EndTime,
             IsBooked = t.IsBooked,
             DoctorName = t.Schedule?.Doctor?.FullName ?? string.Empty,
-            SpecialtyName = t.Schedule?.Doctor?.Specialty?.Name ?? string.Empty
+            SpecialtyName = t.Schedule?.Doctor?.Specialty?.Name ?? string.Empty,
+            AppointmentId = t.Appointment?.Id,
+            PatientName = t.Appointment?.Patient?.FullName,
+            PatientPhone = t.Appointment?.Patient?.PhoneNumber,
+            Status = t.Appointment?.Status.ToString(),
+            Reason = t.Appointment?.Reason
         };
+        public async Task<List<TimeSlotDTO>> GetByDoctorAndDateAsync(Guid doctorId, DateTime date)
+        {
+            if (doctorId == Guid.Empty)
+                throw new ArgumentException("DoctorId không được để trống.", nameof(doctorId));
+            try
+            {
+                var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+                var list = await _timeSlotRepo.GetByDoctorAndDateAsync(doctorId, utcDate);
+                return list.Select(MapToDTO).ToList();
+            }
+            catch (ArgumentException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetByDoctorAndDateAsync: {DoctorId}, Date: {Date}", doctorId, date);
+                throw new ApplicationException("Không thể lấy danh sách slot theo bác sĩ.", ex);
+            }
+        }
     }
 }

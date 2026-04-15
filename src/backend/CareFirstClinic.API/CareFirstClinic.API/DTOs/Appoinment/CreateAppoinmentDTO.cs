@@ -27,5 +27,11 @@ namespace CareFirstClinic.API.DTOs
         public string Phone { get; set; } = string.Empty;
 
         public string? Email { get; set; }
+
+        [MaxLength(200, ErrorMessage = "Tên dịch vụ tối đa 200 ký tự.")]
+        public string? ServiceName { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Phí khám không hợp lệ.")]
+        public decimal ConsultationFee { get; set; } = 200000;
     }
 }

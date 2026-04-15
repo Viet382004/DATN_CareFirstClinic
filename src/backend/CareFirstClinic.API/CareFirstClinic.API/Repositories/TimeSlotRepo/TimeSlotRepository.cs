@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Data;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,6 +25,8 @@ namespace CareFirstClinic.API.Repositories.TimeSlotRepo
                     .Include(t => t.Schedule)
                         .ThenInclude(s => s.Doctor)
                             .ThenInclude(d => d.Specialty)
+                    .Include(t => t.Appointment)
+                        .ThenInclude(a => a.Patient)
                     .Where(t => t.ScheduleId == scheduleId)
                     .OrderBy(t => t.StartTime)
                     .ToListAsync();
@@ -47,6 +49,8 @@ namespace CareFirstClinic.API.Repositories.TimeSlotRepo
                     .Include(t => t.Schedule)
                         .ThenInclude(s => s.Doctor)
                             .ThenInclude(d => d.Specialty)
+                    .Include(t => t.Appointment)
+                        .ThenInclude(a => a.Patient)
                     .FirstOrDefaultAsync(t => t.Id == id);
             }
             catch (ArgumentException) { throw; }
@@ -121,6 +125,31 @@ namespace CareFirstClinic.API.Repositories.TimeSlotRepo
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Delete TimeSlot Id: {Id}", id);
+                throw;
+            }
+        }
+        public async Task<List<TimeSlot>> GetByDoctorAndDateAsync(Guid doctorId, DateTime date)
+        {
+            if (doctorId == Guid.Empty)
+                throw new ArgumentException("DoctorId không hợp lệ.", nameof(doctorId));
+
+            var targetDate = date.Date;
+
+            try
+            {
+                return await _context.TimeSlots
+                    .Include(t => t.Schedule)
+                        .ThenInclude(s => s.Doctor)
+                            .ThenInclude(d => d.Specialty)
+                    .Include(t => t.Appointment)
+                        .ThenInclude(a => a.Patient)
+                    .Where(t => t.Schedule.DoctorId == doctorId && t.Schedule.WorkDate.Date == targetDate)
+                    .OrderBy(t => t.StartTime)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi GetByDoctorAndDateAsync: {DoctorId}, Date: {Date}", doctorId, date);
                 throw;
             }
         }

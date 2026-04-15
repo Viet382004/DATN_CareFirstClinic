@@ -1,4 +1,5 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -14,15 +15,18 @@ namespace CareFirstClinic.API.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly IPatientService _patientService;
+        private readonly CareFirstClinicDbContext _context;
         private readonly ILogger<PaymentController> _logger;
 
         public PaymentController(
             IPaymentService paymentService,
             IPatientService patientService,
+            CareFirstClinicDbContext context,
             ILogger<PaymentController> logger)
         {
             _paymentService = paymentService;
             _patientService = patientService;
+            _context = context;
             _logger = logger;
         }
 
@@ -113,7 +117,7 @@ namespace CareFirstClinic.API.Controllers
 
         // POST /api/payment — Patient tạo thanh toán sau khi khám xong
         [HttpPost]
-        [Authorize(Roles = "Patient")]
+        [Authorize(Roles = "Patient,Doctor,Admin")]
         public async Task<IActionResult> Create(CreatePaymentDTO dto)
         {
             try
@@ -121,10 +125,32 @@ namespace CareFirstClinic.API.Controllers
                 var userId = GetUserIdFromClaim();
                 if (userId is null) return Unauthorized("Không xác định được tài khoản.");
 
-                var patient = await _patientService.GetByUserIdAsync(userId.Value);
-                if (patient is null) return NotFound("Không tìm thấy hồ sơ bệnh nhân.");
+                Guid patientId;
 
-                var created = await _paymentService.CreateAsync(patient.Id, dto);
+                // ⭐ Xử lý cho Admin
+                if (User.IsInRole("Admin"))
+                {
+                    // Admin có thể truyền PatientId trực tiếp trong DTO
+                    if (!dto.PatientId.HasValue || dto.PatientId.Value == Guid.Empty)
+                    {
+                        return BadRequest("Admin cần cung cấp PatientId khi tạo thanh toán.");
+                    }
+                    patientId = dto.PatientId.Value;
+                }
+                else if (User.IsInRole("Patient"))
+                {
+                    var patient = await _patientService.GetByUserIdAsync(userId.Value);
+                    if (patient is null) return NotFound("Không tìm thấy hồ sơ bệnh nhân.");
+                    patientId = patient.Id;
+                }
+                else // Doctor role
+                {
+                    var appointment = await _context.Appointments.FindAsync(dto.AppointmentId);
+                    if (appointment == null) return NotFound("Không tìm thấy lịch hẹn.");
+                    patientId = appointment.PatientId;
+                }
+
+                var created = await _paymentService.CreateAsync(patientId, dto);
                 return CreatedAtAction(nameof(GetById), new { id = created.Id },
                     new { message = "Tạo thanh toán thành công.", data = created });
             }

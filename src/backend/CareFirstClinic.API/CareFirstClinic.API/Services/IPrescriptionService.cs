@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.DTOs;
+using CareFirstClinic.API.DTOs;
 
 namespace CareFirstClinic.API.Services
 {
@@ -7,6 +7,7 @@ namespace CareFirstClinic.API.Services
         Task<PrescriptionDTO?> GetByIdAsync(Guid id);
         Task<PrescriptionDTO?> GetByMedicalRecordIdAsync(Guid medicalRecordId);
         Task<PrescriptionDTO> CreateAsync(Guid doctorId, CreatePrescriptionDTO dto);
+        Task<PrescriptionDTO> UpdateAsync(Guid prescriptionId, UpdatePrescriptionDTO dto);
         Task<PrescriptionDTO?> DispenseAsync(Guid id);   // Phát thuốc — trừ tồn kho
         Task<PrescriptionDTO?> CancelAsync(Guid id);
     }

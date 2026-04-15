@@ -1,17 +1,21 @@
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories.PatientRepo;
+using CareFirstClinic.API.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace CareFirstClinic.API.Services
 {
     public class PatientService : IPatientService
     {
         private readonly IPatientRepository _patientRepository;
+        private readonly CareFirstClinicDbContext _context;
         private readonly ILogger<PatientService> _logger;
 
-        public PatientService(IPatientRepository patientRepository, ILogger<PatientService> logger)
+        public PatientService(IPatientRepository patientRepository, CareFirstClinicDbContext context, ILogger<PatientService> logger)
         {
             _patientRepository = patientRepository;
+            _context = context;
             _logger = logger;
         }
         public async Task<PatientDTO?> UpdateAvatarAsync(Guid id, string? avatarUrl)
@@ -87,6 +91,68 @@ namespace CareFirstClinic.API.Services
             {
                 _logger.LogError(ex, "Lỗi khi lấy bệnh nhân theo UserId: {UserId}", userId);
                 throw new ApplicationException("Không thể lấy hồ sơ bệnh nhân.", ex);
+            }
+        }
+        public async Task<PatientDTO> CreateAsync(CreatePatientDTO dto)
+        {
+            if (dto is null)
+                throw new ArgumentNullException(nameof(dto));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Kiểm tra email
+                if (!string.IsNullOrEmpty(dto.Email))
+                {
+                    if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
+                        throw new InvalidOperationException("Email đã được sử dụng.");
+                }
+
+                // 2. Tạo User
+                var patientRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Patient");
+                if (patientRole == null)
+                    throw new InvalidOperationException("Không tìm thấy quyền 'Patient' trong hệ thống.");
+
+                var user = new User
+                {
+                    Email = dto.Email ?? $"{dto.PhoneNumber}@temporary.com",
+                    FullName = dto.FullName,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password ?? "123456"), // Mặc định nếu không có
+                    RoleId = patientRole.Id,
+                    IsActive = true,
+                    IsEmailVerified = true, // Admin tạo nên mặc định verified
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                // 3. Tạo Patient
+                var patient = new Patient
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    FullName = dto.FullName,
+                    DateOfBirth = DateTime.SpecifyKind(dto.DateOfBirth.Date, DateTimeKind.Utc),
+                    Gender = dto.Gender,
+                    PhoneNumber = dto.PhoneNumber ?? "",
+                    Address = dto.Address ?? "",
+                    MedicalHistory = dto.MedicalHistory,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return MapToDTO(patient);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Lỗi khi tạo bệnh nhân mới.");
+                throw;
             }
         }
 
@@ -166,6 +232,26 @@ namespace CareFirstClinic.API.Services
             }
         }
 
+        public async Task<bool> ToggleActiveAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id không được để trống.", nameof(id));
+            try
+            {
+                return await _patientRepository.ToggleActiveAsync(id);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi toggle active bệnh nhân Id: {Id}", id);
+                throw new ApplicationException("Không thể thay đổi trạng thái hoạt động của bệnh nhân.", ex);
+            }
+        }
+
+
         // HELPER
         private static PatientDTO MapToDTO(Patient p) => new()
         {
@@ -179,7 +265,9 @@ namespace CareFirstClinic.API.Services
             MedicalHistory = p.MedicalHistory,
             CreatedAt = p.CreatedAt,
             UserId = p.UserId,
-            UserEmail = p.User?.Email
+            UserEmail = p.User?.Email,
+            IsActive = p.User?.IsActive ?? false,
+            IsEmailVerified = p.User?.IsEmailVerified ?? false
         };
     }
 }

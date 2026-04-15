@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.DTOs;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -62,7 +62,6 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // POST /api/prescription — Doctor kê đơn thuốc
         [HttpPost]
         [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> Create(CreatePrescriptionDTO dto)
@@ -81,10 +80,32 @@ namespace CareFirstClinic.API.Controllers
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
             catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
-            catch (InvalidOperationException ex) { return Conflict(ex.Message); }
+            catch (InvalidOperationException ex) { return Conflict(new { 
+                message = "Hồ sơ bệnh án này đã có đơn thuốc, không thể tạo thêm.", detail = ex.Message }); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Create Prescription.");
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // PUT /api/prescription/{id} — Doctor sửa đơn thuốc
+        [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> Update(Guid id, UpdatePrescriptionDTO dto)
+        {
+            try
+            {
+                var updated = await _prescriptionService.UpdateAsync(id, dto);
+                return Ok(new { message = "Cập nhật đơn thuốc thành công.", data = updated });
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (KeyNotFoundException ex) { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return Conflict(new { 
+                message = "Đơn thuốc đã bị thay đổi bởi người khác, vui lòng tải lại.", detail = ex.Message }); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi Update Prescription Id: {Id}", id);
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }

@@ -143,8 +143,8 @@ namespace CareFirstClinic.API.Repositories.MedicalRecordRepo
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "DbUpdateException khi thêm MedicalRecord. InnerException: {Inner}", ex.InnerException?.Message);
-                throw new InvalidOperationException($"Không thể lưu hồ sơ bệnh án vào database. Chi tiết: {ex.InnerException?.Message ?? ex.Message}", ex);
+                _logger.LogError(ex, "DbUpdateException khi thêm MedicalRecord.");
+                throw new InvalidOperationException("Không thể tạo hồ sơ bệnh án. Appointment này có thể đã có hồ sơ.", ex);
             }
             catch (Exception ex)
             {
@@ -172,8 +172,8 @@ namespace CareFirstClinic.API.Repositories.MedicalRecordRepo
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Lỗi DB khi cập nhật MedicalRecord Id: {Id}", record.Id);
-                throw new InvalidOperationException("Không thể cập nhật hồ sơ bệnh án. Vui lòng thử lại.", ex);
+                _logger.LogError(ex, "Xung đột dữ liệu MedicalRecord Id: {Id}", record.Id);
+                throw new InvalidOperationException("Hồ sơ bệnh án đã bị thay đổi hoặc xóa bởi người khác, vui lòng tải lại.", ex);
             }
         }
         public async Task<(List<MedicalRecord> Items, int Total)> GetPagedAsync(MedicalRecordQueryParams query)

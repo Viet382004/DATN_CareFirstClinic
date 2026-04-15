@@ -1,5 +1,6 @@
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace CareFirstClinic.API.Data
 {
@@ -7,6 +8,43 @@ namespace CareFirstClinic.API.Data
     {
         public CareFirstClinicDbContext(DbContextOptions<CareFirstClinicDbContext> options)
             : base(options) { }
+        public CareFirstClinicDbContext() { }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+                if (!string.IsNullOrEmpty(databaseUrl))
+                {
+                    var uri = new Uri(databaseUrl);
+                    var userInfo = uri.UserInfo.Split(':');
+                    var connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+                    optionsBuilder.UseNpgsql(connectionString);
+                }
+                else
+                {
+                    var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+                    var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+                    var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "CareFirstClinicDb";
+                    var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
+                    var dbPass = Environment.GetEnvironmentVariable("DB_PASS") ?? "";
+
+                    var connectionStringBuilder = new NpgsqlConnectionStringBuilder
+                    {
+                        Host = dbHost,
+                        Port = int.Parse(dbPort),
+                        Database = dbName,
+                        Username = dbUser,
+                        Password = dbPass,
+                        SslMode = SslMode.Require,
+                        TrustServerCertificate = true
+                    };
+
+                    optionsBuilder.UseNpgsql(connectionStringBuilder.ToString());
+                }
+            }
+        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -139,6 +177,7 @@ namespace CareFirstClinic.API.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // APPOINTMENT
             modelBuilder.Entity<Appointment>(e =>
             {
                 e.HasKey(x => x.Id);
@@ -151,8 +190,27 @@ namespace CareFirstClinic.API.Data
                     .HasConversion<string>()
                     .HasMaxLength(20);
 
+                e.Property(x => x.IsConsultationPaid)
+                    .HasDefaultValue(false);
+
+                e.Property(x => x.IsMedicinePaid)
+                    .HasDefaultValue(false);
+
+                e.Property(x => x.ConsultationFee)
+                    .HasColumnType("numeric(18,2)")
+                    .HasDefaultValue(0);
+
+                e.Property(x => x.MedicineFee)
+                    .HasColumnType("numeric(18,2)")
+                    .HasDefaultValue(0);
+
+                e.Property(x => x.ServiceName)
+                    .HasMaxLength(200);
+
                 e.Property(x => x.CreatedAt)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                e.Property(x => x.UpdatedAt);
 
                 e.HasOne(x => x.Patient)
                     .WithMany(p => p.Appointments)
@@ -243,7 +301,7 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.IsActive).HasDefaultValue(true);
             });
 
-            // PAYMENT
+            // PAYMENT 
             modelBuilder.Entity<Payment>(e =>
             {
                 e.HasKey(x => x.Id);
@@ -253,16 +311,27 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.TransactionId).HasMaxLength(100);
                 e.Property(x => x.Notes).HasMaxLength(500);
 
+                e.Property(x => x.OrderId).HasMaxLength(50).IsRequired();  
+                e.Property(x => x.BankCode).HasMaxLength(20);              
+                e.Property(x => x.PaidAt);                                 
+
+                // Index cho OrderId để tìm kiếm nhanh
+                e.HasIndex(x => x.OrderId).IsUnique();
+
                 // Payment -> Patient (N-1)
                 e.HasOne(p => p.Patient)
                     .WithMany(patient => patient.Payments)
                     .HasForeignKey(p => p.PatientId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Payment -> Appointment (1-1)
+                // Payment -> Appointment (n-1)
+                e.Property(x => x.Type)
+                    .HasConversion<string>()
+                    .HasMaxLength(50);
+
                 e.HasOne(p => p.Appointment)
-                    .WithOne(a => a.Payment)
-                    .HasForeignKey<Payment>(p => p.AppointmentId)
+                    .WithMany(a => a.Payments)
+                    .HasForeignKey(p => p.AppointmentId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }

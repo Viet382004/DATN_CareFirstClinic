@@ -1,4 +1,4 @@
-﻿namespace CareFirstClinic.API.DTOs.TimeSlot
+namespace CareFirstClinic.API.DTOs.TimeSlot
 {
     public class TimeSlotDTO
     {
@@ -10,5 +10,10 @@
         public bool IsBooked { get; set; }
         public string DoctorName { get; set; } = string.Empty;
         public string SpecialtyName { get; set; } = string.Empty;
+        public Guid? AppointmentId { get; set; }
+        public string? PatientName { get; set; }
+        public string? PatientPhone { get; set; }
+        public string? Status { get; set; }
+        public string? Reason { get; set; }
     }
 }

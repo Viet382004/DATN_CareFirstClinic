@@ -287,7 +287,12 @@ namespace CareFirstClinic.API.Services
                     Id = ts.Id,
                     StartTime = ts.StartTime,
                     EndTime = ts.EndTime,
-                    IsBooked = ts.IsBooked
+                    IsBooked = ts.IsBooked,
+                    AppointmentId = ts.Appointment?.Id,
+                    PatientName = ts.Appointment?.Patient?.FullName,
+                    PatientPhone = ts.Appointment?.Patient?.PhoneNumber,
+                    Status = ts.Appointment?.Status.ToString(),
+                    Reason = ts.Appointment?.Reason
                 }).ToList()
         };
     }

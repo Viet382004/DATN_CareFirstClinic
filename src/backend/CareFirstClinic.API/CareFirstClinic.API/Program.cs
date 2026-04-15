@@ -21,6 +21,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 using System.Text;
+using VNPAY.Extensions;
+
 
 DotEnv.Load();
 
@@ -159,7 +161,27 @@ builder.Services.AddHttpClient<EmailService>();
 builder.Services.AddHttpClient<ImageService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); 
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddVnpayClient(config =>
+{
+    config.TmnCode = Environment.GetEnvironmentVariable("VNPAY_TMN_CODE")
+        ?? builder.Configuration["VNPay:TmnCode"]
+        ?? throw new InvalidOperationException("Thiếu VNPAY_TMN_CODE hoặc VNPay:TmnCode");
+
+    config.HashSecret = Environment.GetEnvironmentVariable("VNPAY_HASH_SECRET")
+        ?? builder.Configuration["VNPay:HashSecret"]
+        ?? throw new InvalidOperationException("Thiếu VNPAY_HASH_SECRET hoặc VNPay:HashSecret");
+
+    config.CallbackUrl = Environment.GetEnvironmentVariable("VNPAY_RETURN_URL")
+        ?? builder.Configuration["VNPay:ReturnUrl"]
+        ?? throw new InvalidOperationException("Thiếu VNPAY_RETURN_URL hoặc VNPay:ReturnUrl");
+
+    config.BaseUrl = Environment.GetEnvironmentVariable("VNPAY_BASE_URL")
+        ?? builder.Configuration["VNPay:BaseUrl"]
+        ?? "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+});
+builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddHostedService<AppointmentReminderService>();
+builder.Services.AddHostedService<AppointmentAutoCancelService>();
 //builder.Services.AddHostedService<ScheduleBackgroundService>();
 
 builder.Services.AddControllers();
@@ -189,7 +211,12 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -239,7 +266,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
     c.DocumentTitle = "CareFirst Clinic API Documentation";
 });
-
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();

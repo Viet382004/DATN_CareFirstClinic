@@ -111,6 +111,10 @@ namespace CareFirstClinic.API.Services
 
             if (slotDateTime < DateTime.UtcNow)
                 throw new InvalidOperationException("Không thể đặt lịch cho slot đã qua.");
+            
+            var consultationFee = dto.ConsultationFee > 0
+                ? dto.ConsultationFee
+                : 200000;
 
             try
             {
@@ -129,6 +133,8 @@ namespace CareFirstClinic.API.Services
                     Id = Guid.NewGuid(),
                     PatientId = patientId,
                     TimeSlotId = dto.TimeSlotId,
+                    ServiceName = dto.ServiceName?.Trim(),
+                    ConsultationFee = consultationFee,
                     Status = AppointmentStatus.Pending,
                     Reason = dto.Reason?.Trim(),
                     Notes = dto.Notes?.Trim(),
@@ -136,6 +142,7 @@ namespace CareFirstClinic.API.Services
                 };
 
                 var created = await _appointmentRepo.AddAsync(appointment, timeSlot);
+                await _context.SaveChangesAsync(); // ⭐ Đảm bảo lưu phí khám mới cập nhật vao DB
 
                 var result = await _appointmentRepo.GetByIdAsync(created.Id);
 
@@ -233,7 +240,7 @@ namespace CareFirstClinic.API.Services
             }
         }
 
-        public async Task<AppointmentDTO?> ConfirmAsync(Guid id)
+        public async Task<AppointmentDTO?> ConfirmAsync(Guid id, string requesterRole, Guid? requesterDoctorId = null)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id không được để trống.", nameof(id));
@@ -241,6 +248,13 @@ namespace CareFirstClinic.API.Services
             {
                 var appointment = await _appointmentRepo.GetByIdAsync(id);
                 if (appointment is null) return null;
+
+                if (string.Equals(requesterRole, "Doctor", StringComparison.OrdinalIgnoreCase))
+                {
+                    var appointmentDoctorId = appointment.TimeSlot?.Schedule?.DoctorId;
+                    if (requesterDoctorId is null || appointmentDoctorId != requesterDoctorId.Value)
+                        throw new UnauthorizedAccessException("Bạn không có quyền xác nhận lịch hẹn này.");
+                }
 
                 if (appointment.Status != AppointmentStatus.Pending)
                     throw new InvalidOperationException(
@@ -253,6 +267,7 @@ namespace CareFirstClinic.API.Services
                 return MapToDTO(updated);
             }
             catch (ArgumentException) { throw; }
+            catch (UnauthorizedAccessException) { throw; }
             catch (InvalidOperationException) { throw; }
             catch (Exception ex)
             {
@@ -306,6 +321,9 @@ namespace CareFirstClinic.API.Services
                 if (appointment.Status != AppointmentStatus.Waiting)
                     throw new InvalidOperationException($"Chỉ có thể bắt đầu khám cho lịch hẹn đang chờ. Trạng thái hiện tại: '{appointment.Status}'.");
 
+                if (!appointment.IsConsultationPaid)
+                    throw new InvalidOperationException("Lịch hẹn chưa thanh toán phí khám. Không thể bắt đầu khám.");
+
                 appointment.Status = AppointmentStatus.InProgress;
                 appointment.UpdatedAt = DateTime.UtcNow;
 
@@ -338,6 +356,9 @@ namespace CareFirstClinic.API.Services
                 if (appointmentDoctorId != doctorId)
                     throw new UnauthorizedAccessException("Bạn không có quyền hoàn thành lịch hẹn này.");
 
+                if (appointment.Status == AppointmentStatus.Completed)
+                    return MapToDTO(appointment);
+
                 if (appointment.Status != AppointmentStatus.InProgress)
                     throw new InvalidOperationException($"Không thể hoàn thành lịch hẹn. Trạng thái yêu cầu: InProgress. Trạng thái hiện tại: '{appointment.Status}'.");
 
@@ -355,6 +376,41 @@ namespace CareFirstClinic.API.Services
             {
                 _logger.LogError(ex, "Lỗi Complete appointment Id: {Id}", id);
                 throw new ApplicationException("Không thể hoàn thành lịch hẹn.", ex);
+            }
+        }
+
+        public async Task<AppointmentDTO?> UpdateMedicineFeeAsync(Guid id, Guid doctorId, decimal medicineFee)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id không được để trống.", nameof(id));
+            if (medicineFee < 0)
+                throw new ArgumentException("Phí thuốc không được nhỏ hơn 0.", nameof(medicineFee));
+
+            try
+            {
+                var appointment = await _appointmentRepo.GetByIdAsync(id);
+                if (appointment is null) return null;
+
+                var appointmentDoctorId = appointment.TimeSlot?.Schedule?.DoctorId;
+                if (appointmentDoctorId != doctorId)
+                    throw new UnauthorizedAccessException("Bạn không có quyền cập nhật phí thuốc cho lịch hẹn này.");
+
+                if (appointment.Status != AppointmentStatus.InProgress && appointment.Status != AppointmentStatus.Completed)
+                    throw new InvalidOperationException("Chỉ có thể cập nhật phí thuốc khi lịch hẹn đang khám hoặc đã hoàn thành.");
+
+                appointment.MedicineFee = medicineFee;
+                appointment.UpdatedAt = DateTime.UtcNow;
+
+                var updated = await _appointmentRepo.UpdateAsync(appointment);
+                return MapToDTO(updated);
+            }
+            catch (ArgumentException) { throw; }
+            catch (UnauthorizedAccessException) { throw; }
+            catch (InvalidOperationException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi UpdateMedicineFee appointment Id: {Id}", id);
+                throw new ApplicationException("Không thể cập nhật phí thuốc.", ex);
             }
         }
 
@@ -429,6 +485,41 @@ namespace CareFirstClinic.API.Services
             }
         }
 
+        public async Task<int> AutoCancelExpiredPendingAsync()
+        {
+            var now = DateTime.UtcNow;
+            var expiredPending = await _context.Appointments
+                .Include(a => a.TimeSlot)
+                    .ThenInclude(ts => ts!.Schedule)
+                .Where(a =>
+                    a.Status == AppointmentStatus.Pending &&
+                    a.TimeSlot != null &&
+                    a.TimeSlot.Schedule != null &&
+                    a.TimeSlot.Schedule.WorkDate.Date <= now.Date)
+                .ToListAsync();
+
+            var itemsToCancel = expiredPending
+                .Where(a => a.TimeSlot!.Schedule!.WorkDate.Date.Add(a.TimeSlot.StartTime) < now)
+                .ToList();
+
+            var cancelledCount = 0;
+            foreach (var appointment in itemsToCancel)
+            {
+                appointment.Status = AppointmentStatus.Cancelled;
+                appointment.CancelReason = "Không được xác thực (quá giờ)";
+                appointment.CancelledAt = now;
+                appointment.UpdatedAt = now;
+
+                await _appointmentRepo.CancelAsync(appointment, appointment.TimeSlot!);
+                cancelledCount++;
+            }
+
+            if (cancelledCount > 0)
+                _logger.LogInformation("Đã tự động hủy {Count} lịch hẹn pending quá hạn.", cancelledCount);
+
+            return cancelledCount;
+        }
+
         // MAP
         private static AppointmentDTO MapToDTO(Appointment a) => new()
         {
@@ -439,6 +530,11 @@ namespace CareFirstClinic.API.Services
             DoctorId = a.TimeSlot?.Schedule?.DoctorId ?? Guid.Empty, // ✅ Thêm DoctorId
             DoctorName = a.TimeSlot?.Schedule?.Doctor?.FullName ?? string.Empty,
             SpecialtyName = a.TimeSlot?.Schedule?.Doctor?.Specialty?.Name ?? string.Empty,
+            ServiceName = a.ServiceName,
+            ConsultationFee = a.ConsultationFee > 0 ? a.ConsultationFee : 200000,
+            MedicineFee = a.MedicineFee,
+            IsConsultationPaid = a.IsConsultationPaid,
+            IsMedicinePaid = a.IsMedicinePaid,
             WorkDate = a.TimeSlot?.Schedule?.WorkDate ?? default,
             StartTime = a.TimeSlot?.StartTime ?? default,
             EndTime = a.TimeSlot?.EndTime ?? default,

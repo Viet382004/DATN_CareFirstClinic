@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Data;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
 using CareFirstClinic.API.Common;
@@ -23,6 +23,8 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
                 return await _context.Schedules
                     .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
                     .Include(s => s.TimeSlots)
+                        .ThenInclude(ts => ts.Appointment)
+                            .ThenInclude(a => a.Patient)
                     .Where(s => s.IsAvailable)
                     .OrderBy(s => s.WorkDate).ThenBy(s => s.StartTime)
                     .ToListAsync();
@@ -43,6 +45,8 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
                 return await _context.Schedules
                     .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
                     .Include(s => s.TimeSlots)
+                        .ThenInclude(ts => ts.Appointment)
+                            .ThenInclude(a => a.Patient)
                     .FirstOrDefaultAsync(s => s.Id == id && s.IsAvailable);
             }
             catch (ArgumentException) { throw; }
@@ -62,6 +66,8 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
                 return await _context.Schedules
                     .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
                     .Include(s => s.TimeSlots)
+                        .ThenInclude(ts => ts.Appointment)
+                            .ThenInclude(a => a.Patient)
                     .Where(s => s.DoctorId == doctorId && s.IsAvailable)
                     .OrderBy(s => s.WorkDate).ThenBy(s => s.StartTime)
                     .ToListAsync();
@@ -107,9 +113,11 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
             try
             {
                 return await _context.Schedules
-                    .Include(s => s.TimeSlots)
                     .Include(s => s.Doctor)
                         .ThenInclude(d => d.Specialty)
+                    .Include(s => s.TimeSlots)
+                        .ThenInclude(ts => ts.Appointment)
+                            .ThenInclude(a => a.Patient)
                     .Where(s => s.DoctorId == doctorId
                              && s.IsAvailable
                              && s.WorkDate.Date == date) 
@@ -280,6 +288,8 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
             var q = _context.Schedules
                 .Include(s => s.Doctor).ThenInclude(d => d.Specialty)
                 .Include(s => s.TimeSlots)
+                    .ThenInclude(ts => ts.Appointment)
+                        .ThenInclude(a => a.Patient)
                 .AsQueryable();
 
             if (query.DoctorId.HasValue)
@@ -291,14 +301,13 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
                 q = q.Where(s => s.IsAvailable);
 
             if (query.FromDate.HasValue)
-                q = q.Where(s => s.WorkDate.Date >= query.FromDate.Value.Date);
+                q = q.Where(s => s.WorkDate >= query.FromDate.Value);
 
             if (query.ToDate.HasValue)
-                q = q.Where(s => s.WorkDate.Date <= query.ToDate.Value.Date);
+                q = q.Where(s => s.WorkDate <= query.ToDate.Value);
 
             var total = await q.CountAsync();
 
-            // sort
             q = query.IsAscending
                 ? q.OrderBy(s => s.WorkDate).ThenBy(s => s.StartTime)
                 : q.OrderByDescending(s => s.WorkDate).ThenByDescending(s => s.StartTime);
@@ -310,5 +319,6 @@ namespace CareFirstClinic.API.Repositories.ScheduleRepo
 
             return (items, total);
         }
+
     }
 }
