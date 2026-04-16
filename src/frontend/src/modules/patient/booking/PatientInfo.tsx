@@ -455,7 +455,7 @@ const PatientInfo: React.FC = () => {
 
         <footer className={styles.footer}>
           <div className={styles.footerContent}>
-            <p className={styles.copyright}>© 2024 MediCare+ Hospital System. All rights reserved.</p>
+            <p className={styles.copyright}>ï¿½ 2024 MediCare+ Hospital System. All rights reserved.</p>
           </div>
         </footer>
       </div>

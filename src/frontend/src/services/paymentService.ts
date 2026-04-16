@@ -49,7 +49,6 @@ export const paymentService = {
    * Tạo thanh toán mới (Requires: Patient role)
    */
   async create(data: CreatePaymentDTO): Promise<Payment> {
-    console.log("Payload gửi lên /payment:", data);
     return apiPost('/payment', data);
   },
 
