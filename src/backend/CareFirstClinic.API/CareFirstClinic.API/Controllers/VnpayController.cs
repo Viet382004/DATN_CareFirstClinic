@@ -428,10 +428,8 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
         // 5. KIỂM TRA TRẠNG THÁI THANH TOÁN
         // GET: /api/vnpay/status/{orderId}
-        // ═══════════════════════════════════════════════════════════════════════
         [HttpGet("status/{orderId}")]
         [Authorize]
         public async Task<IActionResult> GetPaymentStatus(string orderId)
@@ -485,9 +483,7 @@ namespace CareFirstClinic.API.Controllers
             }
         }
 
-        // ═══════════════════════════════════════════════════════════════════════
         // PRIVATE METHODS
-        // ═══════════════════════════════════════════════════════════════════════
 
         private string GetClientIpAddress()
         {
@@ -527,9 +523,7 @@ namespace CareFirstClinic.API.Controllers
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
     // DTOs
-    // ═══════════════════════════════════════════════════════════════════════
 
     public class PayConsultationRequest
     {
