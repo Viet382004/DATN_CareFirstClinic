@@ -1,15 +1,39 @@
-.env
-# Visual Studio
-.vs/
-*.suo
-*.user
-*.db
-*.cache
-*.idx
-
-# Build outputs
+﻿# Build output
 bin/
 obj/
-*.dll
-*.exe
-*.pdb
+dist/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Secrets / Environment
+.env
+*.env.local
+
+# IDE settings
+.vscode/
+.idea/
+
+# NuGet packages
+*.nupkg
+packages/
+*.snupkg
+
+# Database files (nếu có)
+*.mdf
+*.ldf
+
+# Publish profiles
+Properties/PublishProfiles/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
