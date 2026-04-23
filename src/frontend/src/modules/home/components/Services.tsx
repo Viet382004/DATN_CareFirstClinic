@@ -1,37 +1,9 @@
+import { useState, useEffect } from "react";
 import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { ImageWithFallback } from "../../../components/figma/ImageWithFallback";
-
-const services = [
-  {
-    id: 1,
-    image:
-      "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600",
-    name: "Khám Tổng quát Chuyên sâu",
-    desc: "Gói khám đa dạng phù hợp mọi lứa tuổi, tầm soát toàn diện.",
-  },
-  {
-    id: 2,
-    image:
-      "https://images.unsplash.com/photo-1551076805-e18690c5e53b?auto=format&fit=crop&q=80&w=600",
-    name: "Xét nghiệm Kỹ thuật cao",
-    desc: "Trang thiết bị hiện đại, kết quả chính xác, trả qua ứng dụng.",
-  },
-  {
-    id: 3,
-    image:
-      "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&q=80&w=600",
-    name: "Chẩn đoán Hình ảnh",
-    desc: "Siêu âm, X-quang, MRI, CT scan với công nghệ tiên tiến nhất.",
-  },
-  {
-    id: 4,
-    image:
-      "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=600",
-    name: "Tiêm chủng vắc-xin",
-    desc: "Đầy đủ các loại vắc-xin chất lượng cao cho trẻ em và người lớn.",
-  },
-];
+import { specialtyService } from "../../../services/specialtyService";
+import type { Specialty } from "../../../types/specialty";
 
 type HospitalCardProps = {
   image: string;
@@ -81,14 +53,33 @@ const HospitalCard = ({
 );
 
 const Services = () => {
+  const [loading, setLoading] = useState(true);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+
+  useEffect(() => {
+    const fetchSpecialties = async () => {
+      try {
+        setLoading(true);
+        // Lấy 4 chuyên khoa đầu tiên để hiển thị trang chủ
+        const res = await specialtyService.getPaged({ page: 1, pageSize: 4 });
+        setSpecialties(res.items || []);
+      } catch (error) {
+        console.error("Failed to fetch specialties:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSpecialties();
+  }, []);
+
   return (
     <section className="section-spacing bg-slate-50" id="services">
       <div className="container-page">
         <div className="mb-10 flex items-end justify-between">
           <div>
-            <h2 className="section-title">Dịch vụ Y tế</h2>
+            <h2 className="section-title">Chuyên khoa</h2>
             <p className="section-subtitle">
-              Đa dạng các dịch vụ chăm sóc sức khỏe chất lượng cao
+              Đa dạng các chuyên khoa khám chữa bệnh chất lượng cao
             </p>
           </div>
 
@@ -98,15 +89,25 @@ const Services = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {services.map((service, index) => (
-            <HospitalCard
-              key={service.id}
-              image={service.image}
-              name={service.name}
-              desc={service.desc}
-              delay={index * 0.1}
-            />
-          ))}
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="medical-card p-5 animate-pulse">
+                <div className="h-56 bg-slate-200 rounded-lg mb-4 w-full"></div>
+                <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+              </div>
+            ))
+          ) : (
+            specialties.map((specialty, index) => (
+              <HospitalCard
+                key={specialty.id}
+                image={specialty.icon || "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600"}
+                name={specialty.name}
+                desc={specialty.description || "Khám và điều trị chuyên sâu."}
+                delay={index * 0.1}
+              />
+            ))
+          )}
         </div>
 
         <div className="mt-8 text-center sm:hidden">

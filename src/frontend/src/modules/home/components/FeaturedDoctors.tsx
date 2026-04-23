@@ -2,54 +2,26 @@ import { useState, useEffect } from "react";
 import { Star, Users, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { ImageWithFallback } from "../../../components/figma/ImageWithFallback";
-
-const doctors = [
-  {
-    id: 1,
-    name: "PGS.TS.BS Nguyễn Thị Lan",
-    specialty: "Nội Tim Mạch",
-    hospital: "Bệnh viện Đại học Y Dược",
-    rating: "5.0",
-    patients: "2k+",
-    img: "https://images.unsplash.com/photo-1612944095914-33fd0a85fcfc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMGZlbWFsZSUyMGRvY3RvciUyMHBvcnRyYWl0JTIwc21pbGluZ3xlbnwxfHx8fDE3NzU0ODU3NDZ8MA&ixlib=rb-4.1.0&q=80&w=400"
-  },
-  {
-    id: 2,
-    name: "ThS.BS Trần Hữu Khang",
-    specialty: "Nội Thần Kinh",
-    hospital: "Bệnh viện Chợ Rẫy",
-    rating: "4.9",
-    patients: "1.5k+",
-    img: "https://images.unsplash.com/photo-1622902046580-2b47f47f5471?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMG1hbGUlMjBkb2N0b3IlMjBwb3J0cmFpdCUyMHNtaWxpbmd8ZW58MXx8fHwxNzc1NDg1NzQ2fDA&ixlib=rb-4.1.0&q=80&w=400"
-  },
-  {
-    id: 3,
-    name: "BS.CKII Lê Minh Quân",
-    specialty: "Cơ Xương Khớp",
-    hospital: "Bệnh viện Chấn thương Chỉnh hình",
-    rating: "4.8",
-    patients: "3k+",
-    img: "https://images.unsplash.com/photo-1642975967602-653d378f3b5b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMG1hbGUlMjBkb2N0b3IlMjBwb3J0cmFpdCUyMGhvc3BpdGFsfGVufDF8fHx8MTc3NTQ4NTc0Nnww&ixlib=rb-4.1.0&q=80&w=400"
-  },
-  {
-    id: 4,
-    name: "TS.BS Phạm Hoàng Yến",
-    specialty: "Nhi Khoa",
-    hospital: "Bệnh viện Nhi Đồng 1",
-    rating: "5.0",
-    patients: "5k+",
-    img: "https://images.unsplash.com/photo-1592393532405-fb1f165c4a1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMHNlbmlvciUyMGZlbWFsZSUyMGRvY3RvciUyMHBvcnRyYWl0fGVufDF8fHx8MTc3NTQ4NTc0Nnww&ixlib=rb-4.1.0&q=80&w=400"
-  }
-];
+import { doctorService } from "../../../services/doctorService";
+import type { Doctor } from "../../../types/doctor";
 
 export function FeaturedDoctors() {
   const [loading, setLoading] = useState(true);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const res = await doctorService.getList({ page: 1, pageSize: 8 }); // Lấy 8 bác sĩ cho trang chủ
+        setDoctors(res.items || []);
+      } catch (error) {
+        console.error("Failed to fetch doctors:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDoctors();
   }, []);
 
   return (
@@ -92,24 +64,26 @@ export function FeaturedDoctors() {
               >
                 <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-4 border-4 border-teal-50 group-hover:border-teal-100 transition-colors">
                   <ImageWithFallback 
-                    src={doc.img} 
-                    alt={doc.name} 
+                    src={doc.avatarUrl || "https://images.unsplash.com/photo-1612944095914-33fd0a85fcfc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400"} 
+                    alt={doc.fullName} 
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
                 </div>
-                <h4 className="font-bold text-slate-900 mb-1">{doc.name}</h4>
-                <p className="text-xs font-bold text-teal-600 mb-3 uppercase tracking-wider">{doc.specialty}</p>
-                <p className="text-xs text-slate-500 line-clamp-1">{doc.hospital}</p>
+                <h4 className="font-bold text-slate-900 mb-1 line-clamp-1" title={doc.fullName}>
+                  {doc.academicTitle ? `${doc.academicTitle} ` : ''}{doc.fullName}
+                </h4>
+                <p className="text-xs font-bold text-teal-600 mb-3 uppercase tracking-wider line-clamp-1">{doc.specialtyName || 'Chuyên khoa'}</p>
+                <p className="text-xs text-slate-500 line-clamp-1">{doc.position || "Phòng khám CareFirst"}</p>
                 
                 <div className="mt-4 pt-4 border-t border-slate-100 flex justify-center gap-4">
                   <div className="flex items-center gap-1 text-amber-500">
                     <Star size={14} fill="currentColor" />
-                    <span className="text-xs font-bold">{doc.rating}</span>
+                    <span className="text-xs font-bold">{doc.averageRating > 0 ? doc.averageRating.toFixed(1) : "5.0"}</span>
                   </div>
                   <div className="flex items-center gap-1 text-slate-500">
                     <Users size={14} />
-                    <span className="text-xs font-bold">{doc.patients}</span>
+                    <span className="text-xs font-bold">{doc.totalAppointments > 0 ? `${doc.totalAppointments}+` : "0"}</span>
                   </div>
                 </div>
 

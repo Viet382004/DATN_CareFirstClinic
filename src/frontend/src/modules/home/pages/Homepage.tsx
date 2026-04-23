@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import  Header  from "../components/Header";
+import Header from "../components/Header";
 import { Hero } from "../components/Hero";
 import { QuickActions } from "../components/QuickActions";
 import Services from "../components/Services";
@@ -7,8 +7,7 @@ import { FeaturedDoctors } from "../components/FeaturedDoctors";
 import { HowItWorks } from "../components/HowItWorks";
 import { Pricing } from "../components/Pricing";
 import { Testimonials } from "../components/Testimonials";
-import { BookingWidget } from "../components/BookingWidget";
-import  LocationContact  from "../components/LocationContact";
+import LocationContact from "../components/LocationContact";
 import { Footer } from "../components/Footer";
 import { StickyCTA } from "../components/StickyCTA";
 import { AIChat } from "../components/AIChat";
@@ -49,7 +48,7 @@ export default function App() {
       </div>
 
       <Header />
-      
+
       <main>
         <Hero />
         <QuickActions />
@@ -58,54 +57,6 @@ export default function App() {
         <HowItWorks />
         <Pricing />
         <Testimonials />
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-16 lg:py-24" id="book">
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col lg:flex-row border border-slate-100">
-             <div className="lg:w-1/2 p-8 lg:p-12 bg-teal-600 text-white flex flex-col justify-center relative overflow-hidden">
-                {/* Decorative background */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-x-1/2 -translate-y-1/2"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-700 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-x-1/2 translate-y-1/2"></div>
-                
-                <div className="relative z-10">
-                  <h2 className="text-3xl font-bold mb-4">Đặt Lịch Khám Trực Tuyến</h2>
-                  <p className="text-teal-100 mb-8 text-lg">
-                    Không còn phải xếp hàng chờ đợi. Chủ động thời gian, đặt lịch dễ dàng chỉ trong 2 phút.
-                  </p>
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-4 bg-teal-700/30 p-4 rounded-2xl backdrop-blur-sm">
-                      <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center shadow-inner">
-                         <span className="text-2xl">👩‍⚕️</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold">1. Chọn Chuyên khoa</h4>
-                        <p className="text-sm text-teal-100">Tìm bác sĩ phù hợp với triệu chứng</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 bg-teal-700/30 p-4 rounded-2xl backdrop-blur-sm">
-                      <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center shadow-inner">
-                         <span className="text-2xl">📅</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold">2. Chọn Thời gian</h4>
-                        <p className="text-sm text-teal-100">Lựa chọn ngày giờ thuận tiện cho bạn</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 bg-teal-700/30 p-4 rounded-2xl backdrop-blur-sm">
-                      <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center shadow-inner">
-                         <span className="text-2xl">✅</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold">3. Nhận Xác nhận</h4>
-                        <p className="text-sm text-teal-100">Tin nhắn SMS xác nhận lịch hẹn</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-             </div>
-             <div className="lg:w-1/2 p-8 lg:p-12 bg-white relative z-10">
-                <BookingWidget />
-             </div>
-          </div>
-        </div>
         <LocationContact />
       </main>
 

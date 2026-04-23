@@ -81,10 +81,10 @@ const SelectTime = () => {
           schedules.forEach(schedule => {
             if (schedule.timeSlots && schedule.timeSlots.length > 0) {
               schedule.timeSlots.forEach(slot => {
-                if (!slot.isBooked) { 
+                if (!slot.isBooked) {
                   mergedSlots.push({
                     id: slot.id,
-                    time: slot.startTime.substring(0, 5) 
+                    time: slot.startTime.substring(0, 5)
                   });
                 }
               });
@@ -181,7 +181,7 @@ const SelectTime = () => {
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-     return (
+  return (
     <>
       {/* Header */}
       <Header />
@@ -284,7 +284,7 @@ const SelectTime = () => {
                     {formatSelectedDate()}
                   </div>
 
-                    {loadingSlots ? (
+                  {loadingSlots ? (
                     <div className={styles.timeSlotsEmpty}>Đang tải khung giờ...</div>
                   ) : (
                     <div className={styles.timePeriodsList}>
@@ -296,13 +296,13 @@ const SelectTime = () => {
                         const Icon = period.icon;
                         const validSlots = availableSlots.filter(s => {
                           const [h, m] = s.time.split(':').map(Number);
-                          
+
                           // Check period
                           if (!period.filter(h)) return false;
 
                           const isTodaySelected = selectedDate.day === today.getDate() &&
-                                                 selectedDate.month === today.getMonth() &&
-                                                 selectedDate.year === today.getFullYear();
+                            selectedDate.month === today.getMonth() &&
+                            selectedDate.year === today.getFullYear();
                           if (isTodaySelected) {
                             const slotTime = new Date();
                             slotTime.setHours(h, m, 0, 0);

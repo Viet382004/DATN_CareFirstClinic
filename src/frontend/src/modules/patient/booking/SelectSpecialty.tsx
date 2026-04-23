@@ -72,8 +72,7 @@ const SelectSpecialty: React.FC = () => {
       const response = await specialtyService.getPaged({
         page,
         pageSize,
-        search,
-        popular: showOnlyPopular ? true : undefined
+        search
       });
       setSpecialties((response.items as SpecialtyUI[]) || []);
       setTotalPages(response.totalPages || 1);
