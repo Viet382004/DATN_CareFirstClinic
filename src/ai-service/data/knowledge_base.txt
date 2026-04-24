@@ -1,0 +1,331 @@
+Dưới đây là **phiên bản nâng cấp, cực kỳ chi tiết và chuẩn chỉ** của knowledge base dành cho chatbot **CareFirstClinic**. Nội dung được tổ chức có hệ thống, bao gồm không chỉ dịch vụ, giá cả, triệu chứng mà còn **hướng dẫn chăm sóc tại nhà, dấu hiệu nguy hiểm (red flag), lời khuyên cho bệnh nhân theo từng bệnh lý, quy trình thực hiện cận lâm sàng, và kịch bản xử lý tình huống phức tạp**. Bạn có thể dùng toàn bộ để train chatbot trở thành một trợ lý y tế thông minh, an toàn và thân thiện.
+
+---
+
+# 📚 KNOWLEDGE BASE CHI TIẾT – CAREFIRSTCLINIC (DÀNH CHO CHATBOT)
+
+## PHẦN 0: NGUYÊN TẮC HOẠT ĐỘNG CỦA CHATBOT (THIẾT KẾ ĐẠO ĐỨC)
+
+1. **Không bao giờ chẩn đoán xác định** – chỉ đưa ra các hướng dẫn dựa trên triệu chứng điển hình và khuyến nghị thăm khám.
+2. **Ưu tiên an toàn** – bất kỳ dấu hiệu nào của cấp cứu (đau ngực, khó thở, đột quỵ, xuất huyết, sốc) đều phải hướng dẫn gọi 115 hoặc đến bệnh viện.
+3. **Luôn hỏi thêm thông tin** khi triệu chứng không rõ ràng (thời gian, tính chất, yếu tố tăng nặng, bệnh nền, thuốc đang dùng).
+4. **Không gợi ý dùng thuốc kê đơn** – chỉ có thể nhắc đến các loại không kê đơn phổ biến (paracetamol, oresol, chườm ấm) kèm theo cảnh báo về liều lượng và chống chỉ định.
+5. **Chuyển cho nhân viên y tế** khi phát hiện người dùng có ý định tự tử, lo âu quá mức, hoặc cần tư vấn tâm lý chuyên sâu.
+
+---
+
+## PHẦN 1: THÔNG TIN PHÒNG KHÁM (MỞ RỘNG)
+
+### 1.1. Giới thiệu tổng quan
+CareFirstClinic là phòng khám đa khoa **theo mô hình chăm sóc ban đầu (Primary Care)**, hoạt động từ năm 2018, với đội ngũ bác sĩ giàu kinh nghiệm đến từ bệnh viện tuyến quận và thành phố. Phòng khám được trang bị máy siêu âm Doppler màu, máy X-quang kỹ thuật số, hệ thống xét nghiệm sinh hóa miễn dịch bán tự động, cho kết quả nhanh trong 30-60 phút.
+
+### 1.2. Cơ sở vật chất
+- 3 phòng khám riêng biệt (nội tổng quát, nhi khoa, phụ khoa cơ bản).
+- Khu vực chờ điều hòa, có wifi, nước uống miễn phí.
+- Nhà vệ sinh đạt chuẩn, có chỗ thay tã cho trẻ.
+- Chỗ đậu xe ô tô, xe máy rộng rãi.
+
+### 1.3. Đội ngũ
+- Bác sĩ nội khoa: 2 bác sĩ (1 nam, 1 nữ) – đều có chứng chỉ chuyên khoa dinh dưỡng, lão khoa.
+- Bác sĩ nhi khoa: 1 bác sĩ từng công tác tại bệnh viện Nhi Đồng.
+- Kỹ thuật viên xét nghiệm: 2 người.
+- Điều dưỡng: 3 người.
+- Lễ tân: 2 người.
+
+### 1.4. Liên hệ và giờ làm việc chính xác
+
+- **Địa chỉ:** [Điền địa chỉ thật]
+- **Hotline (hỗ trợ đặt lịch, thắc mắc):** [Số điện thoại] – hoạt động từ 7:00 đến 19:00 các ngày trong tuần, riêng Chủ nhật từ 7:30 đến 12:30.
+- **Giờ làm việc chi tiết theo khoa:**
+  - Khám bệnh: Thứ 2 – Thứ 7: 7:30 - 12:00 & 13:00 - 17:00 | Chủ nhật: 8:00 - 12:00.
+  - Xét nghiệm máu: lấy mẫu đến 10:30 các ngày trong tuần, đến 9:30 Chủ nhật.
+  - Siêu âm: theo lịch hẹn hoặc đến trước 16:00.
+  - Chụp X-quang: 7:30 - 16:30 từ thứ 2 đến thứ 7.
+- **Ngày nghỉ lễ cố định:** 1/1 Dương lịch, 30/4, 1/5, 2/9, và 3 ngày Tết Nguyên đán (mùng 1,2,3 Tết).
+
+---
+
+## PHẦN 2: DỊCH VỤ & CHI PHÍ – BẢNG GIÁ CÓ ĐI KÈM HƯỚNG DẪN
+
+*(Lưu ý: chatbot phải báo giá và giải thích thêm khi khách hỏi sâu)*
+
+### 2.1. Khám tổng quát (200.000 VNĐ)
+- **Bao gồm:** Hỏi bệnh, khám thực thể toàn diện (tim, phổi, bụng, thần kinh, da, hạch), đo nhịp thở, SpO2, huyết áp, nhiệt độ, BMI. Tư vấn dự phòng bệnh mạn tính.
+- **Lợi ích:** Phát hiện sớm tăng huyết áp, đái tháo đường, rối loạn mỡ máu, bệnh gan nhiễm mỡ.
+- **Đối tượng khuyên dùng:** Mọi người ≥ 18 tuổi, nên khám định kỳ 6 tháng/lần.
+- **Chuẩn bị:** Nên nhịn ăn 4 giờ nếu dự kiến sẽ xét nghiệm cùng lúc.
+
+### 2.2. Khám nội khoa (300.000 VNĐ)
+- **Áp dụng cho:** Bệnh nhân mạn tính (tăng huyết áp, đái tháo đường type 2, COPD, suy tim, viêm gan B mạn). Kèm tái kê đơn, điều chỉnh thuốc. Thời gian khám 20-30 phút.
+- **Yêu cầu:** Mang theo sổ khám bệnh cũ, đơn thuốc cũ, kết quả xét nghiệm gần nhất.
+
+### 2.3. Khám nhi (300.000 VNĐ – trẻ dưới 15 tuổi)
+- **Đặc biệt:** Phát triển chiều cao cân nặng, phát hiện suy dinh dưỡng, béo phì, dậy thì sớm. Bác sĩ có thể chỉ định tiêm ngừa (thanh toán chi phí vaccine riêng).
+- **Lưu ý:** Khám nhi luôn cần sự đồng hành của cha/mẹ hoặc người giám hộ.
+
+### 2.4. Xét nghiệm máu cơ bản (150.000 VNĐ)
+- **Danh mục chi tiết gói:**
+  - Công thức máu (HGB, WBC, PLT, NEU, LYM,...) – đánh giá nhiễm trùng, thiếu máu.
+  - Đường huyết lúc đói – tầm soát đái tháo đường.
+  - Mỡ máu ( Cholesterol toàn phần, Triglycerid, HDL, LDL) – đánh giá nguy cơ tim mạch.
+  - Chức năng gan (ALT, AST) – tổn thương tế bào gan.
+  - Chức năng thận (Urea, Creatinin) – suy thận sớm.
+- **Quy trình:** Lấy máu tĩnh mạch buổi sáng. Kết quả có sau 45 phút. **Cần nhịn ăn tối thiểu 8 giờ**, chỉ uống nước lọc.
+- **Mở rộng:** Nếu khách muốn thêm chỉ số (HbA1c, TSH, CRP...) – báo giá riêng theo yêu cầu (từ 50k-200k).
+
+### 2.5. Siêu âm ổ bụng tổng quát (250.000 VNĐ)
+- **Các cơ quan khảo sát:** Gan, túi mật, tụy, lách, thận, bàng quang, tử cung/phần phụ (nữ) hoặc tuyến tiền liệt (nam) nếu chỉ định.
+- **Chuẩn bị:**
+  - Nhịn ăn ít nhất 6 giờ để túi mật căng, gan không bị che.
+  - Uống nhiều nước (1-1.5 lít) từ 1 giờ trước để bàng quang căng nếu siêu âm vùng chậu.
+- **Thời gian:** 15-20 phút, nhận kết quả ngay sau siêu âm dưới dạng biên bản.
+
+### 2.6. Chụp X-quang (200.000 VNĐ/phim)
+- **Các loại phim:** Tim phổi thẳng, bụng không chuẩn bị, xương khớp (bàn tay, cổ tay, vai, gối, mắt cá chân).
+- **Quy trình:**
+  - Chụp nhanh 2-3 phút, kết quả digital trả sau 10 phút.
+  - Phụ nữ có thai hoặc nghi ngờ có thai **phải báo trước** để được che chì hoặc chỉ định phương pháp khác.
+- **Tần suất:** Không chụp quá 2 lần/tháng nếu không có chỉ định đặc biệt.
+
+---
+
+## PHẦN 3: TƯ VẤN TRIỆU CHỨNG NÂNG CAO (CÓ HƯỚNG DẪN TỰ CHĂM SÓC CHI TIẾT)
+
+### 3.1. SỐT
+
+#### 3.1.1. Phân độ sốt và xử trí dành cho người lớn & trẻ > 3 tháng
+| Nhiệt độ | Mức độ | Hướng dẫn tại nhà | Khi nào đến CareFirstClinic |
+|----------|----------------|-------------------|------------------------------|
+| 37.5 – 38.0°C | Sốt nhẹ | Lau ấm (khăn nhúng nước 30-32°C), mặc quần áo cotton, uống nhiều nước, nghỉ ngơi. Không cần thuốc nếu không mệt. | Nếu sốt > 24 giờ không giảm hoặc xuất hiện thêm triệu chứng. |
+| 38.1 – 38.9°C | Sốt vừa | Dùng paracetamol (acetaminophen) liều 10-15mg/kg mỗi 4-6 giờ (tối đa 60mg/kg/ngày). Không dùng ibuprofen khi chưa chắc chắn. Không nhét thuốc hậu môn khi còn tự uống được. | Sau 48 giờ vẫn sốt, hoặc có mệt nhiều, ăn kém. |
+| 39.0 – 40.0°C | Sốt cao | Paracetamol kết hợp lau ấm + uống oresol. Kiểm tra môi, tay chân có tím không. | **Khám trong ngày** cùng ngày nếu không hạ sau 1 giờ dùng thuốc. |
+| ≥ 40.0°C | Sốt rất cao, có nguy cơ co giật | Đặt người bệnh nằm nghiêng, nới lỏng quần áo, gọi cấp cứu nếu co giật. Hạ sốt tích cực. | **Đến ngay lập tức** – gọi trước hotline để được ưu tiên. |
+
+#### 3.1.2. Sốt ở trẻ nhũ nhi (dưới 3 tháng tuổi) – KHUYẾN CÁO ĐẶC BIỆT
+- **KHÔNG tự ý cho thuốc** – gan chưa hoàn thiện.
+- **Cứ mỗi lần sốt ≥ 38.0°C đo ở nách hoặc hậu môn, hãy đưa trẻ đến CareFirstClinic hoặc bệnh viện Nhi cấp cứu ngay.** Không chờ đợi.
+- Trong lúc chờ: cho bú mẹ nhiều hơn, mặc ít áo, không đắp chăn.
+
+#### 3.1.3. Dấu hiệu nguy hiểm khi sốt (bất kỳ tuổi) cần báo ngay bác sĩ:
+- Co giật (tay chân co quắp, mắt trợn ngược, sùi bọt mép).
+- Thở nhanh, khó thở, co lõm lồng ngực.
+- Li bì, khó đánh thức, hoặc quấy khóc thét từng cơn.
+- Phát ban không biến mất khi ấn ngón tay (ban xuất huyết).
+- Nôn tất cả mọi thứ, không uống được oresol.
+
+#### 3.1.4. Lời khuyên dinh dưỡng khi sốt:
+- Nên ăn cháo loãng + thịt gà/băm nhuyễn, sữa chua, nước cam pha loãng.
+- Tránh: đồ quá ngọt, đồ nhiều dầu mỡ, nước đá.
+- Đối với trẻ bú mẹ: tăng cữ bú.
+
+---
+
+### 3.2. HO
+
+#### 3.2.1. Phân loại ho theo tính chất
+
+| Loại ho | Nguyên nhân nghi ngờ | Hướng dẫn tự chăm sóc | Khi nào đến khám |
+|----------|----------------------|-----------------------|------------------|
+| Ho khan, về đêm nhiều | Hen, trào ngược dạ dày, viêm họng dị ứng | Uống mật ong pha nước ấm (chỉ trên 1 tuổi), súc miệng nước muối, kê cao gối khi ngủ. | Kéo dài > 2 tuần hoặc ảnh hưởng giấc ngủ. |
+| Ho có đờm trắng loãng | Viêm đường hô hấp trên do virus | Uống nhiều nước ấm, xông mũi họng bằng nước muối sinh lý 0.9% mỗi 4 giờ. | Đờm chuyển vàng/xanh, sốt > 38°C. |
+| Ho có đờm vàng/xanh, đặc | Viêm phế quản, viêm phổi do vi khuẩn | **Cần khám sớm** – nên lấy đờm để xét nghiệm nếu ho > 5 ngày. | Trong vòng 24 giờ kể từ khi xuất hiện đờm đục. |
+| Ho ra máu | Lao phổi, giãn phế quản, ung thư phổi | **Cấp cứu** – nằm yên, không ho khạc nhiều, gọi ngay 115. | Đến bệnh viện đa khoa có chuyên khoa hô hấp. |
+
+#### 3.2.2. Hướng dẫn chế độ sinh hoạt cho người ho lâu ngày
+- Hạn chế tiếp xúc khói thuốc lá, khói nhang, hóa chất tẩy rửa.
+- Dùng máy tạo độ ẩm trong phòng ngủ (độ ẩm 50-60%).
+- Tập thở cơ hoành: hít chậm bằng mũi, thở ra chậm bằng miệng, 10 lần mỗi sáng.
+
+---
+
+### 3.3. ĐAU ĐẦU
+
+#### 3.3.1. Bảng hướng dẫn phân biệt các loại đau đầu thường gặp
+
+| Loại đau | Vị trí | Tính chất | Yếu tố kích thích | Hướng dẫn |
+|----------|--------|----------|-------------------|------------|
+| Căng thẳng | Toàn bộ da đầu, vùng trán, gáy | Bóp chặt, như bị thắt băng | Căng thẳng, thiếu ngủ, nhìn màn hình lâu | Massage nhẹ, chườm ấm gáy, uống nước, nghỉ ngơi. Dùng paracetamol nếu cần. |
+| Migraine (đau nửa đầu) | Một bên đầu, sau hốc mắt | Nhói theo nhịp mạch đập, kèm buồn nôn, sợ ánh sáng | Ánh sáng chói, phô mai, rượu vang, thay đổi thời tiết | Nằm phòng tối, chườm mát trán. Tránh mùi mạnh. Đến khám nếu tái phát > 4 lần/tháng. |
+| Đau đầu chùm (cluster) | Quanh hoặc sau một bên mắt | Đau dữ dội thành cơn 15-180 phút, kèm chảy nước mắt, nghẹt mũi | Rượu bia, thuốc lá, tư thế cúi | Cần khám chuyên khoa thần kinh để được kê thuốc trị dự phòng. |
+| Đau đầu do tăng huyết áp | Vùng chẩm (gáy) | Đau nặng đầu, cảm giác như bị đè | Huyết áp tăng cao (>160/100) | Đo huyết áp ngay. Nếu HA quá cao → cấp cứu. |
+
+#### 3.3.2. ĐAU ĐẦU CẤP CỨU – RED FLAGS (Bất kỳ ai có dấu hiệu sau gọi 115):
+- **Đột ngột, dữ dội nhất đời** (thường báo xuất huyết dưới nhện).
+- **Kèm yếu nửa người, méo miệng, nói đớ** – đột quỵ.
+- **Sốt cao + cứng cổ** – viêm màng não.
+- **Sau chấn thương đầu** (va đập, té ngã), nôn ói – tụ máu nội sọ.
+
+#### 3.3.3. Lời khuyên dự phòng đau đầu tái diễn:
+- Ngủ đủ 7-8 tiếng, đúng giờ.
+- Hạn chế caffeine (cà phê, trà đặc, nước tăng lực).
+- Tập yoga, thư giãn cơ vùng cổ, vai.
+
+---
+
+### 3.4. ĐAU BỤNG
+
+#### 3.4.1. Phân vùng bụng và hướng xử trí (dành cho chatbot hỏi chi tiết)
+
+**Vùng thượng vị (trên rốn, dưới xương ức)**
+- Cảm giác: nóng rát, đau sau ăn 30p-1h.
+- Gợi ý: viêm dạ dày, trào ngược, loét.
+- **Tự chăm:** Ăn cháo yến mạch, không nằm ngay sau ăn, không uống rượu bia, tránh NSAID (ibuprofen, aspirin).
+- **Khám khi:** Đau kéo dài > 5 ngày, nôn ra máu, đi ngoài phân đen.
+
+**Vùng hạ sườn phải (dưới xương sườn bên phải)**
+- Đau âm ỉ, lan sau lưng, kèm buồn nôn sau ăn dầu mỡ → sỏi túi mật, viêm túi mật.
+- **Hướng dẫn:** Ăn nhạt, kiêng mỡ. Siêu âm ổ bụng là cần thiết.
+
+**Vùng hố chậu phải (dưới rốn, sang phải)**
+- Đau bắt đầu từ quanh rốn rồi di chuyển xuống, tăng khi ho hoặc nâng chân phải – **nghi viêm ruột thừa**.
+- **CẢNH BÁO:** Nếu đau kèm sốt > 38°C, nôn ói – đưa đi cấp cứu ngay, không ăn uống.
+
+**Đau bụng dưới (trên xương mu)**
+- Nữ: kèm khí hư, rối loạn kinh – viêm vùng chậu, u nang buồng trứng.
+- Nam: đau lan xuống bìu – viêm mào tinh hoàn, sỏi niệu quản.
+- **Khuyên:** Xét nghiệm nước tiểu, siêu âm vùng chậu.
+
+**Đau dọc hai bên sườn, quặn thắt lan xuống bẹn**
+- Đau đột ngột, dữ dội từng cơn, kèm tiểu buốt → sỏi thận, niệu quản.
+- **Tự chăm: uống nhiều nước (2-3 lít/ngày), dùng thuốc giảm đau theo chỉ định nếu đã có từ trước.**
+- **Khám khi:** Đau không chịu được, sốt, nôn, hoặc tiểu ra máu.
+
+#### 3.4.2. Các dấu hiệu đau bụng cần nhập viện ngay:
+- Bụng cứng như gỗ, không chạm được.
+- Đau dữ dội kèm nôn ra mật xanh vàng.
+- Bí trung đại tiện + chướng bụng to.
+- Mệt lả, da xanh, mạch nhanh → sốc mất máu.
+
+---
+
+## PHẦN 4: HƯỚNG DẪN TRƯỚC KHI ĐẾN PHÒNG KHÁM (DETAILED)
+
+### 4.1. Đối với khám tổng quát, nội khoa có kèm xét nghiệm
+- Nhịn ăn ít nhất 8 giờ, chỉ uống nước lọc (không nước ngọt, không sữa).
+- Ngừng các thuốc bổ sung (thực phẩm chức năng, vitamin) trước 24 giờ trừ thuốc nền được bác sĩ chỉ định duy trì (thuốc huyết áp, tim mạch).
+- Mang theo thuốc đang dùng cho bác sĩ xem.
+
+### 4.2. Đối với siêu âm bụng tổng quát
+- Nhịn ăn uống có calo từ 6 giờ trước.
+- Nếu siêu âm vùng chậu: uống 1 lít nước từ 60 phút trước, không đi tiểu.
+- Nếu vừa siêu âm bụng vừa xét nghiệm máu: nhịn ăn 8 giờ.
+
+### 4.3. Đối với chụp X-quang
+- Cởi bỏ trang sức, kim loại, áo ngực gọng sắt.
+- Phụ nữ trong độ tuổi sinh sản: khai báo khả năng có thai. Nếu có thai, hỏi bác sĩ xem có cần thiết không.
+
+### 4.4. Đối với khám nhi
+- Cho trẻ ăn nhẹ trước khi đến nếu không yêu cầu nhịn.
+- Mang theo sổ tiêm chủng, sổ theo dõi sức khỏe.
+- Bình sữa, tã, đồ chơi nhỏ để trẻ hợp tác.
+
+---
+
+## PHẦN 5: QUY TRÌNH ĐẶT LỊCH CHI TIẾT (CẢNH BÁO NGẦM)
+
+Khi khách hàng muốn đặt lịch, chatbot bắt buộc phải thu thập **chính xác theo thứ tự**:
+
+1. **Họ và tên bệnh nhân** (yêu cầu viết đúng, nếu có dấu cách ghi rõ)
+2. **Số điện thoại liên hệ** (chatbot kiểm tra đủ 10 chữ số, không có ký tự chữ)
+3. **Ngày giờ mong muốn** (ví dụ: 08:30 ngày 25/12/2025) – chatbot tự động kiểm tra:
+   - Có nằm trong giờ làm việc không?
+   - Nếu là Chủ nhật, chỉ chấp nhận khung 8:00 – 12:00.
+4. **Lý do khám / triệu chứng chính** (tối thiểu 5 từ, để tránh đặt lịch bừa)
+
+**Sau khi nghe lý do, chatbot sẽ đánh giá nhanh:**
+- Nếu triệu chứng thuộc **cấp cứu** → chatbot trả lời: *“Rất tiếc, với triệu chứng [ho ra máu/đau đầu dữ dội/trẻ dưới 3 tháng sốt]… chúng tôi không thể đặt lịch khám thông thường. Quý khách hãy đến bệnh viện cấp cứu gần nhất hoặc gọi 115. Nếu sau cấp cứu ổn định, quý khách có thể quay lại CareFirstClinic để tái khám. Trân trọng!”*
+- Nếu triệu chứng **bình thường nhưng cần khám sớm** (đau bụng hố chậu phải, sốt cao > 3 ngày) → gợi ý khám trong ngày hoặc sáng hôm sau.
+
+**Mẫu xác nhận lịch chuẩn:**
+> *“CareFirstClinic xác nhận lịch khám cho ÔNG/BÀ [HỌ TÊN] vào lúc [GIỜ] ngày [NGÀY]. Lý do: [TRIỆU CHỨNG]. Vui lòng đến trước 10 phút, mang theo CMND/CCCD và thẻ BHYT (nếu có). Để hủy hoặc đổi lịch, vui lòng gọi hotline [SỐ] trước ít nhất 2 tiếng. Cảm ơn quý khách.”*
+
+---
+
+## PHẦN 6: CÂU HỎI THƯỜNG GẶP MỞ RỘNG (KHÁCH THƯỜNG HỎI SÂU)
+
+### Hỏi: *Tôi bị tiêu chảy, có cần nhịn ăn không?*
+- **Trả lời:** Không nhịn ăn. Nên ăn cháo loãng, cơm nát, thịt gà, chuối, bánh mì nướng, sữa chua (lợi khuẩn). Tránh sữa bò tươi, đồ nhiều dầu, rau sống. Uống oresol để bù nước. Nếu tiêu chảy ra máu, trên 6 lần/ngày, sốt cao → đến khám.
+
+### Hỏi: *Tôi có thể vừa khám vừa xin giấy chứng nhận sức khỏe được không?*
+- Có. Giấy chứng nhận sức khỏe (theo mẫu) có giá 50.000đ, cộng với chi phí khám. Thời gian cấp 15 phút.
+
+### Hỏi: *Phòng khám có hút mũi cho trẻ sơ sinh không?*
+- Có. Dịch vụ hút mũi, xông mũi họng cho trẻ sơ sinh (chi phí 30.000đ/lần). Nên đặt lịch trước vì cần điều dưỡng chuyên dụng.
+
+### Hỏi: *Bác sĩ có thể thăm khám tại nhà không?*
+- Hiện tại CareFirstClinic chưa triển khai dịch vụ tại nhà. Quý khách có thể chủ động đến phòng khám. Nếu bệnh nhân quá yếu, có thể gọi hotline để được tư vấn chuyển tuyến xe cấp cứu.
+
+### Hỏi: *Lấy máu xét nghiệm có đau không?*
+- Kim lấy máu rất nhỏ (cỡ 0,6mm), chỉ hơi châm chích. Trẻ em sẽ được bôi thuốc tê tại chỗ. Sau lấy máu, ấn bông gòn 3-5 phút tránh bầm.
+
+### Hỏi: *Nếu tôi quên không nhịn ăn mà vẫn làm xét nghiệm máu thì sao?*
+- Kết quả đường huyết và mỡ máu sẽ bị sai lệch (thường tăng giả). Bác sĩ sẽ chỉ định làm lại. Tốt nhất nếu đã ăn, hãy hoãn xét nghiệm máu sang hôm khác.
+
+### Hỏi: *Tôi bị hen suyễn, có cần mang theo bình xịt khi đến khám không?*
+- Rất nên mang theo. Bác sĩ sẽ kiểm tra tư thế dùng thuốc, đánh giá kiểm soát hen qua phế dung kế cầm tay.
+
+### Hỏi: *CareFirstClinic có nhận bệnh nhân Covid-19 không?*
+- Chúng tôi khám sàng lọc, nếu nghi ngờ Covid sẽ hướng dẫn làm test nhanh tại phòng riêng (chi phí test 80.000đ). Nếu dương tính và triệu chứng nhẹ, bác sĩ sẽ kê đơn điều trị tại nhà theo phác đồ. Nặng thì chuyển tuyến.
+
+---
+
+## PHẦN 7: CÁC TÌNH HUỐNG HỘI THOẠI MẪU NÂNG CAO (ĐỂ TRAIN DỄ HƠN)
+
+### 7.1. Khách hàng mô tả mơ hồ
+> **User:** Em thấy mệt mỏi, người nóng ran, ăn không ngon.  
+> **Bot:** Dạ, em có thể kiểm tra nhiệt độ cơ thể không ạ? Nếu em chưa đo, hãy thử đo nhiệt độ nách. Bên cạnh đó, em có bị ho, đau họng, đau bụng hay tiêu chảy không? Triệu chứng này bắt đầu từ bao lâu rồi?
+
+### 7.2. Khách hàng muốn so sánh dịch vụ với bệnh viện công
+> **User:** Giá ở phòng khám đắt hơn bệnh viện quận không?  
+> **Bot:** Dạ, chi phí của CareFirstClinic có thể cao hơn một chút so với bệnh viện công nếu không có BHYT, nhưng bù lại quý khách được khám không phải chờ lâu, kết quả nhanh, và bác sĩ giàu kinh nghiệm. Với bệnh nhân có BHYT đúng tuyến, chi phí sau bảo hiểm chỉ còn khoảng 30-50% bảng giá. Quý khách có thể cân nhắc ạ.
+
+### 7.3. Khách hàng lo lắng về bệnh hiểm nghèo
+> **User:** Tôi sụt cân 5kg trong 2 tháng, có phải ung thư không?  
+> **Bot:** Sụt cân không chủ ý (giảm >5% cân nặng trong 6 tháng) là dấu hiệu cần khám để tìm nguyên nhân. Phần lớn trường hợp do cường giáp, đái tháo đường, trầm cảm, hoặc bệnh nhiễm trùng mạn tính. Tuy nhiên, không thể loại trừ ung thư nếu không xét nghiệm. CareFirstClinic khuyên anh nên đặt lịch khám nội khoa, làm xét nghiệm máu, siêu âm ổ bụng và chụp X-quang phổi. Xin đừng quá lo lắng, hãy để bác sĩ kiểm tra.
+
+### 7.4. Khách hàng từ chối đến khám vì sợ tốn kém
+> **User:** Khám tốn 300k, tôi thấy chỉ đau đầu nhẹ thôi.  
+> **Bot:** Thưa anh/chị, chi phí 300.000đ là cho khám nội khoa chuyên sâu nếu bác sĩ phát hiện vấn đề. Nhưng nếu chỉ đau đầu nhẹ, không kèm dấu hiệu bất thường, anh/chị có thể chỉ đăng ký khám tổng quát 200.000đ. Hoặc nếu anh/chị muốn tiết kiệm, có thể điều trị tại nhà: uống nhiều nước, nghỉ ngơi, giảm căng thẳng. Tuy nhiên, nếu đau đầu kéo dài trên 1 tuần hoặc tăng dần, nên đi khám để không bỏ lỡ bệnh.
+
+---
+
+## PHẦN 8: HƯỚNG DẪN CHĂM SÓC THEO BỆNH LÝ CỤ THỂ (THAM KHẢO CHO BỆNH NHÂN)
+
+### 8.1. Viêm họng cấp
+- Súc miệng nước muối 3 lần/ngày.
+- Uống trà gừng mật ong.
+- Tránh nói to, khóc.
+- Đến khám nếu sốt > 48 giờ, họng có mủ trắng, nuốt đau như nuốt dao.
+
+### 8.2. Đau lưng cấp (thoái hóa cột sống, căng cơ)
+- Chườm nóng vùng đau trong 15 phút, mỗi 3 giờ.
+- Không nằm đệm quá mềm, không ngồi ghế sâu.
+- Tập căng cơ nhẹ: co gối lên ngực, duỗi chân.
+- Khám khi đau lan xuống chân, tê bì, yếu chân.
+
+### 8.3. Dị ứng thời tiết (mày đay, ngứa)
+- Uống thuốc kháng histamine thế hệ 2 (Loratadine, Cetirizine) – có bán không cần đơn.
+- Tắm nước mát, mặc đồ cotton.
+- Tránh hải sản, rượu bia, cà phê trong 3 ngày.
+- Đến khám nếu nổi mề đay kèm khó thở, sưng môi, mắt.
+
+---
+
+## PHẦN 9: TỪ ĐIỂN CÁC THUẬT NGỮ Y KHOA CƠ BẢN (ĐỂ CHATBOT GIẢI THÍCH)
+
+- **SpO2:** chỉ số bão hòa oxy trong máu (bình thường ≥ 95%). Nếu ≤ 92% là suy hô hấp.
+- **ALT, AST:** men gan, tăng khi gan bị tổn thương (viêm gan, thuốc, rượu).
+- **Creatinin:** chỉ số đánh giá chức năng lọc cầu thận.
+- **CRP:** chất phản ứng viêm, tăng trong nhiễm khuẩn cấp.
+- **Thể phản ứng:** bệnh nhân tỉnh, đau nhiều nhưng vẫn sinh hoạt được; nhưng nguy cơ diễn biến xấu.
+- **Khám thực thể:** dùng tay nhìn, sờ, gõ, nghe.
+
+---
+
+## PHẦN 10: CHATBOT NÊN TỪ CHỐI HOẶC CHUYỂN TIẾP TRONG TRƯỜNG HỢP NÀO?
+
+- **Hỏi giá phá thai, nạo hút thai:** *“CareFirstClinic không thực hiện dịch vụ này. Quý khách vui lòng đến bệnh viện phụ sản có khoa kế hoạch hóa gia đình.”*
+- **Hỏi mua bán thuốc kháng sinh:** *“Chúng tôi không bán kháng sinh khi chưa có đơn của bác sĩ. Việc lạm dụng kháng sinh gây kháng thuốc, nguy hiểm cho sức khỏe.”*
+- **Triệu chứng đột quỵ rõ ràng (F.A.S.T):** Mặt méo, yếu tay, nói đớ – *“Quý khách có dấu hiệu đột quỵ. Hãy gọi 115 ngay lập tức! Đừng lái xe đi viện một mình.”*
+
+---
