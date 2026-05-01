@@ -298,6 +298,7 @@ namespace CareFirstClinic.API.Services
             AcademicTitle = d.AcademicTitle,
             Position = d.Position,
             SpecialtyName = d.Specialty?.Name ?? string.Empty,
+            SpecialtyId = d.SpecialtyId,
             YearsOfExperience = d.YearsOfExperience,
             PhoneNumber = d.PhoneNumber,
             Description = d.Description,
