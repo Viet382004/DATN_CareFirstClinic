@@ -53,17 +53,27 @@ def extract_booking_info(text: str) -> dict:
         info["phone"] = phone_match.group(1)
 
     # 3. Ngày (xử lý thêm các từ khóa thông dụng)
-    date_match = re.search(r'(\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?)', text)
+    date_match = re.search(r'(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?', text)
     if date_match:
-        info["date"] = date_match.group(1)
+        d, m = date_match.group(1), date_match.group(2)
+        y = date_match.group(3) or str(datetime.now().year)
+        if len(y) == 2: y = "20" + y
+        try:
+            dt = datetime(int(y), int(m), int(d))
+            info["date"] = dt.strftime("%Y-%m-%d")
+        except: pass
     else:
         now = datetime.now()
+        dt = None
         if "hôm nay" in text_lower or "nay" in text_lower:
-            info["date"] = now.strftime("%d/%m/%Y")
+            dt = now
         elif "ngày mai" in text_lower or "mai" in text_lower:
-            info["date"] = (now + timedelta(days=1)).strftime("%d/%m/%Y")
+            dt = now + timedelta(days=1)
         elif "ngày mốt" in text_lower or "mốt" in text_lower:
-            info["date"] = (now + timedelta(days=2)).strftime("%d/%m/%Y")
+            dt = now + timedelta(days=2)
+        
+        if dt:
+            info["date"] = dt.strftime("%Y-%m-%d")
 
     # 4. Giờ (mở rộng để bắt "9h", "9 giờ", "09:00")
     time_match = re.search(r'(\d{1,2}(?:[:\.]\d{2})?)\s*(?:giờ|h\b)', text_lower)

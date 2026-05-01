@@ -18,6 +18,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
     session_id: str = "anonymous"
+    token: str = None
 
 @app.on_event("startup")
 async def startup():
@@ -38,7 +39,7 @@ def health():
 @app.post("/chat/stream")
 async def chat_stream(req: ChatRequest):
     async def generate():
-        async for chunk in process_message(req.message, req.session_id):
+        async for chunk in process_message(req.message, req.session_id, req.token):
             yield f"data: {chunk}\n\n"
 
     return StreamingResponse(

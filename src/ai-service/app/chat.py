@@ -5,7 +5,7 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import PromptTemplate
 from .rag import get_retriever
 from .intent import detect_intent, extract_booking_info
-from .clinic_api import get_available_slots, book_appointment, get_doctors
+from .clinic_api import get_available_slots, book_appointment, get_doctors, get_me
 import os
 
 llm = ChatOllama(
@@ -35,7 +35,6 @@ Lịch sử trò chuyện:
 
 Người dùng: {input}
 Tâm:"""
-
 
 prompt = PromptTemplate(
     input_variables=["context", "history", "input"],
@@ -74,14 +73,14 @@ async def _get_context(message: str, intent: str, session_id: str) -> str:
         doctors = await get_doctors()
         if doctors:
             doc_list = "\n".join(
-                f"- BS. {d.get('name','?')} — {d.get('specialty','?')}"
+                f"- BS. {d.get('fullName','?')} — {d.get('specialtyName','?')}"
                 for d in doctors[:5]
             )
             parts.append(f"Danh sách bác sĩ:\n{doc_list}")
 
     return "\n\n".join(parts) if parts else "Không có thông tin bổ sung."
 
-async def process_message(message: str, session_id: str):
+async def process_message(message: str, session_id: str, token: str = None):
     """Generator — yield từng token cho streaming"""
     memory = get_memory(session_id)
     intent = detect_intent(message)
@@ -107,28 +106,64 @@ async def process_message(message: str, session_id: str):
         
         state.update(booking_info)
 
+        # Nếu có token và chưa có thông tin bệnh nhân, tự động lấy profile
+        if token and "patient_name" not in state:
+            profile = await get_me(token)
+            if profile:
+                state["patient_name"] = profile.get("fullName")
+                state["phone"] = profile.get("phoneNumber")
+                state["dob"] = profile.get("dateOfBirth")
+                state["gender"] = profile.get("gender")
+
         # Kiểm tra đủ thông tin để đặt lịch
         required = ["patient_name", "phone", "date", "time"]
         if all(k in state for k in required):
             
+            # Đảm bảo có bác sĩ (nếu chưa chọn, lấy bác sĩ đầu tiên)
+            if "doctor_id" not in state:
+                doctors = await get_doctors()
+                if doctors:
+                    state["doctor_id"] = doctors[0]["id"]
+                    state["doctor_name"] = doctors[0]["fullName"]
+                else:
+                    reply = "Rất tiếc, hiện tại không có bác sĩ nào sẵn sàng. Vui lòng thử lại sau."
+                    yield json.dumps({"token": reply})
+                    return
+
             # Xử lý khi đủ thông tin
             if intent == "confirm" or state.get("confirmed"):
+                # Lấy lại slots để tìm TimeSlotId
+                slots = await get_available_slots(state["date"], state["doctor_id"], token or "")
+                matching_slot = next((s for s in slots if s["startTime"].startswith(state["time"])), None)
+                
+                if not matching_slot:
+                    reply = f"Rất tiếc, khung giờ {state['time']} ngày {state['date']} vừa bị người khác đặt hoặc không còn khả dụng."
+                    yield json.dumps({"token": reply})
+                    return
+
                 # Đã xác nhận -> Gọi API
-                result = await book_appointment(
-                    state["patient_name"], state["phone"],
-                    state["date"], state["time"],
-                    state.get("reason", "Khám bệnh")
-                )
+                # Chuẩn bị DTO
+                dto = {
+                    "timeSlotId": matching_slot["id"],
+                    "reason": state.get("reason", "Khám bệnh qua AI Chatbot"),
+                    "fullName": state["patient_name"],
+                    "dob": state.get("dob", "2000-01-01"), # Fallback if not in profile
+                    "gender": state.get("gender", "Other"),
+                    "phone": state["phone"]
+                }
+                
+                result = await book_appointment(token or "", dto)
                 if result.get("success"):
                     reply = (
                         f"🎉 **Đã đặt lịch thành công!**\n\n"
-                        f"- **Tên:** {state['patient_name']}\n"
-                        f"- **Ngày:** {state['date']} lúc {state['time']}\n"
+                        f"- **Bệnh nhân:** {state['patient_name']}\n"
+                        f"- **Bác sĩ:** {state.get('doctor_name', 'Bác sĩ phòng khám')}\n"
+                        f"- **Thời gian:** {state['time']} ngày {state['date']}\n"
                         f"- **SĐT:** {state['phone']}\n\n"
-                        f"Phòng khám sẽ liên hệ xác nhận trước 1 giờ."
+                        f"Phòng khám sẽ liên hệ xác nhận trước 1 giờ qua SĐT này."
                     )
                 else:
-                    reply = f"❌ Đặt lịch thất bại. Lỗi từ hệ thống: {result.get('error', 'Lỗi không xác định')}"
+                    reply = f"❌ Đặt lịch thất bại. Lỗi: {result.get('error', 'Lỗi không xác định')}"
                 
                 _booking_state.pop(session_id, None)
                 memory.save_context({"input": message}, {"output": reply})
@@ -137,20 +172,25 @@ async def process_message(message: str, session_id: str):
                 return
             else:
                 # Chưa xác nhận -> Kiểm tra slot trống rồi hỏi xác nhận
-                slots = await get_available_slots(state["date"])
-                if state["time"] not in slots:
+                slots = await get_available_slots(state["date"], state["doctor_id"], token or "")
+                # Kiểm tra xem giờ người dùng chọn có trong slots không
+                # s["startTime"] có định dạng HH:mm:ss
+                available_times = [s["startTime"][:5] for s in slots]
+                
+                if state["time"] not in available_times:
                     reply = (
                         f"Rất tiếc, khung giờ **{state['time']}** ngày {state['date']} đã kín lịch hoặc không khả dụng.\n"
-                        f"Các giờ còn trống: **{', '.join(slots) if slots else 'Không còn slot nào'}**.\n"
+                        f"Các giờ còn trống: **{', '.join(available_times) if available_times else 'Hết slot'}**.\n"
                         f"Bạn vui lòng chọn một giờ khác nhé!"
                     )
-                    state.pop("time") # Yêu cầu chọn lại giờ
+                    state.pop("time", None) # Yêu cầu chọn lại giờ
                 else:
                     reply = (
                         f"📋 **Xác nhận thông tin đặt lịch:**\n"
-                        f"- Tên bệnh nhân: {state['patient_name']}\n"
-                        f"- SĐT: {state['phone']}\n"
-                        f"- Thời gian: {state['time']} ngày {state['date']}\n\n"
+                        f"- Bệnh nhân: {state['patient_name']}\n"
+                        f"- Bác sĩ: {state.get('doctor_name')}\n"
+                        f"- Thời gian: {state['time']} ngày {state['date']}\n"
+                        f"- SĐT: {state['phone']}\n\n"
                         f"👉 Bạn có xác nhận đặt lịch với thông tin trên không? (Có / Không)"
                     )
                 
@@ -169,10 +209,10 @@ async def process_message(message: str, session_id: str):
 
     full_reply = ""
     async for chunk in llm.astream(full_prompt):
-        token = chunk.content
-        if token:
-            full_reply += token
-            yield json.dumps({"token": token})
+        token_str = chunk.content
+        if token_str:
+            full_reply += token_str
+            yield json.dumps({"token": token_str})
 
     memory.save_context({"input": message}, {"output": full_reply})
     yield json.dumps({"done": True, "intent": intent})
