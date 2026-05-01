@@ -18,6 +18,10 @@ import {
 import { toast } from "sonner";
 import { cn } from "../../../lib/utils";
 import { authService } from "../../../services/authService";
+import { getAvatarUrl } from "../../../utils/format";
+import { avatarService } from "../../../services/avatarService";
+
+const DEFAULT_AVATAR_URL = '/assets/avatar-default.svg';
 
 const AdminDoctors: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -36,6 +40,8 @@ const AdminDoctors: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [formData, setFormData] = useState<Partial<CreateDoctorDTO & UpdateDoctorDTO>>({});
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -101,6 +107,8 @@ const AdminDoctors: React.FC = () => {
         phoneNumber: doctor.phoneNumber,
         email: doctor.email || ""
       });
+      setAvatarFile(null);
+      setAvatarPreviewUrl(doctor.avatarUrl || null);
     } else {
       setSelectedDoctor(null);
       setFormData({
@@ -115,6 +123,8 @@ const AdminDoctors: React.FC = () => {
         userName: "",
         password: ""
       });
+      setAvatarFile(null);
+      setAvatarPreviewUrl(null);
     }
     setIsModalOpen(true);
   };
@@ -127,13 +137,19 @@ const AdminDoctors: React.FC = () => {
       }
       if (selectedDoctor) {
         await doctorService.update(selectedDoctor.id, formData as UpdateDoctorDTO);
+        if (avatarFile) {
+          await avatarService.uploadDoctorAvatarById(selectedDoctor.id, avatarFile);
+        }
         toast.success("Cập nhật bác sĩ thành công");
       } else {
         if (!formData.userName || !formData.password || !formData.email) {
           toast.error("Thêm mới bác sĩ yêu cầu Username, Password và Email");
           return;
         }
-        await doctorService.create(formData as CreateDoctorDTO);
+        const createdDoctor = await doctorService.create(formData as CreateDoctorDTO);
+        if (avatarFile && createdDoctor?.data?.id) {
+          await avatarService.uploadDoctorAvatarById(createdDoctor.data.id, avatarFile);
+        }
         toast.success("Thêm mới bác sĩ thành công");
       }
       setIsModalOpen(false);
@@ -250,7 +266,7 @@ const AdminDoctors: React.FC = () => {
                         <div className="h-10 w-10 rounded-md bg-slate-100 border border-slate-200 overflow-hidden">
                           {doc.avatarUrl ? (
                             <img
-                              src={doc.avatarUrl}
+                              src={getAvatarUrl(doc.avatarUrl)}
                               alt={doc.fullName}
                               className="h-full w-full object-cover"
                             />
@@ -426,6 +442,43 @@ const AdminDoctors: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {/* Avatar Upload */}
+              <div className="flex justify-center mb-6">
+                  <div className="relative group cursor-pointer w-20 h-20">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setAvatarFile(file);
+                          setAvatarPreviewUrl(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                    {avatarPreviewUrl ? (
+                      <img
+                        src={avatarFile ? avatarPreviewUrl : getAvatarUrl(avatarPreviewUrl)}
+                        alt="Avatar"
+                        className="h-20 w-20 rounded-full object-cover border border-slate-200"
+                        onError={(e) => {
+                          if (e.currentTarget.src !== DEFAULT_AVATAR_URL) {
+                            e.currentTarget.src = DEFAULT_AVATAR_URL;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="h-20 w-20 rounded-full border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-300">
+                        <UserIcon className="h-8 w-8" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                       <Edit size={16} className="text-white" />
+                    </div>
+                  </div>
+                </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Họ và tên <span className="text-rose-500">*</span></label>

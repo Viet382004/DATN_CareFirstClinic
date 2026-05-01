@@ -1,8 +1,14 @@
 .container {
   min-height: calc(100vh - 80px);
   background: #f8fafc;
-  padding: 2.5rem 2rem;
+  padding: 160px 2rem 2.5rem;
   font-family: 'Inter', -apple-system, sans-serif;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-top: 196px;
+  }
 }
 
 .main {

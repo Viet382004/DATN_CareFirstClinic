@@ -12,8 +12,10 @@ import { patientService } from '../../../../services/patientService';
 import { avatarService } from '../../../../services/avatarService';
 import type { MedicalRecord } from '../../../../types/medicalRecord';
 import { medicalRecordService } from '../../../../services/medicalRecordService';
-import { formatDate } from '../../../../utils/format';
+import { formatDate, getAvatarUrl } from '../../../../utils/format';
 import styles from '../styles/PatientProfile.module.css';
+
+import Header from '../../../home/components/Header';
 
 const NAV_ITEMS = [
   { name: 'Trang chủ', path: '/' },
@@ -138,6 +140,18 @@ const PatientProfilePage = () => {
     setError("");
 
     try {
+      let currentAvatarUrl = avatarUrl;
+      // Nếu có file avatar thì upload trước
+      if (avatarFile) {
+        const uploadResult = await avatarService.uploadPatientAvatar(avatarFile);
+        if (!uploadResult.avatarUrl) {
+          throw new Error("Không nhận được đường dẫn ảnh đại diện từ server.");
+        }
+        currentAvatarUrl = uploadResult.avatarUrl;
+        setAvatarUrl(currentAvatarUrl);
+        setAvatarFile(null);
+      }
+
       // Cập nhật thông tin bệnh nhân
       const updated = await patientService.updateMe({
         fullName: form.fullName,
@@ -147,22 +161,11 @@ const PatientProfilePage = () => {
         address: form.address,
       });
 
-      // Nếu có file avatar thì upload
-      if (avatarFile) {
-        const uploadResult = await avatarService.uploadPatientAvatar(avatarFile);
-        if (!uploadResult.avatarUrl) {
-          throw new Error("Không nhận được đường dẫn ảnh đại diện từ server.");
-        }
-        setAvatarUrl(uploadResult.avatarUrl); // cập nhật state ngay
-        setAvatarFile(null);
-        updated.avatarUrl = uploadResult.avatarUrl;
-      }
-
       setProfile(updated);
       setEditing(false);
       setSaveMsg("Cập nhật hồ sơ thành công!");
 
-      // Refetch để đồng bộ avatar mới từ backend
+      // Refetch để đồng bộ
       await loadProfile();
 
       setTimeout(() => setSaveMsg(""), 3000);
@@ -186,19 +189,17 @@ const PatientProfilePage = () => {
       gender: profile.gender || '',
       address: profile.address || '',
     });
+    setAvatarUrl(profile.avatarUrl || DEFAULT_AVATAR_URL);
+    setAvatarFile(null);
     setEditing(false);
     setError('');
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      try {
-        const res = await avatarService.uploadPatientAvatar(file);
-        setAvatarUrl(res.avatarUrl); // cập nhật state ngay
-      } catch (err) {
-        console.error("Upload avatar error:", err);
-      }
+      setAvatarFile(file);
+      setAvatarUrl(URL.createObjectURL(file));
     }
   };
 
@@ -234,24 +235,9 @@ const PatientProfilePage = () => {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <Link to="/" className={styles.logoSection}>
-            <img src="/assets/logo.png" alt="CareFirst" className={styles.logoImg} />
-            <h2 className={styles.logoText}>CareFirst Clinic</h2>
-          </Link>
-          <nav className={styles.nav}>
-            {NAV_ITEMS.map(item => (
-              <Link key={item.name} to={item.path} className={styles.navLink}>{item.name}</Link>
-            ))}
-          </nav>
-          <div className={styles.headerRight}>
-            <div className={styles.headerAvatar}>{profileInitial}</div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
-      <main className={styles.main}>
+      <main className={`${styles.main} pt-[160px] lg:pt-[196px]`}>
         <div className={styles.pageHeader}>
           <div className={styles.pageHeaderLeft}>
             <button className={styles.mainBackBtn} onClick={() => navigate(-1)}>
@@ -280,7 +266,7 @@ const PatientProfilePage = () => {
               >
                 <div className={styles.avatarWrapper}>
                   <img
-                    src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : DEFAULT_AVATAR_URL}
+                    src={avatarFile ? avatarUrl! : getAvatarUrl(avatarUrl)}
                     alt="Avatar"
                     className={styles.avatarDisplay}
                     onError={(e) => {
@@ -377,12 +363,12 @@ const PatientProfilePage = () => {
                               className={styles.avatarInput}
                             />
                             {avatarUrl && (
-                              <img src={avatarUrl} alt="Preview" className={styles.avatarPreview} />
+                              <img src={avatarFile ? avatarUrl : getAvatarUrl(avatarUrl)} alt="Preview" className={styles.avatarPreview} />
                             )}
                           </div>
                         ) : (
                           <img
-                            src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : DEFAULT_AVATAR_URL}
+                            src={getAvatarUrl(avatarUrl)}
                             alt="Avatar"
                             className={styles.avatarDisplay}
                             onError={(e) => {

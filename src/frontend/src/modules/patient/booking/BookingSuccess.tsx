@@ -19,6 +19,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../../contexts/useAuth';
 import styles from './Bookingsuccess.module.css';
 import Header from '../../home/components/Header';
+import { exportElementToPDF } from '../../../utils/exportUtils';
 
 const getBookingData = () => {
   let patientName = '';
@@ -67,6 +68,10 @@ const BookingSuccess = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadTicket = async () => {
+    await exportElementToPDF('appointment-ticket', `Phieu-Hen-${BOOKING.code}`);
+  };
+
   return (
     <>
       <Header />
@@ -93,8 +98,10 @@ const BookingSuccess = () => {
 
           </div>
 
-          {/* Success Hero */}
-          <div className={styles.successHero}>
+          {/* Ticket Content Wrapper for Export */}
+          <div id="appointment-ticket" className="bg-white p-6 rounded-2xl">
+            {/* Success Hero */}
+            <div className={styles.successHero}>
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -232,6 +239,7 @@ const BookingSuccess = () => {
               </button>
             </motion.div>
           </div>
+        </div>
 
           {/* Action Buttons */}
           <div className={styles.actionButtons}>
@@ -239,7 +247,7 @@ const BookingSuccess = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={styles.outlineButton}
-              onClick={() => { }}
+              onClick={handleDownloadTicket}
             >
               <Download size={18} />
               Tải phiếu hẹn

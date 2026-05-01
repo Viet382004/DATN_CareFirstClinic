@@ -17,6 +17,7 @@ import {
   Info,
   ChevronRight,
   Printer,
+  Download,
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,6 +32,7 @@ import { paymentService } from '../../../services/paymentService';
 import { formatDate as formatGlobalDate } from '../../../utils/format';
 import Header from '../../home/components/Header';
 import styles from './MyAppointments.module.css';
+import { exportElementToPDF } from '../../../utils/exportUtils';
 
 const TABS = [
   { id: 'ALL', label: 'Tất cả' },
@@ -397,7 +399,7 @@ const MyAppointments = () => {
                   <p>Đang tải thông tin chi tiết...</p>
                 </div>
               ) : (
-                <div className={styles.modalScroll}>
+                <div id="medical-record-detail" className={`${styles.modalScroll} bg-white p-8`}>
                   {/* Doctor & Time Info */}
                   <div className={styles.infoGrid}>
                     <div className={styles.infoCard}>
@@ -546,6 +548,14 @@ const MyAppointments = () => {
                 <button className={styles.printBtn} onClick={() => window.print()}>
                   <Printer size={16} />
                   In kết quả
+                </button>
+                <button 
+                  className={styles.printBtn} 
+                  style={{ backgroundColor: '#0d9488', color: 'white', borderColor: '#0d9488' }}
+                  onClick={() => exportElementToPDF('medical-record-detail', `Ket-Qua-Kham-${selectedAppt.id.substring(0,8)}`)}
+                >
+                  <Download size={16} />
+                  Tải PDF
                 </button>
                 <button className={styles.closeModalBtn} onClick={() => setDetailModalOpen(false)}>
                   Đóng

@@ -29,7 +29,12 @@ const DoctorDashboard: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const appointments = await appointmentService.getMyDoctorAppointments({ pageSize: 50 });
+        const appointments = await appointmentService.getMyDoctorAppointments({ 
+          pageSize: 50, 
+          today: true,
+          sortBy: 'startTime',
+          sortDir: 'asc'
+        });
         
         const waiting = appointments.items.filter(a => a.status === 'Waiting').length;
         const inProgress = appointments.items.filter(a => a.status === 'InProgress').length;

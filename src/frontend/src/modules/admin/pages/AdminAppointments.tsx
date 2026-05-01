@@ -25,6 +25,8 @@ import {
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
 import { formatDate } from '../../../utils/format';
+import { exportToExcel } from '../../../utils/exportUtils';
+import { Download as DownloadIcon } from 'lucide-react';
 
 // ⭐ Modal thanh toán
 interface PaymentModalProps {
@@ -313,6 +315,19 @@ const AdminAppointments: React.FC = () => {
     Cancelled: { label: 'Đã hủy', color: 'text-slate-500', bg: 'bg-slate-100' },
   };
 
+  const handleExportExcel = () => {
+    const exportData = appointments.map(a => ({
+      'Thời gian': `${a.startTime} ${formatDate(a.workDate)}`,
+      'Bệnh nhân': a.patientName,
+      'Bác sĩ': a.doctorName,
+      'Chuyên khoa': a.specialtyName,
+      'Lý do khám': a.reason || 'Khám bệnh định kỳ',
+      'Trạng thái': statusMap[a.status]?.label || a.status,
+      'Thanh toán': a.isConsultationPaid ? 'Đã thanh toán' : 'Chưa thanh toán'
+    }));
+    exportToExcel(exportData, `Danh-Sach-Lich-Hen-${filterDate || 'All'}`, 'LichHen');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       {/* Header Section */}
@@ -337,6 +352,13 @@ const AdminAppointments: React.FC = () => {
               </button>
             ))}
           </div>
+          <button
+            onClick={handleExportExcel}
+            className="flex items-center gap-2 bg-emerald-600 border border-emerald-600 text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+          >
+            <DownloadIcon size={16} />
+            Xuất Excel
+          </button>
           <button
             className="flex items-center gap-2 bg-slate-900 border border-slate-900 text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
             onClick={() => {/* Navigate to create */ }}

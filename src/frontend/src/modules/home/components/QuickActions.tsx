@@ -1,5 +1,6 @@
 import { Video, Stethoscope, FileHeart, ArrowRight, FlaskConical } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const actions = [
   {
@@ -66,35 +67,39 @@ export function QuickActions() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {actions.map((action, i) => (
-            <motion.a
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ delay: i * 0.1 }}
               whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)" }}
-              href="#book"
               key={action.id}
-              className="bg-white p-6 rounded-2xl flex flex-col items-center text-center gap-4 cursor-pointer relative border border-slate-200 shadow-sm h-full group"
+              className="h-full"
             >
-              {action.isNew && (
-                <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Mới
-                </span>
-              )}
-              <div className="w-16 h-16 rounded-2xl bg-teal-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                {action.icon}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-slate-900 leading-tight mb-2 group-hover:text-teal-600 transition-colors">{action.title}</h3>
-                <p className="text-sm text-slate-500">{action.description}</p>
-              </div>
-              <div className="w-full flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
-                <span className="text-xs font-bold text-slate-400">{action.price}</span>
-                <span className="text-sm font-bold text-teal-600 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Chọn <ArrowRight className="h-4 w-4" />
-                </span>
-              </div>
-            </motion.a>
+              <Link
+                to="/patient/booking"
+                className="bg-white p-6 rounded-2xl flex flex-col items-center text-center gap-4 cursor-pointer relative border border-slate-200 shadow-sm h-full group"
+              >
+                {action.isNew && (
+                  <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Mới
+                  </span>
+                )}
+                <div className="w-16 h-16 rounded-2xl bg-teal-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  {action.icon}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-slate-900 leading-tight mb-2 group-hover:text-teal-600 transition-colors">{action.title}</h3>
+                  <p className="text-sm text-slate-500">{action.description}</p>
+                </div>
+                <div className="w-full flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
+                  <span className="text-xs font-bold text-slate-400">{action.price}</span>
+                  <span className="text-sm font-bold text-teal-600 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    Chọn <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
           ))}
         </div>
       </section>

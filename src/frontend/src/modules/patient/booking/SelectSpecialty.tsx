@@ -27,6 +27,7 @@ import styles from "./SelectSpecialty.module.css";
 import { specialtyService } from "../../../services/specialtyService";
 import Header from "../../home/components/Header";
 import type { Specialty } from "../../../types/specialty";
+import { doctorService } from "../../../services";
 
 // ===== ICON MAP =====
 const IconMap: Record<string, LucideIcon> = {
@@ -66,6 +67,33 @@ const SelectSpecialty: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number>(0);
   const pageSize = 12;
 
+  // Handle direct doctor booking (skip logic)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const doctorId = params.get("doctorId");
+
+    if (doctorId) {
+      const handleDirectBooking = async () => {
+        try {
+          setLoading(true);
+          const doctor = await doctorService.getById(doctorId);
+          if (doctor) {
+            localStorage.setItem("selectedSpecialty", doctor.specialtyId || "");
+            localStorage.setItem("selectedSpecialtyName", doctor.specialtyName || "");
+            localStorage.setItem("selectedDoctor", doctor.id);
+            localStorage.setItem("selectedDoctorName", `${doctor.academicTitle ? doctor.academicTitle + ". " : ""}${doctor.fullName}`);
+            navigate("/patient/booking/time");
+          }
+        } catch (error) {
+          console.error("Failed to handle direct booking:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      handleDirectBooking();
+    }
+  }, [navigate]);
+
   const fetchSpecialties = async (page: number = 1, search: string = "") => {
     try {
       setLoading(true);
@@ -87,16 +115,23 @@ const SelectSpecialty: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchSpecialties(1, searchTerm);
+    // Only fetch if not in direct booking mode
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get("doctorId")) {
+      fetchSpecialties(1, searchTerm);
+    }
   }, [showOnlyPopular]);
 
   // Debounced search
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchSpecialties(1, searchTerm);
-    }, 500);
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get("doctorId")) {
+      const timer = setTimeout(() => {
+        fetchSpecialties(1, searchTerm);
+      }, 500);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, [searchTerm]);
 
   const handlePageChange = (newPage: number) => {

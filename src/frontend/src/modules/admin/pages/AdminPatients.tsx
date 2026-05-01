@@ -14,11 +14,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
-import { formatDate } from '../../../utils/format';
+import { formatDate, getAvatarUrl } from '../../../utils/format';
 import { apiPost } from '../../../services/apiClient';
 import { authService } from '../../../services/authService';
+import { avatarService } from '../../../services/avatarService';
 
-const DEFAULT_AVATAR_URL = '/default-avatar.png';
+const DEFAULT_AVATAR_URL = '/assets/avatar-default.svg';
 
 const AdminPatients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -30,6 +31,8 @@ const AdminPatients: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [editFormData, setEditFormData] = useState<UpdatePatientDTO & { email?: string, password?: string }>({});
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
 
   const fetchPatients = useCallback(async () => {
     setLoading(true);
@@ -107,6 +110,8 @@ const AdminPatients: React.FC = () => {
       gender: p.gender || 'Khác',
       medicalHistory: p.medicalHistory || '',
     });
+    setAvatarFile(null);
+    setAvatarPreviewUrl(p.avatarUrl || null);
   };
 
   const handleOpenAdd = () => {
@@ -122,6 +127,8 @@ const AdminPatients: React.FC = () => {
       gender: 'Nam',
       medicalHistory: ''
     });
+    setAvatarFile(null);
+    setAvatarPreviewUrl(null);
   };
 
   const handleSave = async () => {
@@ -158,6 +165,11 @@ const AdminPatients: React.FC = () => {
              gender: editFormData.gender,
              medicalHistory: editFormData.medicalHistory || ''
            });
+
+           if (avatarFile) {
+             await avatarService.uploadPatientAvatarById(selectedPatient.id, avatarFile);
+           }
+           
            toast.success('Cập nhật bệnh nhân thành công');
         }
       }
@@ -229,9 +241,14 @@ const AdminPatients: React.FC = () => {
                 <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <img
-                      src={p.avatarUrl || DEFAULT_AVATAR_URL}
+                      src={getAvatarUrl(p.avatarUrl)}
                       alt="Avatar"
                       className="h-8 w-8 rounded-full object-cover"
+                      onError={(e) => {
+                        if (e.currentTarget.src !== DEFAULT_AVATAR_URL) {
+                          e.currentTarget.src = DEFAULT_AVATAR_URL;
+                        }
+                      }}
                     />
                   </td>
                   <td className="px-6 py-4">
@@ -351,11 +368,33 @@ const AdminPatients: React.FC = () => {
             <div className="space-y-4">
               {!isAddingMode && selectedPatient && (
                 <div className="flex items-center gap-3 mb-4">
-                  <img
-                    src={selectedPatient.avatarUrl || DEFAULT_AVATAR_URL}
-                    alt="Avatar"
-                    className="h-12 w-12 rounded-full object-cover"
-                  />
+                  <div className="relative group cursor-pointer w-12 h-12">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setAvatarFile(file);
+                          setAvatarPreviewUrl(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                    <img
+                      src={avatarFile ? avatarPreviewUrl! : getAvatarUrl(avatarPreviewUrl)}
+                      alt="Avatar"
+                      className="h-12 w-12 rounded-full object-cover border border-slate-200"
+                      onError={(e) => {
+                        if (e.currentTarget.src !== DEFAULT_AVATAR_URL) {
+                          e.currentTarget.src = DEFAULT_AVATAR_URL;
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                       <Edit size={14} className="text-white" />
+                    </div>
+                  </div>
                   <div>
                      <span className="text-lg font-bold block">{selectedPatient.fullName}</span>
                      <span className="text-xs text-slate-500">Trạng thái: {selectedPatient.user?.isActive ? 'Active' : 'Inactive'}</span>

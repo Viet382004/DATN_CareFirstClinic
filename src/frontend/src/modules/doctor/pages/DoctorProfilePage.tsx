@@ -16,6 +16,7 @@ import { doctorService } from '../../../services/doctorService';
 import { avatarService } from '../../../services/avatarService';
 import type { Doctor, UpdateDoctorDTO } from '../../../types/doctor';
 import { toast } from 'sonner';
+import { getAvatarUrl } from '../../../utils/format';
 
 const DoctorProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<Doctor | null>(null);
@@ -125,7 +126,7 @@ const DoctorProfilePage: React.FC = () => {
                     </div>
                 ) : null}
                 <img 
-                    src={profile?.avatarUrl || `https://ui-avatars.com/api/?name=${profile?.fullName}&size=120&background=4f46e5&color=fff`} 
+                    src={profile?.avatarUrl ? getAvatarUrl(profile.avatarUrl) : `https://ui-avatars.com/api/?name=${profile?.fullName}&size=120&background=4f46e5&color=fff`} 
                     alt="Avatar" 
                     className="h-full w-full object-cover"
                 />

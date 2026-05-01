@@ -176,7 +176,13 @@
 .main {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1.25rem 2rem 2.5rem;
+  padding: 160px 2rem 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .main {
+    padding-top: 196px;
+  }
 }
 
 /* STEPPER */

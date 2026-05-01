@@ -2,6 +2,7 @@ export interface Doctor {
   id: string;
   avatarUrl?: string;
   fullName: string;
+  specialtyId: string;
   specialtyName: string;
   academicTitle: string;
   position: string;

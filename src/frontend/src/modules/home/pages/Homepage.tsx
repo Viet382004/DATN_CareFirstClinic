@@ -38,18 +38,14 @@ export default function App() {
         style={{ scaleX: scrollYProgress }}
       />
 
-      {/* Emergency Banner */}
-      <div className="bg-amber-400 text-slate-900 text-sm font-bold py-2 px-4 text-center z-40 relative">
-        🚨 Cấp cứu y tế? Gọi 115 ngay lập tức. Để được hỗ trợ nhanh,{" "}
-        <a href="#contact" className="underline text-teal-800">
-          bấm vào đây
-        </a>
-        .
-      </div>
-
       <Header />
 
-      <main>
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="pt-[160px] lg:pt-[196px]"
+      >
         <Hero />
         <QuickActions />
         <Services />
@@ -58,7 +54,7 @@ export default function App() {
         <Pricing />
         <Testimonials />
         <LocationContact />
-      </main>
+      </motion.main>
 
       <Footer />
       <StickyCTA />

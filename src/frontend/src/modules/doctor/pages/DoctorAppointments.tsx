@@ -9,8 +9,10 @@ import {
   Activity,
   Calendar,
   MoreVertical,
-  Play
+  Play,
+  Download
 } from 'lucide-react';
+import { exportToExcel } from '../../../utils/exportUtils';
 import { appointmentService } from '../../../services/appointmentService';
 import type { Appointment } from '../../../types/appointment';
 import { toast } from 'sonner';
@@ -74,6 +76,16 @@ const DoctorAppointments: React.FC = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    const exportData = filtered.map(a => ({
+      'Thời gian': `${a.startTime} ${formatDate(a.workDate)}`,
+      'Bệnh nhân': a.patientName,
+      'Trạng thái': getStatusLabel(a.status),
+      'Lý do khám': a.reason || 'Khám nội khoa định kỳ'
+    }));
+    exportToExcel(exportData, `Hang-Doi-Kham-${filterDate || 'All'}`, 'HangDoi');
+  };
+
   return (
     <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
       
@@ -116,6 +128,13 @@ const DoctorAppointments: React.FC = () => {
             onChange={e => setFilterDate(e.target.value)}
           />
         </div>
+        <button
+          onClick={handleExportExcel}
+          className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-emerald-50"
+        >
+          <Download size={16} />
+          Xuất Excel
+        </button>
       </div>
 
       {/* Content Grid */}

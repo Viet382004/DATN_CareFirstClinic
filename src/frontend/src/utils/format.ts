@@ -43,3 +43,13 @@ export const formatDateShort = (date: string | Date | null | undefined): string 
   
   return `${day}/${month}`;
 };
+
+/**
+ * Returns absolute URL for avatar
+ */
+export const getAvatarUrl = (url: string | null | undefined): string => {
+  if (!url) return '/assets/avatar-default.svg';
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5293';
+  return `${baseUrl}${url}`;
+};

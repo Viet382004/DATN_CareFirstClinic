@@ -4,6 +4,17 @@ import LoginPage from "../modules/auth/pages/LoginPage";
 import RegisterPage from "../modules/auth/pages/RegisterPage";
 import { ProtectedRoute } from "../components/common/ProtectedRoute";
 
+// Mock Pages for Homepage links
+import FacilitiesPage from "../modules/home/pages/FacilitiesPage";
+import ServicesPage from "../modules/home/pages/ServicesPage";
+import CheckupsPage from "../modules/home/pages/CheckupsPage";
+import NewsPage from "../modules/home/pages/NewsPage";
+import GuidesPage from "../modules/home/pages/GuidesPage";
+import SpecialtiesListPage from "../modules/home/pages/SpecialtiesListPage";
+import SpecialtyDetailsPage from "../modules/home/pages/SpecialtyDetailsPage";
+import DoctorsListPage from "../modules/home/pages/DoctorsListPage";
+import DoctorDetailsPage from "../modules/home/pages/DoctorDetailsPage";
+
 // Patient imports
 import SelectSpecialty from "../modules/patient/booking/SelectSpecialty";
 import SelectDoctor from "../modules/patient/booking/SelectDoctor";
@@ -39,6 +50,42 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <Homepage />,
+  },
+  {
+    path: "/facilities",
+    element: <FacilitiesPage />,
+  },
+  {
+    path: "/services",
+    element: <ServicesPage />,
+  },
+  {
+    path: "/specialties",
+    element: <SpecialtiesListPage />,
+  },
+  {
+    path: "/specialties/:id",
+    element: <SpecialtyDetailsPage />,
+  },
+  {
+    path: "/doctors",
+    element: <DoctorsListPage />,
+  },
+  {
+    path: "/doctors/:id",
+    element: <DoctorDetailsPage />,
+  },
+  {
+    path: "/checkups",
+    element: <CheckupsPage />,
+  },
+  {
+    path: "/news",
+    element: <NewsPage />,
+  },
+  {
+    path: "/guides",
+    element: <GuidesPage />,
   },
   {
     path: "/login",

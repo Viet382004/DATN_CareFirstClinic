@@ -23,6 +23,8 @@ import {
 } from 'recharts';
 import { dashboardService } from '../../../services/dashboardService';
 import type { DashboardStats, ChartData } from '../../../services/dashboardService';
+import { appointmentService } from '../../../services/appointmentService';
+import type { Appointment } from '../../../types/appointment';
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
 
@@ -31,18 +33,21 @@ const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 const Dashboard: React.FC = () => {
   const [statsData, setStatsData] = React.useState<DashboardStats | null>(null);
   const [chartData, setChartData] = React.useState<ChartData[]>([]);
+  const [recentAppointments, setRecentAppointments] = React.useState<Appointment[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [s, c] = await Promise.all([
+        const [s, c, a] = await Promise.all([
           dashboardService.getStats(),
-          dashboardService.getCharts()
+          dashboardService.getCharts(),
+          appointmentService.getList({ pageSize: 5, sortBy: 'createdAt', sortDir: 'desc' })
         ]);
         setStatsData(s);
         setChartData(c);
+        setRecentAppointments(a.items);
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu dashboard:', error);
         toast.error('Không thể kết nối với máy chủ thống kê');
@@ -81,18 +86,16 @@ const Dashboard: React.FC = () => {
     { label: 'Tỉ Lệ Hoàn Thành', value: `${statsData.completionRate}%`, trend: '+1%', icon: Activity },
   ];
 
-  const pieData = [
-    { name: 'Hoàn tất', value: 45 },
-    { name: 'Đang chuẩn bị', value: 25 },
-    { name: 'Đã hủy', value: 10 },
-  ];
-
-  // Mock appointments for UI
-  const recentAppointments = [
-    { time: '08:30', patient: 'Nguyễn Văn A', doctor: 'Trần B', status: 'Completed' },
-    { time: '09:15', patient: 'Lê Thị C', doctor: 'Phạm D', status: 'Waiting' },
-    { time: '10:00', patient: 'Trần Văn E', doctor: 'Nguyễn F', status: 'Waiting' },
-  ];
+  const pieData = statsData.statsToday.map(stat => {
+    let name = stat.status;
+    if (name === 'Completed') name = 'Hoàn tất';
+    else if (name === 'Pending') name = 'Chờ xác nhận';
+    else if (name === 'Confirmed') name = 'Đã xác nhận';
+    else if (name === 'Waiting') name = 'Đang chờ khám';
+    else if (name === 'InProgress') name = 'Đang khám';
+    else if (name === 'Cancelled') name = 'Đã hủy';
+    return { name, value: stat.count };
+  });
 
   return (
     <div className="space-y-6 pb-10">
@@ -208,25 +211,33 @@ const Dashboard: React.FC = () => {
                   </tr>
                </thead>
                <tbody className="divide-y divide-slate-50">
-                  {recentAppointments.map((a, idx) => (
-                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-3 text-xs font-bold text-slate-700">{a.time}</td>
-                        <td className="px-6 py-3">
-                           <div className="flex flex-col">
-                              <span className="text-xs font-bold text-slate-900">{a.patient}</span>
-                              <span className="text-[10px] text-slate-400">BS. {a.doctor}</span>
-                           </div>
-                        </td>
-                        <td className="px-6 py-3 text-right">
-                           <span className={cn(
-                             "inline-block px-2 py-0.5 rounded-md text-[9px] font-black border uppercase tracking-widest",
-                             a.status === 'Completed' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
-                           )}>
-                              {a.status === 'Completed' ? 'HOÀN TẤT' : 'CHỜ KHÁM'}
-                           </span>
-                        </td>
-                     </tr>
-                  ))}
+                  {recentAppointments.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-8 text-center text-slate-400 text-sm">Chưa có dữ liệu lịch hẹn</td>
+                    </tr>
+                  ) : (
+                    recentAppointments.map((a, idx) => (
+                       <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-3 text-xs font-bold text-slate-700">{a.startTime || a.createdAt.substring(11, 16) || '-'}</td>
+                          <td className="px-6 py-3">
+                             <div className="flex flex-col">
+                                <span className="text-xs font-bold text-slate-900">{a.patientName}</span>
+                                <span className="text-[10px] text-slate-400">BS. {a.doctorName}</span>
+                             </div>
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                             <span className={cn(
+                               "inline-block px-2 py-0.5 rounded-md text-[9px] font-black border uppercase tracking-widest",
+                               a.status === 'Completed' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : 
+                               a.status === 'Cancelled' ? "bg-red-50 text-red-600 border-red-100" :
+                               "bg-amber-50 text-amber-600 border-amber-100"
+                             )}>
+                                {a.status === 'Completed' ? 'HOÀN TẤT' : a.status === 'Cancelled' ? 'ĐÃ HỦY' : 'CHỜ KHÁM'}
+                             </span>
+                          </td>
+                       </tr>
+                    ))
+                  )}
                </tbody>
             </table>
          </div>

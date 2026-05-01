@@ -33,14 +33,14 @@ type NavMenuItemProps = {
   hasSubmenu?: boolean;
 };
 
-const NavMenuItem = ({ children, hasSubmenu = false }: NavMenuItemProps) => (
-  <a
-    href="#"
+const NavMenuItem = ({ children, hasSubmenu = false, href = "#" }: NavMenuItemProps & { href?: string }) => (
+  <Link
+    to={href}
     className="flex items-center gap-1 whitespace-nowrap text-sm font-bold text-slate-900 transition-colors hover:text-teal-600"
   >
     {children}
     {hasSubmenu && <ChevronDown size={14} />}
-  </a>
+  </Link>
 );
 
 const Header = () => {
@@ -63,7 +63,15 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
+    <header className="fixed top-0 left-0 z-[100] w-full border-b border-slate-200 bg-white shadow-md">
+      {/* Emergency Banner - Moved from Homepage for consistent stickiness */}
+      <div className="bg-amber-400 text-slate-900 text-xs sm:text-sm font-bold py-2 px-4 text-center relative z-50">
+        🚨 Cấp cứu y tế? Gọi 115 ngay lập tức. Để được hỗ trợ nhanh,{" "}
+        <a href="#contact" className="underline text-teal-800">
+          bấm vào đây
+        </a>
+        .
+      </div>
       {/* TOP BAR */}
       <div className="hidden lg:block border-b border-slate-100">
         <div className="container-page flex h-10 items-center justify-between text-xs text-slate-500">
@@ -197,22 +205,23 @@ const Header = () => {
         </div>
 
         {/* DESKTOP NAV */}
-        <nav className="hidden items-center gap-6 lg:flex">
-          <NavMenuItem hasSubmenu>Cơ sở y tế</NavMenuItem>
-          <NavMenuItem hasSubmenu>Dịch vụ y tế</NavMenuItem>
-          <NavMenuItem>Khám sức khỏe</NavMenuItem>
-          <NavMenuItem hasSubmenu>Tin tức</NavMenuItem>
-          <NavMenuItem hasSubmenu>Hướng dẫn</NavMenuItem>
+        <nav className="hidden items-center gap-5 lg:flex">
+          <NavMenuItem href="/facilities">Cơ sở y tế</NavMenuItem>
+          <NavMenuItem href="/services">Dịch vụ</NavMenuItem>
+          <NavMenuItem href="/specialties">Chuyên khoa</NavMenuItem>
+          <NavMenuItem href="/doctors">Bác sĩ</NavMenuItem>
+          <NavMenuItem href="/checkups">Gói khám</NavMenuItem>
+          <NavMenuItem href="/news">Tin tức</NavMenuItem>
         </nav>
 
         {/* MOBILE MENU BUTTON */}
         <div className="flex items-center gap-4 lg:hidden">
-          <a
-            href="#book"
+          <Link
+            to="/patient/booking"
             className="rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white"
           >
             Đặt khám
-          </a>
+          </Link>
 
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -227,36 +236,48 @@ const Header = () => {
       {isOpen && (
         <div className="absolute left-0 w-full border-t border-slate-100 bg-white shadow-lg lg:hidden">
           <div className="container-page flex flex-col space-y-4 py-4">
-            <a
-              href="#"
+            <Link
+              to="/facilities"
+              onClick={() => setIsOpen(false)}
               className="border-b border-slate-50 py-2 font-bold text-slate-800"
             >
               Cơ sở y tế
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to="/services"
+              onClick={() => setIsOpen(false)}
               className="border-b border-slate-50 py-2 font-bold text-slate-800"
             >
               Dịch vụ y tế
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to="/specialties"
+              onClick={() => setIsOpen(false)}
               className="border-b border-slate-50 py-2 font-bold text-slate-800"
             >
-              Khám sức khỏe
-            </a>
-            <a
-              href="#"
+              Chuyên khoa
+            </Link>
+            <Link
+              to="/doctors"
+              onClick={() => setIsOpen(false)}
+              className="border-b border-slate-50 py-2 font-bold text-slate-800"
+            >
+              Đội ngũ Bác sĩ
+            </Link>
+            <Link
+              to="/checkups"
+              onClick={() => setIsOpen(false)}
+              className="border-b border-slate-50 py-2 font-bold text-slate-800"
+            >
+              Gói khám
+            </Link>
+            <Link
+              to="/news"
+              onClick={() => setIsOpen(false)}
               className="border-b border-slate-50 py-2 font-bold text-slate-800"
             >
               Tin tức
-            </a>
-            <a
-              href="#"
-              className="border-b border-slate-50 py-2 font-bold text-slate-800"
-            >
-              Hướng dẫn
-            </a>
+            </Link>
 
             <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
               {isAuthenticated ? (

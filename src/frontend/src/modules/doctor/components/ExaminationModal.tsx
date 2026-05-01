@@ -13,8 +13,10 @@ import { stockService } from '../../../services/stockService';
 import type { Stock } from '../../../types/stock';
 import { toast } from 'sonner';
 import type { Appointment } from '../../../types/appointment';
-import { cn } from '../../../lib/utils';
 import { formatDate } from '../../../utils/format';
+import { cn } from '../../../lib/utils';
+import { exportElementToPDF } from '../../../utils/exportUtils';
+import { Download as DownloadIcon } from 'lucide-react';
 
 interface ExaminationModalProps {
   appointment: Appointment;
@@ -356,7 +358,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
           {activeTab === 'exam' ? (
             <>
               {/* LEFT: Examination Forms */}
-              <div className="flex-1 overflow-y-auto p-6 scrollbar-thin space-y-8 bg-slate-50/30">
+              <div id="clinical-work-area" className="flex-1 overflow-y-auto p-6 scrollbar-thin space-y-8 bg-slate-50/30">
 
                 {/* Vitals Section */}
                 <section>
@@ -580,6 +582,15 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
                     {submitting ? 'ĐANG XỬ LÝ...' : (appointment.status === 'InProgress' ? 'XÁC NHẬN & HOÀN TẤT CA KHÁM' : 'CẬP NHẬT KẾT QUẢ')}
                     <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </button>
+
+                  {existingRecord && (
+                    <button
+                      onClick={() => exportElementToPDF('clinical-work-area', `Ket-Qua-Kham-${appointment.id.substring(0,8)}`)}
+                      className="w-full py-3 text-[11px] font-black text-emerald-600 hover:bg-emerald-50 border border-emerald-200 rounded-sm transition-all uppercase tracking-widest flex items-center justify-center gap-2"
+                    >
+                      <DownloadIcon size={14} /> Tải hồ sơ PDF
+                    </button>
+                  )}
                 </div>
               </aside>
             </>
