@@ -223,6 +223,7 @@ const AdminSpecialties: React.FC = () => {
                 />
               </div>
 
+
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">Mô tả chi tiết</label>
                 <textarea

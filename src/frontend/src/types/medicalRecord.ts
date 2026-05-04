@@ -7,27 +7,20 @@ export interface MedicalRecord {
   doctorName: string;
   diagnosis: string;
   symptoms?: string;
-  bloodPressure?: number;
-  heartRate?: number;
-  temperature?: number;
-  weight?: number;
-  height?: number;
+
   notes?: string;
   followUpDate?: string;
   hasPrescription: boolean;
   createdAt: string;
   updatedAt?: string;
+  serviceResults?: any[];
 }
 
 export interface CreateMedicalRecordDTO {
   appointmentId: string;
   diagnosis: string;
   symptoms?: string;
-  bloodPressure?: number;
-  heartRate?: number;
-  temperature?: number;
-  weight?: number;
-  height?: number;
+
   notes?: string;
   followUpDate?: string;
 }
@@ -35,11 +28,7 @@ export interface CreateMedicalRecordDTO {
 export interface UpdateMedicalRecordDTO {
   diagnosis: string;
   symptoms?: string;
-  bloodPressure?: number;
-  heartRate?: number;
-  temperature?: number;
-  weight?: number;
-  height?: number;
+
   notes?: string;
   followUpDate?: string;
 }

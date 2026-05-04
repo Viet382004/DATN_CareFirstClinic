@@ -18,16 +18,16 @@ import {
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
 
-type ChargeKind = 'ConsultationFee' | 'MedicineFee';
+type ChargeKind = 'ConsultationFee' | 'MedicineFee' | 'FullPayment';
 
 function resolveChargeKind(appointment: Appointment): ChargeKind {
-  if (!appointment.isConsultationPaid) {
-    return 'ConsultationFee';
-  }
-  return 'MedicineFee';
+  return 'FullPayment';
 }
 
 function resolveChargeAmount(appointment: Appointment, kind: ChargeKind): number {
+  if (kind === 'FullPayment') {
+    return appointment.consultationFee + appointment.serviceFee + appointment.medicineFee;
+  }
   return kind === 'ConsultationFee' ? appointment.consultationFee : appointment.medicineFee;
 }
 
@@ -50,6 +50,7 @@ const AdminBilling: React.FC = () => {
   const [paymentAppointments, setPaymentAppointments] = useState<Record<string, Appointment>>({});
   const [pendingCharges, setPendingCharges] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [selectedCharge, setSelectedCharge] = useState<Appointment | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -57,7 +58,7 @@ const AdminBilling: React.FC = () => {
 
   const [query, setQuery] = useState<PaymentQueryParams>({
     page: 1,
-    pageSize: 10,
+    pageSize: 5,
     sortBy: 'createdAt',
     sortDir: 'desc'
   });
@@ -83,6 +84,7 @@ const AdminBilling: React.FC = () => {
 
       const paymentItems = paymentResult.items || [];
       setPayments(paymentItems);
+      setTotalItems(paymentResult.totalItems || 0);
 
       const appointmentIds = Array.from(new Set(paymentItems.map((payment) => payment.appointmentId).filter(Boolean)));
       const appointmentPairs = await Promise.all(
@@ -106,22 +108,20 @@ const AdminBilling: React.FC = () => {
       );
 
       const outstandingCharges = (appointmentResult.items || []).filter((appointment) => {
-        const consultationOutstanding =
-          !appointment.isConsultationPaid &&
-          appointment.consultationFee > 0 &&
-          ['Pending', 'Confirmed'].includes(appointment.status);
+        // Chỉ hiện khoản thu khi ca khám đã hoàn tất (Completed)
+        // và chưa thanh toán đầy đủ (check isMedicinePaid hoặc isConsultationPaid tùy logic backend)
+        const isCompleted = appointment.status === 'Completed';
+        const isUnpaid = !appointment.isConsultationPaid || !appointment.isMedicinePaid;
+        const hasCharges = (appointment.consultationFee + appointment.serviceFee + appointment.medicineFee) > 0;
 
-        const medicineOutstanding =
-          appointment.status === 'Completed' &&
-          appointment.medicineFee > 0 &&
-          !appointment.isMedicinePaid;
+        if (!isCompleted || !isUnpaid || !hasCharges) return false;
 
         const chargeKind = resolveChargeKind(appointment);
         const hasPendingPayment = paymentItems.some(
           (payment) => payment.appointmentId === appointment.id && payment.type === chargeKind && payment.status === 'Pending'
         );
 
-        return (consultationOutstanding || medicineOutstanding) && !hasPendingPayment;
+        return !hasPendingPayment;
       });
 
       setPendingCharges(outstandingCharges);
@@ -272,9 +272,9 @@ const AdminBilling: React.FC = () => {
                       <td className="px-6 py-4">
                         <span className={cn(
                           'inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest border',
-                          chargeKind === 'ConsultationFee' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-purple-100 text-purple-700 border-purple-200'
+                          'bg-indigo-100 text-indigo-700 border-indigo-200'
                         )}>
-                          {chargeKind === 'ConsultationFee' ? 'Phi kham' : 'Tien thuoc'}
+                          Tong thanh toan
                         </span>
                       </td>
                       <td className="px-6 py-4 font-black text-slate-900">{amount.toLocaleString('vi-VN')}d</td>
@@ -343,9 +343,12 @@ const AdminBilling: React.FC = () => {
                       <td className="px-6 py-4">
                         <span className={cn(
                           'inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest border',
-                          payment.type === 'ConsultationFee' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-purple-100 text-purple-700 border-purple-200'
+                          payment.type === 'ConsultationFee' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
+                          payment.type === 'MedicineFee' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                          'bg-indigo-100 text-indigo-700 border-indigo-200'
                         )}>
-                          {payment.type === 'ConsultationFee' ? 'Phi kham' : 'Tien thuoc'}
+                          {payment.type === 'ConsultationFee' ? 'Phi kham' : 
+                           payment.type === 'MedicineFee' ? 'Tien thuoc' : 'Tong thanh toan'}
                         </span>
                       </td>
                       <td className="px-6 py-4 font-black text-slate-900">{payment.amount.toLocaleString('vi-VN')}d</td>
@@ -422,7 +425,7 @@ const AdminBilling: React.FC = () => {
             <span className="px-3 text-xs font-bold text-slate-600">Trang {query.page || 1}</span>
             <button
               onClick={() => setQuery((prev) => ({ ...prev, page: (prev.page || 1) + 1 }))}
-              disabled={payments.length < (query.pageSize || 10)}
+              disabled={payments.length < (query.pageSize || 5) || (query.page || 1) >= Math.ceil(totalItems / (query.pageSize || 5))}
               className="flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-400 disabled:opacity-30"
             >
               <ChevronRight className="h-4 w-4" />
@@ -528,7 +531,7 @@ const ChargeCollectionModal: React.FC<{
           amount,
           type: chargeKind,
           method: 'Cash',
-          notes: chargeKind === 'ConsultationFee' ? 'Thu phi kham tai quay' : 'Thu tien thuoc tai quay'
+          notes: chargeKind === 'FullPayment' ? 'Thu tong chi phi kham tai quay' : 'Thu phi tai quay'
         });
 
         const payment = (paymentResponse as any)?.data ?? paymentResponse;
@@ -538,9 +541,7 @@ const ChargeCollectionModal: React.FC<{
         return;
       }
 
-      const result = chargeKind === 'ConsultationFee'
-        ? await paymentService.createVNPayConsultationByAdmin(appointment.id, appointment.patientId)
-        : await paymentService.createVNPayMedicinePayment(appointment.id, appointment.patientId);
+      const result = await paymentService.createVNPayFullPayment(appointment.id, appointment.patientId);
 
       if (!result.success || !result.data?.paymentUrl) {
         throw new Error(result.message || 'Khong the tao giao dich VNPay.');

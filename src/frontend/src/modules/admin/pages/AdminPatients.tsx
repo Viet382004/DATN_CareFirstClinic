@@ -25,7 +25,7 @@ const AdminPatients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [query, setQuery] = useState({ page: 1, pageSize: 10 });
+  const [query, setQuery] = useState({ page: 1, pageSize: 5 });
   
   // Modal state
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);

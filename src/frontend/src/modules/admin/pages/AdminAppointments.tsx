@@ -209,7 +209,7 @@ const AdminAppointments: React.FC = () => {
 
   const [query, setQuery] = useState<AppointmentQueryParams>({
     page: 1,
-    pageSize: 12,
+    pageSize: 5,
     sortBy: 'workDate',
     sortDir: 'desc',
     status: 'All'
@@ -227,7 +227,7 @@ const AdminAppointments: React.FC = () => {
       });
 
       setAppointments(res.items || []);
-      setTotalItems(res.totalCount || 0);
+      setTotalItems(res.totalItems || 0);
     } catch (error) {
       toast.error('Không thể lấy danh sách lịch hẹn');
       console.error(error);
@@ -536,7 +536,7 @@ const AdminAppointments: React.FC = () => {
             </button>
 
             <div className="flex items-center gap-1">
-              {[...Array(Math.ceil(totalItems / (query.pageSize || 12)))].map((_, i) => (
+              {[...Array(Math.ceil(totalItems / (query.pageSize || 5)))].map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setQuery(prev => ({ ...prev, page: i + 1 }))}
@@ -551,7 +551,7 @@ const AdminAppointments: React.FC = () => {
             </div>
 
             <button
-              disabled={appointments.length < (query.pageSize || 12)}
+              disabled={appointments.length < (query.pageSize || 5)}
               onClick={() => setQuery(prev => ({ ...prev, page: (prev.page || 1) + 1 }))}
               className="h-8 px-3 rounded-md border border-slate-200 text-[10px] font-bold uppercase text-slate-500 hover:bg-slate-50 disabled:opacity-30"
             >

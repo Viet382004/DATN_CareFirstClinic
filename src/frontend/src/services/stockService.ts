@@ -1,4 +1,5 @@
 import { apiGet, apiPost, apiPut, apiPatch } from './apiClient';
+import type { PagedResult } from '../types/common';
 
 export interface Stock {
   id: string;
@@ -51,13 +52,7 @@ export interface StockQueryParams {
   sortDir?: string;
 }
 
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
+
 
 export const stockService = {
   /**

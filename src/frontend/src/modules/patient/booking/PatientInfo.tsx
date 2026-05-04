@@ -53,10 +53,10 @@ interface FormErrors {
 }
 
 const getBookingSummary = (): BookingSummary => ({
-  specialty: localStorage.getItem('selectedSpecialtyName') || 'Chuyen khoa',
-  doctor: localStorage.getItem('selectedDoctorName') || 'Bac si',
-  date: localStorage.getItem('selectedDisplayDate') || 'Ngay kham',
-  time: localStorage.getItem('selectedTime') || 'Gio kham',
+  specialty: localStorage.getItem('selectedSpecialtyName') || 'Khám lâm sàng',
+  doctor: localStorage.getItem('selectedDoctorName') || 'Bác sĩ',
+  date: localStorage.getItem('selectedDisplayDate') || 'Ngày khám',
+  time: localStorage.getItem('selectedTime') || 'Giờ khám',
   location: 'CareFirst Clinic',
 });
 
@@ -203,21 +203,21 @@ const PatientInfo: React.FC = () => {
           <div className={styles.stepperContainer}>
             <div className={styles.stepperHeader}>
               <div>
-                <span className={styles.stepperBadge}>Tien trinh dat lich</span>
-                <h3 className={styles.stepperTitle}>Buoc 4: Thong Tin Dat Lich</h3>
+                <span className={styles.stepperBadge}>Tiến trình đặt lịch</span>
+                <h3 className={styles.stepperTitle}>Bước 3: Thông Tin Bệnh Nhân</h3>
               </div>
-              <span className={styles.stepperCount}>4 / 5 Hoan tat</span>
+              <span className={styles.stepperCount}>3 / 4 Hoàn tất</span>
             </div>
 
             <div className={styles.progressBar}>
-              <motion.div initial={{ width: '60%' }} animate={{ width: '80%' }} className={styles.progressFill} />
+              <motion.div initial={{ width: '50%' }} animate={{ width: '75%' }} className={styles.progressFill} />
             </div>
 
             <div className={styles.stepLabels}>
-              {['CHUYEN KHOA', 'BAC SI', 'THOI GIAN', 'THONG TIN', 'XAC NHAN'].map((step, index) => (
+              {['BÁC SĨ', 'THỜI GIAN', 'THÔNG TIN', 'XÁC NHẬN'].map((step, index) => (
                 <div
                   key={step}
-                  className={`${styles.stepLabel} ${index < 3 ? styles.stepLabelDone : index === 3 ? styles.stepLabelActive : ''}`}
+                  className={`${styles.stepLabel} ${index < 2 ? styles.stepLabelDone : index === 2 ? styles.stepLabelActive : ''}`}
                 >
                   {step}
                 </div>

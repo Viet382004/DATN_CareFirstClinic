@@ -73,20 +73,19 @@ const SelectTime = () => {
         // Format date: YYYY-MM-DD
         const dateStr = `${selectedDate.year}-${String(selectedDate.month + 1).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`;
 
-        // Gọi API
-        const schedules = await scheduleService.getAvailableByDoctorAndDate(doctorId, dateStr);
+        // Gọi API lấy toàn bộ schedule (không chỉ cái trống)
+        const schedules = await scheduleService.getByDoctorAndDate(doctorId, dateStr);
 
         let mergedSlots = [];
         if (schedules && schedules.length > 0) {
           schedules.forEach(schedule => {
             if (schedule.timeSlots && schedule.timeSlots.length > 0) {
               schedule.timeSlots.forEach(slot => {
-                if (!slot.isBooked) {
-                  mergedSlots.push({
-                    id: slot.id,
-                    time: slot.startTime.substring(0, 5)
-                  });
-                }
+                mergedSlots.push({
+                  id: slot.id,
+                  time: slot.startTime.substring(0, 5),
+                  isBooked: slot.isBooked
+                });
               });
             }
           });
@@ -194,15 +193,15 @@ const SelectTime = () => {
             <div className={styles.stepperHeader}>
               <div>
                 <span className={styles.stepperBadge}>Tiến trình đặt lịch</span>
-                <h3 className={styles.stepperTitle}>Bước 3: Chọn Thời Gian</h3>
+                <h3 className={styles.stepperTitle}>Bước 2: Chọn Thời Gian</h3>
               </div>
-              <span className={styles.stepperCount}>3 / 5 Hoàn tất</span>
+              <span className={styles.stepperCount}>2 / 4 Hoàn tất</span>
             </div>
 
             <div className={styles.progressBar}>
               <motion.div
-                initial={{ width: '40%' }}
-                animate={{ width: '60%' }}
+                initial={{ width: '25%' }}
+                animate={{ width: '50%' }}
                 className={styles.progressFill}
               />
             </div>
@@ -294,43 +293,57 @@ const SelectTime = () => {
                         { id: 'evening', label: 'Buổi tối', icon: Moon, filter: (h) => h >= 18 }
                       ].map((period) => {
                         const Icon = period.icon;
-                        const validSlots = availableSlots.filter(s => {
-                          const [h, m] = s.time.split(':').map(Number);
+                        const slotsWithStatus = availableSlots
+                          .filter(s => {
+                            const [h] = s.time.split(':').map(Number);
+                            return period.filter(h);
+                          })
+                          .map(s => {
+                            const [h, m] = s.time.split(':').map(Number);
+                            const isTodaySelected = selectedDate.day === today.getDate() &&
+                              selectedDate.month === today.getMonth() &&
+                              selectedDate.year === today.getFullYear();
+                            
+                            let isPast = false;
+                            if (isTodaySelected) {
+                              const slotTime = new Date();
+                              slotTime.setHours(h, m, 0, 0);
+                              isPast = slotTime <= new Date();
+                            } else {
+                              const slotDate = new Date(selectedDate.year, selectedDate.month, selectedDate.day);
+                              isPast = slotDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                            }
 
-                          // Check period
-                          if (!period.filter(h)) return false;
+                            return {
+                              ...s,
+                              isPast,
+                              isSelectable: !s.isBooked && !isPast
+                            };
+                          });
 
-                          const isTodaySelected = selectedDate.day === today.getDate() &&
-                            selectedDate.month === today.getMonth() &&
-                            selectedDate.year === today.getFullYear();
-                          if (isTodaySelected) {
-                            const slotTime = new Date();
-                            slotTime.setHours(h, m, 0, 0);
-                            return slotTime > new Date();
-                          }
-                          return true;
-                        });
-
-                        if (validSlots.length === 0) return null;
+                        if (slotsWithStatus.length === 0) return null;
 
                         return (
                           <div key={period.id} className={styles.timePeriod}>
                             <div className={styles.timePeriodLabel}><Icon size={12} />{period.label}</div>
                             <div className={styles.timeSlotGrid}>
-                              {validSlots.map((slotObj) => {
+                              {slotsWithStatus.map((slotObj) => {
                                 const isSlotSelected = selectedTimeSlot?.id === slotObj.id;
                                 return (
                                   <motion.button
                                     key={slotObj.id}
-                                    whileHover={{ scale: 1.04 }}
-                                    whileTap={{ scale: 0.96 }}
+                                    whileHover={slotObj.isSelectable ? { scale: 1.04 } : {}}
+                                    whileTap={slotObj.isSelectable ? { scale: 0.96 } : {}}
+                                    disabled={!slotObj.isSelectable}
                                     onClick={() => setSelectedTimeSlot(slotObj)}
                                     className={`
                                       ${styles.timeSlot}
                                       ${isSlotSelected ? styles.timeSlotSelected : ''}
+                                      ${!slotObj.isSelectable ? styles.timeSlotDisabled : ''}
                                     `}
                                   >
                                     {slotObj.time}
+                                    {slotObj.isBooked && <span className={styles.bookedBadge}>Đầy</span>}
                                   </motion.button>
                                 );
                               })}

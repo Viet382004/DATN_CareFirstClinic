@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Star,
   ArrowLeft,
@@ -24,6 +24,7 @@ const DEFAULT_AVATAR_URL = '/assets/avatar-default.svg';
 
 const SelectDoctor = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,30 +37,35 @@ const SelectDoctor = () => {
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 8;
 
+  // Xử lý doctorId từ URL params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const doctorId = params.get('doctorId');
+    if (doctorId) {
+      setSelectedId(doctorId);
+    }
+  }, [location]);
+
   const loadDoctors = async (search = "", page = 1) => {
     try {
       setLoading(true);
       setError(null);
 
       const selectedSpecialtyId = localStorage.getItem("selectedSpecialty");
-      if (!selectedSpecialtyId || selectedSpecialtyId === 'null' || selectedSpecialtyId === 'undefined') {
-        setError("Không tìm thấy chuyên khoa đã chọn. Vui lòng quay lại.");
-        return;
-      }
-
-      console.log(`Đang tải bác sĩ cho chuyên khoa ID: ${selectedSpecialtyId} với search: ${search}, page: ${page}`);
-
-      const result = await doctorService.getBySpecialty(selectedSpecialtyId, {
+      
+      console.log(`Đang tải tất cả bác sĩ lâm sàng với search: ${search}, page: ${page}`);
+      let result = await doctorService.getList({
         page,
         pageSize,
-        search: search
+        search: search,
+        isClinical: true
       });
 
       // Backend returns PagedResult
       const doctorData = result.items || [];
       setTotalPages(result.totalPages || 1);
-      setTotalCount(result.totalCount || 0);
-      setCurrentPage(result.currentPage || 1);
+      setTotalCount(result.totalItems || 0);
+      setCurrentPage(result.totalPages || 1);
 
       if (doctorData.length === 0 && !search) {
         setError(`Hiện chưa có bác sĩ nào thuộc chuyên khoa này.`);
@@ -127,7 +133,7 @@ const SelectDoctor = () => {
   };
 
   const handleBack = () => {
-    navigate("/patient/booking");
+    navigate("/");
   };
 
   // Filter local for online status, search is backend-side
@@ -143,22 +149,22 @@ const SelectDoctor = () => {
             <div className={styles.stepperHeader}>
               <div>
                 <span className={styles.stepperBadge}>Tiến trình đặt lịch</span>
-                <h3 className={styles.stepperTitle}>Bước 2: Chọn bác sĩ điều trị</h3>
+                <h3 className={styles.stepperTitle}>Bước 1: Chọn bác sĩ lâm sàng</h3>
               </div>
-              <span className={styles.stepperCount}>2 / 5 Hoàn tất</span>
+              <span className={styles.stepperCount}>1 / 4 Hoàn tất</span>
             </div>
 
             <div className={styles.progressBar}>
               <motion.div
-                initial={{ width: "20%" }}
-                animate={{ width: "40%" }}
+                initial={{ width: "0%" }}
+                animate={{ width: "25%" }}
                 className={styles.progressFill}
               />
             </div>
 
             <div className={styles.stepLabels}>
-              {["CHUYÊN KHOA", "BÁC SĨ", "THỜI GIAN", "THÔNG TIN", "XÁC NHẬN"].map((step, i) => (
-                <div key={step} className={`${styles.stepLabel} ${i < 1 ? styles.stepLabelDone : i === 1 ? styles.stepLabelActive : ''}`}>
+              {["BÁC SĨ", "THỜI GIAN", "THÔNG TIN", "XÁC NHẬN"].map((step, i) => (
+                <div key={step} className={`${styles.stepLabel} ${i === 0 ? styles.stepLabelActive : ''}`}>
                   {step}
                 </div>
               ))}
@@ -346,7 +352,7 @@ const SelectDoctor = () => {
               className={styles.backButton}
             >
               <ArrowLeft size={18} />
-              Quay lại bước 1
+              Quay lại Trang chủ
             </motion.button>
 
             <motion.button

@@ -51,6 +51,8 @@ const PatientProfilePage = () => {
 
   const [medicalHistory, setMedicalHistory] = useState<MedicalRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyTotalItems, setHistoryTotalItems] = useState(0);
+  const [historyPage, setHistoryPage] = useState(1);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -113,8 +115,9 @@ const PatientProfilePage = () => {
     const loadHistory = async () => {
       setHistoryLoading(true);
       try {
-        const response = await medicalRecordService.getMyRecords({ pageSize: 10, sortBy: 'createdAt', sortDir: 'desc' });
+        const response = await medicalRecordService.getMyRecords({ page: historyPage, pageSize: 5, sortBy: 'createdAt', sortDir: 'desc' });
         setMedicalHistory(response.items || []);
+        setHistoryTotalItems(response.totalItems || 0);
       } catch (err) {
         console.error('Error loading medical history:', err);
         setMedicalHistory([]);
@@ -124,7 +127,7 @@ const PatientProfilePage = () => {
     };
 
     loadHistory();
-  }, [activeTab]);
+  }, [activeTab, historyPage]);
 
   const updateForm = (field: keyof typeof form, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -598,6 +601,26 @@ const PatientProfilePage = () => {
                             </div>
                           </article>
                         ))}
+
+                        {historyTotalItems > 5 && (
+                          <div className={styles.pagination}>
+                            <button
+                              onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                              disabled={historyPage === 1}
+                              className={styles.pageBtn}
+                            >
+                              Trước
+                            </button>
+                            <span className={styles.pageInfo}>Trang {historyPage} / {Math.ceil(historyTotalItems / 5)}</span>
+                            <button
+                              onClick={() => setHistoryPage(p => p + 1)}
+                              disabled={historyPage >= Math.ceil(historyTotalItems / 5)}
+                              className={styles.pageBtn}
+                            >
+                              Sau
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </motion.div>

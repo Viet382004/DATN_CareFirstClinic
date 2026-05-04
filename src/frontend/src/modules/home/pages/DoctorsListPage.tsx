@@ -16,16 +16,19 @@ export default function DoctorsListPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
+  const [totalItems, setTotalItems] = useState(0);
+  const [query, setQuery] = useState({ page: 1, pageSize: 5 });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const [docRes, specRes] = await Promise.all([
-          doctorService.getList({ page: 1, pageSize: 20 }),
+          doctorService.getList({ ...query, specialtyId: selectedSpecialty || undefined, isClinical: true }),
           specialtyService.getAll()
         ]);
         setDoctors(docRes.items || []);
+        setTotalItems(docRes.totalItems || 0);
         setSpecialties(specRes || []);
       } catch (error) {
         console.error("Failed to fetch doctors list:", error);
@@ -34,7 +37,7 @@ export default function DoctorsListPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [query, selectedSpecialty]);
 
   // Filter logic
   const filteredDoctors = doctors.filter(doc => {
@@ -146,6 +149,29 @@ export default function DoctorsListPage() {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalItems > 5 && (
+          <div className="mt-12 flex justify-center items-center gap-4">
+            <button
+              onClick={() => setQuery(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              disabled={query.page === 1}
+              className="px-6 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold disabled:opacity-30 hover:bg-slate-50 transition-all"
+            >
+              Trang trước
+            </button>
+            <span className="text-slate-500 font-bold text-sm">
+              Trang {query.page} / {Math.ceil(totalItems / query.pageSize)}
+            </span>
+            <button
+              onClick={() => setQuery(prev => ({ ...prev, page: prev.page + 1 }))}
+              disabled={query.page >= Math.ceil(totalItems / query.pageSize)}
+              className="px-6 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold disabled:opacity-30 hover:bg-slate-50 transition-all"
+            >
+              Trang sau
+            </button>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Printer,
   Download,
-  X
+  X,
+  Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Appointment } from '../../../types/appointment';
@@ -29,6 +30,8 @@ import type { Prescription } from '../../../types/prescription';
 import { prescriptionService } from '../../../services/prescriptionService';
 import type { Payment } from '../../../types/payment';
 import { paymentService } from '../../../services/paymentService';
+import { serviceOrderService } from '../../../services/serviceOrderService';
+import type { ServiceOrder } from '../../../types/serviceOrder';
 import { formatDate as formatGlobalDate } from '../../../utils/format';
 import Header from '../../home/components/Header';
 import styles from './MyAppointments.module.css';
@@ -62,6 +65,7 @@ const MyAppointments = () => {
   const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null);
   const [prescription, setPrescription] = useState<Prescription | null>(null);
   const [payment, setPayment] = useState<Payment | null>(null);
+  const [serviceOrders, setServiceOrders] = useState<ServiceOrder[]>([]);
 
   const fetchAppointments = async (search?: string, status?: string) => {
     setLoading(true);
@@ -159,6 +163,14 @@ const MyAppointments = () => {
         setPayment(pay);
       } catch (e) {
         console.log('No payment found or failed to fetch');
+      }
+
+      // Fetch service orders
+      try {
+        const orders = await serviceOrderService.getOrdersByAppointmentId(appt.id);
+        setServiceOrders(orders.filter(o => o.status === 'Completed'));
+      } catch (e) {
+        console.log('No service orders found or failed to fetch');
       }
     } catch (err) {
       console.error('Failed to fetch details:', err);
@@ -438,24 +450,7 @@ const MyAppointments = () => {
                             <p>{medicalRecord.symptoms}</p>
                           </div>
                         )}
-                        <div className={styles.vitalsGrid}>
-                          <div className={styles.vital}>
-                            <label>Huyết áp</label>
-                            <p>{medicalRecord.bloodPressure || '--'} mmHg</p>
-                          </div>
-                          <div className={styles.vital}>
-                            <label>Nhịp tim</label>
-                            <p>{medicalRecord.heartRate || '--'} bpm</p>
-                          </div>
-                          <div className={styles.vital}>
-                            <label>Nhiệt độ</label>
-                            <p>{medicalRecord.temperature || '--'} °C</p>
-                          </div>
-                          <div className={styles.vital}>
-                            <label>Cân nặng</label>
-                            <p>{medicalRecord.weight || '--'} kg</p>
-                          </div>
-                        </div>
+
                         {medicalRecord.notes && (
                           <div className={styles.notesBox}>
                             <label>Lời dặn của bác sĩ:</label>
@@ -472,6 +467,61 @@ const MyAppointments = () => {
                     </div>
                   ) : (
                     <div className={styles.noData}>Chưa có thông tin hồ sơ bệnh án.</div>
+                  )}
+
+                  {/* Service Results */}
+                  {serviceOrders.length > 0 && (
+                    <div className={styles.detailSection}>
+                      <div className={styles.sectionTitle}>
+                        <Activity size={18} />
+                        Kết quả cận lâm sàng
+                      </div>
+                      <div className={styles.serviceOrderList}>
+                        {serviceOrders.map((order) => (
+                          <div key={order.id} className={styles.serviceResultCard}>
+                            <div className={styles.serviceHeader}>
+                              <strong>{order.serviceName}</strong>
+                              <span className={styles.completedBadge}>Đã hoàn tất</span>
+                            </div>
+
+                            {order.resultData && (
+                              <div className={styles.resultContent}>
+                                {(() => {
+                                  try {
+                                    const data = JSON.parse(order.resultData);
+                                    const conclusion = data.specialistConclusion;
+                                    const fields = Object.entries(data).filter(([k]) => k !== 'specialistConclusion');
+
+                                    return (
+                                      <>
+                                        {fields.length > 0 && (
+                                          <div className={styles.metricGrid}>
+                                            {fields.map(([k, v]) => (
+                                              <div key={k} className={styles.metricItem}>
+                                                <span className={styles.metricLabel}>{k}:</span>
+                                                <span className={styles.metricValue}>{String(v)}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        {conclusion && (
+                                          <div className={styles.conclusionBox}>
+                                            <label>Kết luận chuyên môn:</label>
+                                            <p>{conclusion}</p>
+                                          </div>
+                                        )}
+                                      </>
+                                    );
+                                  } catch (e) {
+                                    return <p className={styles.rawResult}>{order.resultData}</p>;
+                                  }
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {/* Prescription */}
@@ -549,10 +599,10 @@ const MyAppointments = () => {
                   <Printer size={16} />
                   In kết quả
                 </button>
-                <button 
-                  className={styles.printBtn} 
+                <button
+                  className={styles.printBtn}
                   style={{ backgroundColor: '#0d9488', color: 'white', borderColor: '#0d9488' }}
-                  onClick={() => exportElementToPDF('medical-record-detail', `Ket-Qua-Kham-${selectedAppt.id.substring(0,8)}`)}
+                  onClick={() => exportElementToPDF('medical-record-detail', `Ket-Qua-Kham-${selectedAppt.id.substring(0, 8)}`)}
                 >
                   <Download size={16} />
                   Tải PDF

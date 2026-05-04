@@ -16,10 +16,14 @@ import { exportToExcel } from '../../../utils/exportUtils';
 import { appointmentService } from '../../../services/appointmentService';
 import type { Appointment } from '../../../types/appointment';
 import { toast } from 'sonner';
-import ExaminationModal from '../components/ExaminationModal';
 import PatientDetailsModal from '../components/PatientDetailsModal';
+import SpecialistQueue from '../components/SpecialistQueue';
+import ExaminationModal from '../components/ExaminationModal';
+import { doctorService } from '../../../services/doctorService';
+import type { Doctor } from '../../../types/doctor';
 import { formatDate } from '../../../utils/format';
 import { cn } from '../../../lib/utils';
+import type { MedicalRecord } from '../../../types/medicalRecord';
 
 const DoctorAppointments: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -27,6 +31,9 @@ const DoctorAppointments: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'All' | 'Confirmed' | 'Waiting' | 'InProgress' | 'Completed'>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  const [doctorInfo, setDoctorInfo] = useState<Doctor | null>(null);
+  const [loadingDoctor, setLoadingDoctor] = useState(true);
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [viewingPatientId, setViewingPatientId] = useState<string | null>(null);
@@ -55,8 +62,24 @@ const DoctorAppointments: React.FC = () => {
   }, [filterDate]);
 
   useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
+    const fetchDoctor = async () => {
+      try {
+        const info = await doctorService.getMe();
+        setDoctorInfo(info);
+      } catch (err) {
+        console.error("Failed to load doctor profile:", err);
+      } finally {
+        setLoadingDoctor(false);
+      }
+    };
+    fetchDoctor();
+  }, []);
+
+  useEffect(() => {
+    if (doctorInfo?.isClinical) {
+      fetchAppointments();
+    }
+  }, [fetchAppointments, doctorInfo]);
 
   const filtered = React.useMemo(() => {
     return appointments.filter(a => {
@@ -85,6 +108,14 @@ const DoctorAppointments: React.FC = () => {
     }));
     exportToExcel(exportData, `Hang-Doi-Kham-${filterDate || 'All'}`, 'HangDoi');
   };
+
+  if (loadingDoctor) {
+    return <div className="py-20 text-center animate-pulse">Đang tải thông tin bác sĩ...</div>;
+  }
+
+  if (doctorInfo && !doctorInfo.isClinical) {
+    return <SpecialistQueue />;
+  }
 
   return (
     <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
@@ -248,7 +279,15 @@ const DoctorAppointments: React.FC = () => {
   );
 };
 
-const FilterButton = ({ active, onClick, label, count, color = "indigo" }: any) => (
+interface FilterButtonProps {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+  color?: string;
+}
+
+const FilterButton: React.FC<FilterButtonProps> = ({ active, onClick, label, count, color = "indigo" }) => (
   <button
     onClick={onClick}
     className={cn(
@@ -284,6 +323,8 @@ const getStatusLabel = (status: string) => {
     case 'Waiting': return 'Sẵn sàng';
     case 'InProgress': return 'Đang khám';
     case 'Completed': return 'Đã Xong';
+    case 'Cancelled': return 'Đã Hủy';
+    case 'Pending': return 'Chờ xử lý';
     default: return status;
   }
 };

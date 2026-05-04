@@ -35,7 +35,7 @@ const getBookingData = () => {
 
   return {
     code: localStorage.getItem('bookingCode') || 'CF-' + Date.now(),
-    specialty: localStorage.getItem('selectedSpecialtyName') || localStorage.getItem('selectedDoctorSub') || 'Chuyên khoa',
+    specialty: localStorage.getItem('selectedSpecialtyName') || localStorage.getItem('selectedDoctorSub') || 'Khám lâm sàng',
     doctor: localStorage.getItem('selectedDoctorName') || 'Bác sĩ',
     doctorSub: localStorage.getItem('selectedDoctorSub') || '',
     date: localStorage.getItem('selectedDisplayDate') || 'Ngày khám',
@@ -83,9 +83,9 @@ const BookingSuccess = () => {
             <div className={styles.stepperHeader}>
               <div>
                 <span className={styles.stepperBadge}>✅ Đặt lịch thành công</span>
-                <h3 className={styles.stepperTitle}>Bước 5: Xác Nhận</h3>
+                <h3 className={styles.stepperTitle}>Bước 4: Xác Nhận</h3>
               </div>
-              <span className={styles.stepperCount}>5 / 5 Hoàn tất 🎉</span>
+              <span className={styles.stepperCount}>4 / 4 Hoàn tất 🎉</span>
             </div>
 
             <div className={styles.progressBar}>

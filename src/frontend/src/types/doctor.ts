@@ -2,8 +2,9 @@ export interface Doctor {
   id: string;
   avatarUrl?: string;
   fullName: string;
-  specialtyId: string;
-  specialtyName: string;
+  specialtyId?: string;
+  specialtyName?: string;
+  isClinical: boolean;
   academicTitle: string;
   position: string;
   description: string;
@@ -26,14 +27,14 @@ export interface Doctor {
 
 export interface CreateDoctorDTO {
   fullName: string;
-  specialtyId: string;
+  specialtyId?: string;
+  isClinical: boolean;
   academicTitle: string;
   position: string;
   description?: string;
   yearsOfExperience: number;
   phoneNumber: string;
   email: string;
-  userName: string;
   password: string;
   userId?: string;
 }
@@ -42,6 +43,7 @@ export interface CreateDoctorDTO {
 export interface UpdateDoctorDTO {
   fullName?: string;
   specialtyId?: string;
+  isClinical?: boolean;
   academicTitle?: string;
   position?: string;
   description?: string;
@@ -53,6 +55,7 @@ export interface UpdateDoctorDTO {
 export interface DoctorQueryParams {
   page?: number;
   pageSize?: number;
+  isClinical?: boolean;
   search?: string;
   specialtyId?: string;
   isActive?: boolean;

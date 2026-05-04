@@ -16,7 +16,6 @@ import DoctorsListPage from "../modules/home/pages/DoctorsListPage";
 import DoctorDetailsPage from "../modules/home/pages/DoctorDetailsPage";
 
 // Patient imports
-import SelectSpecialty from "../modules/patient/booking/SelectSpecialty";
 import SelectDoctor from "../modules/patient/booking/SelectDoctor";
 import SelectTime from "../modules/patient/booking/SelectTime";
 import PatientInfo from "../modules/patient/booking/PatientInfo";
@@ -44,6 +43,7 @@ import AdminBilling from "../modules/admin/pages/AdminBilling";
 import AdminReports from "../modules/admin/pages/AdminReports";
 import AdminSchedules from "../modules/admin/pages/AdminSchedules";
 import AdminSettings from "../modules/admin/pages/AdminSettings";
+import AdminServices from "../modules/admin/pages/AdminServices";
 import PaymentResultPage from "../modules/home/pages/PaymentResultPage";
 
 export const router = createBrowserRouter([
@@ -121,7 +121,7 @@ export const router = createBrowserRouter([
     path: "/patient/booking",
     element: (
       <ProtectedRoute>
-        <SelectSpecialty />
+        <SelectDoctor />
       </ProtectedRoute>
     ),
   },
@@ -246,6 +246,10 @@ export const router = createBrowserRouter([
       {
         path: "settings",
         element: <AdminSettings />,
+      },
+      {
+        path: "services",
+        element: <AdminServices />,
       },
     ],
   },

@@ -31,7 +31,7 @@ const AdminDoctors: React.FC = () => {
 
   const [query, setQuery] = useState<DoctorQueryParams>({
     page: 1,
-    pageSize: 8,
+    pageSize: 5,
     sortBy: "fullName",
     sortOrder: "asc",
   });
@@ -52,7 +52,7 @@ const AdminDoctors: React.FC = () => {
       ]);
 
       setDoctors(docRes?.items || []);
-      setTotalItems(docRes?.totalCount || 0);
+      setTotalItems(docRes?.totalItems || 0);
       setSpecialties(specRes || []);
     } catch (error) {
       toast.error("Không thể lấy dữ liệu bác sĩ");
@@ -99,13 +99,14 @@ const AdminDoctors: React.FC = () => {
       const matchedSpec = specialties.find(s => s.name === doctor.specialtyName);
       setFormData({
         fullName: doctor.fullName,
-        specialtyId: matchedSpec?.id || "",
+        specialtyId: matchedSpec?.id || undefined,
         academicTitle: doctor.academicTitle,
         position: doctor.position,
         description: doctor.description,
         yearsOfExperience: doctor.yearsOfExperience,
         phoneNumber: doctor.phoneNumber,
-        email: doctor.email || ""
+        email: doctor.email || "",
+        isClinical: doctor.isClinical
       });
       setAvatarFile(null);
       setAvatarPreviewUrl(doctor.avatarUrl || null);
@@ -113,15 +114,15 @@ const AdminDoctors: React.FC = () => {
       setSelectedDoctor(null);
       setFormData({
         fullName: "",
-        specialtyId: specialties.length > 0 ? specialties[0].id : "",
+        specialtyId: specialties.length > 0 ? specialties[0].id : undefined,
         academicTitle: "",
         position: "",
         description: "",
         yearsOfExperience: 0,
         phoneNumber: "",
         email: "",
-        userName: "",
-        password: ""
+        password: "",
+        isClinical: true
       });
       setAvatarFile(null);
       setAvatarPreviewUrl(null);
@@ -131,8 +132,8 @@ const AdminDoctors: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      if (!formData.fullName || !formData.specialtyId || !formData.phoneNumber) {
-        toast.error("Vui lòng điền các trường bắt buộc (Tên, Chuyên khoa, SĐT)");
+      if (!formData.fullName || (!formData.isClinical && !formData.specialtyId) || !formData.phoneNumber || !formData.academicTitle || !formData.position || !formData.email) {
+        toast.error("Vui lòng điền đầy đủ các trường bắt buộc có dấu *");
         return;
       }
       if (selectedDoctor) {
@@ -142,8 +143,8 @@ const AdminDoctors: React.FC = () => {
         }
         toast.success("Cập nhật bác sĩ thành công");
       } else {
-        if (!formData.userName || !formData.password || !formData.email) {
-          toast.error("Thêm mới bác sĩ yêu cầu Username, Password và Email");
+        if (!formData.password) {
+          toast.error("Thêm mới bác sĩ yêu cầu Mật khẩu");
           return;
         }
         const createdDoctor = await doctorService.create(formData as CreateDoctorDTO);
@@ -160,7 +161,7 @@ const AdminDoctors: React.FC = () => {
   };
 
   const currentPage = Math.max(query.page || 1, 1);
-  const pageSize = Math.max(query.pageSize || 8, 1);
+  const pageSize = Math.max(query.pageSize || 5, 1);
   const safeTotalItems = Math.max(Number(totalItems) || 0, 0);
   const totalPages = Math.max(1, Math.ceil(safeTotalItems / pageSize));
 
@@ -248,6 +249,7 @@ const AdminDoctors: React.FC = () => {
                 <tr>
                   <th className="px-6 py-4 text-xs font-black text-slate-700">Bác sĩ</th>
                   <th className="px-6 py-4 text-xs font-black text-slate-700">Chuyên khoa</th>
+                  <th className="px-6 py-4 text-xs font-black text-slate-700">Loại Bác sĩ</th>
                   <th className="px-6 py-4 text-xs font-black text-slate-700">Liên hệ</th>
                   <th className="px-6 py-4 text-xs font-black text-slate-700 text-center">Kinh nghiệm</th>
                   <th className="px-6 py-4 text-xs font-black text-slate-700 text-center">Trạng thái</th>
@@ -288,7 +290,16 @@ const AdminDoctors: React.FC = () => {
 
                     <td className="px-6 py-4">
                       <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">
-                        {doc.specialtyName}
+                        {doc.specialtyName || "N/A"}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "text-xs font-bold px-2 py-1 rounded-md",
+                        doc.isClinical ? "text-emerald-600 bg-emerald-50" : "text-amber-600 bg-amber-50"
+                      )}>
+                        {doc.isClinical ? "Khám Lâm sàng" : "Chuyên khoa"}
                       </span>
                     </td>
 
@@ -493,15 +504,6 @@ const AdminDoctors: React.FC = () => {
                 {!selectedDoctor && (
                   <>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tên đăng nhập <span className="text-rose-500">*</span></label>
-                      <input
-                        type="text"
-                        value={formData.userName || ''}
-                        onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
-                        className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 placeholder:text-slate-400 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mật khẩu <span className="text-rose-500">*</span></label>
                       <input
                         type="password"
@@ -513,22 +515,52 @@ const AdminDoctors: React.FC = () => {
                   </>
                 )}
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chuyên khoa <span className="text-rose-500">*</span></label>
-                  <select
-                    value={formData.specialtyId || ''}
-                    onChange={(e) => setFormData({ ...formData, specialtyId: e.target.value })}
-                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                  >
-                    <option value="" disabled>Chọn chuyên khoa</option>
-                    {specialties.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                <div className="space-y-1.5 md:col-span-2 flex flex-col md:flex-row md:items-center gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Loại Bác sĩ</label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, isClinical: true, specialtyId: undefined })}
+                        className={cn(
+                          "px-3 py-1.5 rounded-md text-xs font-bold transition-all",
+                          formData.isClinical ? "bg-indigo-600 text-white" : "bg-white text-slate-500 border border-slate-200"
+                        )}
+                      >
+                        Khám Lâm sàng
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, isClinical: false })}
+                        className={cn(
+                          "px-3 py-1.5 rounded-md text-xs font-bold transition-all",
+                          !formData.isClinical ? "bg-indigo-600 text-white" : "bg-white text-slate-500 border border-slate-200"
+                        )}
+                      >
+                        Khám Chuyên khoa
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
+                {!formData.isClinical && (
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chuyên khoa <span className="text-rose-500">*</span></label>
+                    <select
+                      value={formData.specialtyId || ''}
+                      onChange={(e) => setFormData({ ...formData, specialtyId: e.target.value })}
+                      className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                    >
+                      <option value="" disabled>Chọn chuyên khoa</option>
+                      {specialties.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Email {(!selectedDoctor ? <span className="text-rose-500">*</span> : null)}</label>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Email <span className="text-rose-500">*</span></label>
                   <input
                     type="email"
                     value={formData.email || ''}
@@ -559,7 +591,7 @@ const AdminDoctors: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Học hàm / Học vị</label>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Học hàm / Học vị <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
                     value={formData.academicTitle || ''}
@@ -570,7 +602,7 @@ const AdminDoctors: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chức vụ</label>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chức vụ <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
                     value={formData.position || ''}

@@ -12,7 +12,8 @@ import {
   CalendarClock, 
   Settings,
   UserPlus,
-  ChevronRight
+  ChevronRight,
+  Microscope
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 
@@ -31,6 +32,7 @@ const navItems = [
   { icon: CreditCard, label: 'Hóa đơn', path: '/admin/billing' },
   { icon: BarChart3, label: 'Doanh thu', path: '/admin/reports' },
   { icon: CalendarClock, label: 'Lịch trực', path: '/admin/schedule' },
+  { icon: Microscope, label: 'Quản lý Dịch vụ', path: '/admin/services' },
   { icon: Settings, label: 'Cài đặt', path: '/admin/settings' },
 ];
 

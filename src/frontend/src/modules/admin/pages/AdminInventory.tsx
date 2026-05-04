@@ -25,7 +25,7 @@ const AdminInventory: React.FC = () => {
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [query, setQuery] = useState<StockQueryParams>({
     page: 1,
-    pageSize: 10,
+    pageSize: 5,
     sortBy: 'medicineName',
     sortDir: 'asc'
   });
@@ -50,7 +50,7 @@ const AdminInventory: React.FC = () => {
         isLowStock: showLowStockOnly || undefined
       });
       setStocks(res.items);
-      setTotalItems(res.totalCount);
+      setTotalItems(res.totalItems);
     } catch (error) {
       toast.error('Không thể lấy danh sách kho thuốc');
     } finally {
@@ -318,7 +318,7 @@ const AdminInventory: React.FC = () => {
         {/* Pagination */}
         <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
           <p className="text-xs font-semibold text-slate-500">
-            Trang {query.page} / {Math.ceil(totalItems / (query.pageSize || 10))}
+            Trang {query.page} / {Math.ceil(totalItems / (query.pageSize || 5))}
           </p>
           <div className="flex gap-1">
             <button
@@ -330,7 +330,7 @@ const AdminInventory: React.FC = () => {
             </button>
             <button
               onClick={() => setQuery({ ...query, page: (query.page || 1) + 1 })}
-              disabled={stocks.length < (query.pageSize || 10)}
+              disabled={stocks.length < (query.pageSize || 5)}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-30"
             >
               <ChevronRight className="h-4 w-4" />

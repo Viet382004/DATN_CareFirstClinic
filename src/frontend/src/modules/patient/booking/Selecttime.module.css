@@ -139,10 +139,12 @@
 .timePeriod { margin-bottom:.875rem; }
 .timePeriodLabel { display:flex; align-items:center; gap:.35rem; font-size:.68rem; font-weight:700; color:var(--gray-400); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.45rem; }
 .timeSlotGrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(65px,1fr)); gap:.35rem; }
-.timeSlot { padding:.45rem .2rem; background:var(--gray-50); border:1.5px solid var(--gray-200); border-radius:var(--radius-md); font-size:.75rem; font-weight:600; color:var(--gray-700); cursor:pointer; transition:var(--transition); text-align:center; font-family:inherit; }
+.timeSlot { position:relative; padding:.45rem .2rem; background:var(--gray-50); border:1.5px solid var(--gray-200); border-radius:var(--radius-md); font-size:.75rem; font-weight:600; color:var(--gray-700); cursor:pointer; transition:var(--transition); text-align:center; font-family:inherit; }
 .timeSlot:hover:not(.timeSlotBooked):not(.timeSlotSelected) { border-color:var(--primary); color:var(--primary); background:var(--primary-soft); }
 .timeSlotSelected { background:var(--gradient-primary) !important; border-color:transparent !important; color:var(--white) !important; box-shadow:var(--shadow-sm); }
 .timeSlotBooked { background:var(--gray-100); border-color:var(--gray-200); color:var(--gray-300); cursor:not-allowed; text-decoration:line-through; }
+.timeSlotDisabled { opacity: 0.4; cursor: not-allowed !important; filter: grayscale(1); pointer-events: none; }
+.bookedBadge { position: absolute; top: -6px; right: -6px; background: var(--danger); color: white; font-size: 7px; padding: 1px 4px; border-radius: 4px; font-weight: 800; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); }
 
 /* Legend */
 .timeSlotLegend { display:flex; gap:.875rem; margin-top:.75rem; padding-top:.75rem; border-top:1px solid var(--gray-100); }

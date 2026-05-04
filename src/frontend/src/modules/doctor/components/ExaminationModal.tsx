@@ -11,6 +11,8 @@ import { prescriptionService } from '../../../services/prescriptionService';
 import type { CreatePrescriptionDetailDTO } from '../../../types/prescription';
 import { stockService } from '../../../services/stockService';
 import type { Stock } from '../../../types/stock';
+import { serviceOrderService } from '../../../services/serviceOrderService';
+import type { Service, ServiceOrder } from '../../../types/serviceOrder';
 import { toast } from 'sonner';
 import type { Appointment } from '../../../types/appointment';
 import { formatDate } from '../../../utils/format';
@@ -37,28 +39,36 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
   const [searchingMedicines, setSearchingMedicines] = useState(false);
   const [medicineSearch, setMedicineSearch] = useState('');
 
+  // Service search state
+  const [serviceSearch, setServiceSearch] = useState('');
+
   // Form states
   const [recordForm, setRecordForm] = useState<CreateMedicalRecordDTO>({
     appointmentId: appointment.id,
     diagnosis: '',
     symptoms: '',
-    bloodPressure: undefined,
-    heartRate: undefined,
-    temperature: undefined,
-    weight: undefined,
-    height: undefined,
+
     notes: '',
     followUpDate: undefined,
   });
 
   const [prescriptionDetails, setPrescriptionDetails] = useState<(CreatePrescriptionDetailDTO & { medicineName?: string; unit?: string; unitPrice?: number })[]>([]);
 
+  // Services State
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [existingServiceOrders, setExistingServiceOrders] = useState<ServiceOrder[]>([]);
+
   // Calculate Total Billing
   const medicineTotal = useMemo(
     () => prescriptionDetails.reduce((sum, item) => sum + (item.quantity * (item.unitPrice || 0)), 0),
     [prescriptionDetails]
   );
-  const totalAmount = useMemo(() => medicineTotal + (appointment.consultationFee || 0), [medicineTotal, appointment.consultationFee]);
+  const serviceTotal = useMemo(() => {
+    return existingServiceOrders.reduce((sum, order) => sum + (order.priceAtOrder || 0), 0);
+  }, [existingServiceOrders]);
+
+  const totalAmount = useMemo(() => medicineTotal + (appointment.consultationFee || 0) + serviceTotal, [medicineTotal, appointment.consultationFee, serviceTotal]);
 
   // Check if editable (within 24h)
   const isEditable = useMemo(() => {
@@ -102,11 +112,6 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
         appointmentId: appointment.id,
         diagnosis: record.diagnosis || '',
         symptoms: record.symptoms || '',
-        bloodPressure: record.bloodPressure,
-        heartRate: record.heartRate,
-        temperature: record.temperature,
-        weight: record.weight,
-        height: record.height,
         notes: record.notes || '',
         followUpDate: record.followUpDate
           ? record.followUpDate.split('T')[0]
@@ -140,10 +145,25 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
     }
   }, [appointment.id]);
 
+  const loadServicesAndOrders = useCallback(async () => {
+    try {
+      const services = await serviceOrderService.getAvailableServices();
+      setAvailableServices(services.filter(s => s.isActive));
+
+      const orders = await serviceOrderService.getOrdersByAppointmentId(appointment.id);
+      setExistingServiceOrders(orders);
+      
+      // Select orders that are pending
+      setSelectedServices(orders.map(o => o.serviceId));
+    } catch (error) {
+      console.error("Failed to load services or orders", error);
+    }
+  }, [appointment.id]);
+
   const searchMedicines = useCallback(async (q: string) => {
     try {
       setSearchingMedicines(true);
-      const res = await stockService.getList({ name: q, pageSize: 10, isActive: true });
+      const res = await stockService.getList({ name: q, pageSize: 5, isActive: true });
       const items = (res as any).items || [];
       setMedicines(items);
     } catch (error) {
@@ -156,7 +176,8 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
   useEffect(() => {
     fetchHistory();
     loadExistingRecord();
-  }, [fetchHistory, loadExistingRecord]);
+    loadServicesAndOrders();
+  }, [fetchHistory, loadExistingRecord, loadServicesAndOrders]);
 
   useEffect(() => {
     if (medicineSearch) {
@@ -203,10 +224,41 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
     );
   };
 
+  const handleSaveServices = async () => {
+    if (!isEditable) return;
+    const newServiceIds = selectedServices.filter(id => !existingServiceOrders.some(o => o.serviceId === id));
+    
+    if (newServiceIds.length === 0) {
+      return toast.info("Không có dịch vụ mới nào được chọn.");
+    }
+
+    try {
+      setSubmitting(true);
+      await serviceOrderService.orderServices(appointment.id, newServiceIds);
+      toast.success("Đã lưu và gửi chỉ định dịch vụ thành công!");
+      await loadServicesAndOrders();
+    } catch (err) {
+      console.error(err);
+      toast.error("Lỗi khi chỉ định dịch vụ.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!isEditable) return;
+    
     if (!recordForm.diagnosis?.trim()) {
       return toast.error("Vui lòng nhập chẩn đoán bệnh.");
+    }
+
+    if (prescriptionDetails.length === 0) {
+      return toast.error("Vui lòng kê đơn thuốc trước khi hoàn tất ca khám.");
+    }
+
+    const hasPendingServices = existingServiceOrders.some(o => o.status !== 'Completed' && o.status !== 'Cancelled');
+    if (hasPendingServices) {
+      return toast.error("Các dịch vụ đã chỉ định chưa có kết quả. Vui lòng đợi hoàn tất trước khi kết thúc ca khám.");
     }
 
     try {
@@ -216,11 +268,6 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
         appointmentId: recordForm.appointmentId,
         diagnosis: recordForm.diagnosis.trim(),
         symptoms: recordForm.symptoms?.trim() || undefined,
-        bloodPressure: recordForm.bloodPressure,
-        heartRate: recordForm.heartRate,
-        temperature: recordForm.temperature,
-        weight: recordForm.weight,
-        height: recordForm.height,
         notes: recordForm.notes?.trim() || undefined,
         followUpDate: recordForm.followUpDate,
       };
@@ -233,11 +280,6 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
           return (
             payload.diagnosis !== existingRecord.diagnosis ||
             payload.symptoms !== existingRecord.symptoms ||
-            payload.bloodPressure !== existingRecord.bloodPressure ||
-            payload.heartRate !== existingRecord.heartRate ||
-            payload.temperature !== existingRecord.temperature ||
-            payload.weight !== existingRecord.weight ||
-            payload.height !== existingRecord.height ||
             payload.notes !== existingRecord.notes ||
             payload.followUpDate !== existingRecord.followUpDate?.split('T')[0]
           );
@@ -297,8 +339,31 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
 
       await appointmentService.updateMedicineFee(appointment.id, medicineTotal);
 
+      // Save service orders if changed (only add new ones)
+      const newServiceIds = selectedServices.filter(id => !existingServiceOrders.some(o => o.serviceId === id));
+      if (newServiceIds.length > 0) {
+        try {
+          await serviceOrderService.orderServices(appointment.id, newServiceIds);
+          console.log('Ordered new services:', newServiceIds);
+        } catch (err) {
+          console.error('Failed to order services', err);
+          toast.error("Lỗi khi chỉ định dịch vụ.");
+        }
+      }
+
+      // Chuyển trạng thái Appointment thành Completed
       if (appointment.status !== 'Completed') {
-        await appointmentService.complete(appointment.id);
+        try {
+          // Nếu đang ở trạng thái Waiting (chưa nhấn Bắt đầu khám), thì phải Start trước
+          if (appointment.status === 'Waiting') {
+            await appointmentService.startExamination(appointment.id);
+          }
+          await appointmentService.complete(appointment.id);
+          console.log('Appointment completed successfully');
+        } catch (statusError) {
+          console.error('Failed to update appointment status:', statusError);
+          // Vẫn cho qua nếu record đã lưu, nhưng cảnh báo
+        }
       }
 
       toast.success(existingRecord ? "Cập nhật kết quả thành công!" : "Hoàn tất ca khám thành công!");
@@ -360,17 +425,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
               {/* LEFT: Examination Forms */}
               <div id="clinical-work-area" className="flex-1 overflow-y-auto p-6 scrollbar-thin space-y-8 bg-slate-50/30">
 
-                {/* Vitals Section */}
-                <section>
-                  <SectionTitle icon={<Activity className="text-rose-500" />} title="Chỉ số sinh tồn" />
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
-                    <VitalInput label="Huyết áp" unit="mmHg" value={recordForm.bloodPressure} onChange={v => setRecordForm({ ...recordForm, bloodPressure: v })} disabled={!isEditable} />
-                    <VitalInput label="Nhịp tim" unit="bpm" value={recordForm.heartRate} onChange={v => setRecordForm({ ...recordForm, heartRate: v })} disabled={!isEditable} />
-                    <VitalInput label="Nhiệt độ" unit="°C" value={recordForm.temperature} onChange={v => setRecordForm({ ...recordForm, temperature: v })} disabled={!isEditable} />
-                    <VitalInput label="Cân nặng" unit="kg" value={recordForm.weight} onChange={v => setRecordForm({ ...recordForm, weight: v })} disabled={!isEditable} />
-                    <VitalInput label="Chiều cao" unit="cm" value={recordForm.height} onChange={v => setRecordForm({ ...recordForm, height: v })} disabled={!isEditable} />
-                  </div>
-                </section>
+
 
                 {/* Clinical Findings */}
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -393,6 +448,131 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
                       className="w-full h-32 p-4 text-xs font-black border border-indigo-100 rounded-sm bg-indigo-50/10 focus:ring-1 focus:ring-indigo-500 outline-none transition-all resize-none text-indigo-900"
                       disabled={!isEditable}
                     />
+                  </div>
+                </section>
+
+                {/* Service Orders Section */}
+                <section>
+                  <div className="flex justify-between items-end mb-4">
+                    <SectionTitle icon={<Activity className="text-blue-500" />} title="Chỉ định dịch vụ / Xét nghiệm" />
+                    <div className="flex gap-2 items-center">
+                      <div className="relative w-48">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                        <input
+                          type="text"
+                          placeholder="Tìm dịch vụ..."
+                          className="w-full pl-9 pr-4 py-1.5 text-[10px] font-bold border border-slate-200 rounded-sm outline-none focus:border-indigo-500"
+                          value={serviceSearch}
+                          onChange={e => setServiceSearch(e.target.value)}
+                        />
+                      </div>
+                      {isEditable && (
+                        <button 
+                          onClick={handleSaveServices}
+                          disabled={submitting}
+                          className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase rounded-sm shadow-sm transition-all whitespace-nowrap disabled:opacity-50"
+                        >
+                          Lưu & Gửi chỉ định
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded-sm p-4">
+                    {availableServices.length === 0 ? (
+                      <div className="py-8 text-center border border-dashed border-slate-200 rounded-sm">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+                          Không tìm thấy dịch vụ/xét nghiệm nào khả dụng.
+                        </p>
+                        <p className="text-[9px] text-slate-300 mt-1">Vui lòng cấu hình dịch vụ trong trang quản trị.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {availableServices
+                          .filter(s => s.name.toLowerCase().includes(serviceSearch.toLowerCase()))
+                          .map(service => {
+                          const order = existingServiceOrders.find(o => o.serviceId === service.id);
+                          const isOrdered = !!order;
+                          const isSelected = selectedServices.includes(service.id);
+                          return (
+                            <div key={service.id} className="flex flex-col gap-2">
+                              <label 
+                                className={cn(
+                                  "flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-all",
+                                  isSelected ? "bg-indigo-50 border-indigo-200" : "bg-slate-50 border-slate-200 hover:border-indigo-300",
+                                  isOrdered ? "opacity-75" : ""
+                                )}
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="mt-1"
+                                  checked={isSelected}
+                                  disabled={isOrdered || !isEditable}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedServices(prev => [...prev, service.id]);
+                                    } else {
+                                      setSelectedServices(prev => prev.filter(id => id !== service.id));
+                                    }
+                                  }}
+                                />
+                                <div className="flex-1">
+                                  <p className="text-[11px] font-black text-slate-800">{service.name}</p>
+                                  <p className="text-[10px] font-bold text-slate-500">{service.price.toLocaleString('vi-VN')}đ</p>
+                                  {isOrdered && (
+                                    <span className={cn(
+                                      "text-[9px] font-black mt-1 uppercase block",
+                                      order.status === 'Completed' ? "text-emerald-600" : "text-amber-600"
+                                    )}>
+                                      {order.status === 'Completed' ? 'Đã có kết quả' : 'Đang xử lý / Chờ'}
+                                    </span>
+                                  )}
+                                </div>
+                              </label>
+
+                              {isOrdered && order.status === 'Completed' && order.resultData && (
+                                <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-md text-[10px]">
+                                  <p className="font-black text-emerald-800 mb-2 uppercase flex items-center gap-1">
+                                    <Activity size={12} /> Kết quả xét nghiệm
+                                  </p>
+                                  <div className="space-y-3">
+                                    {(() => {
+                                      try {
+                                        const data = JSON.parse(order.resultData);
+                                        const conclusion = data.specialistConclusion;
+                                        const fields = Object.entries(data).filter(([k]) => k !== 'specialistConclusion');
+
+                                        return (
+                                          <>
+                                            {fields.length > 0 && (
+                                              <ul className="space-y-1">
+                                                {fields.map(([k, v]) => (
+                                                  <li key={k} className="flex justify-between border-b border-emerald-100/30 pb-0.5 items-end">
+                                                    <span className="text-emerald-700 font-bold">{k}:</span>
+                                                    <span className="text-emerald-900 font-black ml-2 text-right">{String(v)}</span>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            )}
+                                            {conclusion && (
+                                              <div className="mt-2 p-2 bg-emerald-100/50 rounded border border-emerald-200">
+                                                <span className="text-[9px] font-black text-emerald-800 uppercase block mb-0.5">Kết luận chuyên môn:</span>
+                                                <p className="text-emerald-900 font-bold leading-tight">{conclusion}</p>
+                                              </div>
+                                            )}
+                                          </>
+                                        );
+                                      } catch (e) {
+                                        return <p className="text-emerald-900 font-black">{order.resultData}</p>;
+                                      }
+                                    })()}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </section>
 
@@ -535,6 +715,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
                     <div className="space-y-4">
                       <BillingItem label="Phí khám bệnh" value={appointment.consultationFee || 0} />
                       <BillingItem label={`Hạng mục thuốc (${prescriptionDetails.length})`} value={medicineTotal} />
+                      <BillingItem label={`Dịch vụ cận lâm sàng (${existingServiceOrders.length})`} value={serviceTotal} />
 
                       <div className="pt-4 border-t border-slate-100 mt-4">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tổng cộng dự kiến</p>
@@ -579,7 +760,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
                       isEditable ? "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]" : "bg-slate-300 cursor-not-allowed"
                     )}
                   >
-                    {submitting ? 'ĐANG XỬ LÝ...' : (appointment.status === 'InProgress' ? 'XÁC NHẬN & HOÀN TẤT CA KHÁM' : 'CẬP NHẬT KẾT QUẢ')}
+                    {submitting ? 'ĐANG XỬ LÝ...' : (appointment.status === 'Completed' ? 'CẬP NHẬT KẾT QUẢ' : 'XÁC NHẬN & HOÀN TẤT KHÁM')}
                     <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </button>
 
@@ -625,7 +806,14 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
 };
 
 // UI HELPER COMPONENTS
-const HeaderInfoItem = ({ icon, label, value, status }: any) => (
+interface HeaderInfoItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  status?: boolean;
+}
+
+const HeaderInfoItem: React.FC<HeaderInfoItemProps> = ({ icon, label, value, status }) => (
   <div className="flex items-center gap-3">
     <div className="p-2 bg-slate-100 text-slate-400 rounded-sm italic">{icon}</div>
     <div>
@@ -635,14 +823,27 @@ const HeaderInfoItem = ({ icon, label, value, status }: any) => (
   </div>
 );
 
-const SectionTitle = ({ icon, title }: any) => (
+interface SectionTitleProps {
+  icon: React.ReactNode;
+  title: string;
+}
+
+const SectionTitle: React.FC<SectionTitleProps> = ({ icon, title }) => (
   <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
     <span className="p-1 bg-white rounded-sm shadow-sm border border-slate-50">{icon}</span>
     <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">{title}</h3>
   </div>
 );
 
-const VitalInput = ({ label, unit, value, onChange, disabled }: any) => (
+interface VitalInputProps {
+  label: string;
+  unit: string;
+  value?: number;
+  onChange: (val?: number) => void;
+  disabled?: boolean;
+}
+
+const VitalInput: React.FC<VitalInputProps> = ({ label, unit, value, onChange, disabled }) => (
   <div className="bg-white p-4 border border-slate-200 rounded-sm space-y-2 group focus-within:border-indigo-500 transition-colors">
     <div className="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-tight">
       <span>{label}</span>
@@ -723,14 +924,36 @@ const HistoryRecordItem = ({ record }: { record: MedicalRecord }) => {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">Thông số sinh tồn</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <VitalHistoryItem label="HA" value={record.bloodPressure} unit="mmHg" />
-                  <VitalHistoryItem label="T" value={record.temperature} unit="°C" />
-                  <VitalHistoryItem label="N" value={record.heartRate} unit="bpm" />
+
+
+              {(record as any).serviceResults && (record as any).serviceResults.length > 0 && (
+                <div>
+                  <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">Kết quả chuyên khoa / Cận lâm sàng</h4>
+                  <div className="space-y-3">
+                    {(record as any).serviceResults.map((res: any, idx: number) => {
+                      let parsedData = {};
+                      try { parsedData = JSON.parse(res.resultData || '{}'); } catch { parsedData = { 'Kết quả': res.resultData }; }
+                      return (
+                        <div key={idx} className="bg-white p-3 border border-slate-100 rounded-sm">
+                          <p className="text-[10px] font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 flex justify-between">
+                            {res.serviceName}
+                            <span className="text-[8px] text-slate-400 uppercase italic">Hoàn tất</span>
+                          </p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {Object.entries(parsedData).map(([key, val]: any) => (
+                              <div key={key} className="flex justify-between items-start text-[10px]">
+                                <span className="text-slate-500 font-bold">{key}:</span>
+                                <span className="text-slate-800 font-black text-right">{val}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
+
               {record.followUpDate && (
                 <div className="bg-white p-3 border border-indigo-100 rounded-sm">
                   <p className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter mb-1">Lịch tái khám</p>

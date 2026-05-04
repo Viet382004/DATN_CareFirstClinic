@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import type { CreateAppointmentDTO } from '../../../types/appointment';
 import { patientService } from '../../../services/patientService';
 import type { Patient } from '../../../types/patient';
-import { specialtyService } from '../../../services/specialtyService';
-import type { Specialty } from '../../../types/specialty';
 import { doctorService } from '../../../services/doctorService';
 import type { Doctor } from '../../../types/doctor';
 import { scheduleService } from '../../../services/scheduleService';
@@ -64,10 +62,8 @@ const WalkInBooking: React.FC = () => {
   };
 
   // Step 2: Booking Data
-  const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -79,28 +75,39 @@ const WalkInBooking: React.FC = () => {
 
   // ⭐ Service list (có thể fetch từ API hoặc hardcode)
   const services = [...SERVICE_TYPE_OPTIONS];
-  const [selectedService, setSelectedService] = useState<ServiceTypeOption | null>(null);
+  const [selectedService, setSelectedService] = useState<ServiceTypeOption | null>(services[0]);
 
   useEffect(() => {
-    specialtyService.getAll().then(setSpecialties);
+    // Không cần fetch chuyên khoa ở luồng tại quầy nữa
   }, []);
 
+  // Fetch clinical doctors on mount or when service changes
   useEffect(() => {
     let ignore = false;
 
-    if (selectedSpecialty) {
-      doctorService.getBySpecialty(selectedSpecialty).then(res => {
-        if (!ignore) setDoctors(res.items);
-      });
+    const fetchDoctors = async () => {
+      setLoading(true);
+      try {
+        // Fetch all clinical doctors (isClinical: true) like in online booking
+        const res = await doctorService.getList({ isClinical: true, page: 1, pageSize: 100 });
+        if (!ignore) {
+          setDoctors(res.items);
+        }
+      } catch (error) {
+        toast.error('Lỗi khi lấy danh sách bác sĩ');
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
 
-      setSelectedDoctor('');
-      setSelectedSlot('');
-    }
+    fetchDoctors();
+    setSelectedDoctor('');
+    setSelectedSlot('');
 
     return () => {
       ignore = true;
     };
-  }, [selectedSpecialty]);
+  }, [selectedService]); // Re-fetch if service changes, though usually it just affects metadata
 
   useEffect(() => {
     if (selectedDoctor && selectedDate) {
@@ -200,7 +207,7 @@ const WalkInBooking: React.FC = () => {
         const appointments = await appointmentService.getList({
           patientId: patientId,
           page: 1,
-          pageSize: 10
+          pageSize: 5
         });
 
         const existingAppointment = appointments.items?.find(
@@ -240,7 +247,16 @@ const WalkInBooking: React.FC = () => {
       }
 
       await paymentService.complete(payment.id);
-      toast.success('Thanh toán tiền mặt thành công, lịch hẹn đã được xác nhận!');
+
+      // ⭐ LUỒNG DẮT BÁC SĨ LÂM SÀNG: Sau khi thanh toán tiền mặt, tự động Check-in (Waiting)
+      try {
+        await appointmentService.toWaiting(appointment.id);
+        toast.success('Thanh toán thành công & Bệnh nhân đã được đưa vào hàng đợi khám!');
+      } catch (checkinError) {
+        console.error('Check-in error:', checkinError);
+        toast.success('Thanh toán thành công, lịch hẹn đã được xác nhận!');
+      }
+
       setCurrentStep(3);
     } catch (error: any) {
       const msg = error?.message || error?.data?.message || 'Lỗi khi thanh toán tiền mặt';
@@ -333,7 +349,15 @@ const WalkInBooking: React.FC = () => {
           if (status.status === 'Completed') {
             sessionStorage.removeItem('pendingOrderId');
             sessionStorage.removeItem('pendingAppointmentId');
-            toast.success('Thanh toán VNPay thành công!');
+
+            // ⭐ LUỒNG DẮT BÁC SĨ LÂM SÀNG: Sau khi VNPay thành công, tự động Check-in (Waiting)
+            try {
+              await appointmentService.toWaiting(pendingAppointmentId);
+              toast.success('Thanh toán VNPay thành công & Bệnh nhân đã được đưa vào hàng đợi khám!');
+            } catch (checkinError) {
+              toast.success('Thanh toán VNPay thành công!');
+            }
+
             setCurrentStep(3);
           }
         } catch (error) {
@@ -467,108 +491,141 @@ const WalkInBooking: React.FC = () => {
   );
 
   const renderStep1 = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in slide-in-from-right-4 duration-300">
-      {/* Specialty */}
-      <div className="lg:col-span-1 space-y-3">
-        <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <Stethoscope className="h-4 w-4 text-indigo-600" />
-          Chuyên khoa
-        </label>
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-          {specialties.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedSpecialty(s.id)}
-              className={`w-full rounded-xl border p-3 text-left transition-all ${selectedSpecialty === s.id ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600/10' : 'border-slate-100 bg-white hover:border-slate-200'}`}
-            >
-              <p className="font-bold text-sm text-slate-900">{s.name}</p>
-              <p className="mt-1 text-xs text-slate-500 line-clamp-1">{s.description || '...'}</p>
-            </button>
-          ))}
+    <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left: Doctor Selection */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-tight">
+                <User className="h-4 w-4 text-indigo-600" />
+                1. Chọn Bác sĩ lâm sàng
+              </h3>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {doctors.length} bác sĩ sẵn sàng
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+              {doctors.map(d => (
+                <button
+                  key={d.id}
+                  onClick={() => setSelectedDoctor(d.id)}
+                  className={`group relative flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all ${selectedDoctor === d.id ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-600/5' : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'}`}
+                >
+                  {selectedDoctor === d.id && (
+                    <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+                      <Check className="h-3 w-3" />
+                    </div>
+                  )}
+                  <div className="h-14 w-14 rounded-2xl bg-slate-100 flex-shrink-0 flex items-center justify-center border border-slate-200 group-hover:scale-105 transition-transform">
+                    {d.avatarUrl ? (
+                      <img src={d.avatarUrl} alt={d.fullName} className="h-full w-full object-cover rounded-2xl" />
+                    ) : (
+                      <User className="h-7 w-7 text-slate-300" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-900 text-sm leading-tight">{d.fullName}</p>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">
+                      {d.academicTitle || 'Bác sĩ'}
+                    </p>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">{d.specialtyName || 'Đa khoa'}</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-sm font-black text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-tight">
+              <CreditCard className="h-4 w-4 text-indigo-600" />
+              2. Chọn loại hình thăm khám
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {services.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedService(s)}
+                  className={`relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all ${selectedService?.id === s.id ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-600/5' : 'border-slate-50 bg-slate-50 hover:border-slate-200'}`}
+                >
+                  <p className="font-black text-slate-900 text-xs uppercase tracking-tight">{s.name}</p>
+                  <p className="mt-2 font-black text-indigo-600 text-base">{s.consultationFee.toLocaleString()}đ</p>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Doctor */}
-      <div className="lg:col-span-1 space-y-3">
-        <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <User className="h-4 w-4 text-indigo-600" />
-          Bác sĩ
-        </label>
-        {!selectedSpecialty ? (
-          <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center bg-slate-50">
-            <p className="text-xs font-semibold text-slate-400">Chọn chuyên khoa trước</p>
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-            {doctors.map(d => (
-              <button
-                key={d.id}
-                onClick={() => setSelectedDoctor(d.id)}
-                className={`w-full flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${selectedDoctor === d.id ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600' : 'border-slate-100 bg-white hover:border-slate-200'}`}
-              >
-                <div className="h-10 w-10 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center">
-                  <User className="h-5 w-5 text-slate-400" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 text-sm">{d.fullName}</p>
-                  <p className="text-[10px] font-semibold text-slate-500">{d.academicTitle}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        {/* Right: Time Slot Selection */}
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-full flex flex-col">
+            <h3 className="text-sm font-black text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-tight">
+              <Clock className="h-4 w-4 text-indigo-600" />
+              3. Chọn Giờ khám
+            </h3>
 
-      {/* Time Slots */}
-      <div className="lg:col-span-1 space-y-3">
-        <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <Clock className="h-4 w-4 text-indigo-600" />
-          Giờ khám
-        </label>
-        {!selectedDoctor ? (
-          <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center bg-slate-50">
-            <p className="text-xs font-semibold text-slate-400">Chọn bác sĩ trước</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-2">
-            {slots.filter(s => !s.isBooked).map(s => (
-              <button
-                key={s.id}
-                onClick={() => setSelectedSlot(s.id)}
-                className={`rounded-lg border py-2 px-3 text-center text-xs font-bold transition-all ${selectedSlot === s.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-200 hover:text-indigo-600'}`}
-              >
-                {s.startTime.substring(0, 5)}
-              </button>
-            ))}
-            {slots.filter(s => !s.isBooked).length === 0 && (
-              <p className="col-span-2 text-center py-10 text-xs text-slate-400 italic">Hết slot khả dụng</p>
+            {!selectedDoctor ? (
+              <div className="flex-1 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 p-8 text-center bg-slate-50/50">
+                <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                  <User className="h-6 w-6 text-slate-300" />
+                </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
+                  Vui lòng chọn bác sĩ lâm sàng<br />để xem lịch khả dụng
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {slots.map(s => {
+                  const now = new Date();
+                  const [hours, minutes] = s.startTime.split(':').map(Number);
+                  const slotDate = new Date(selectedDate);
+                  slotDate.setHours(hours, minutes, 0, 0);
+                  
+                  const isPast = slotDate <= now;
+                  const isSelectable = !s.isBooked && !isPast;
+                  const isSelected = selectedSlot === s.id;
+
+                  return (
+                    <button
+                      key={s.id}
+                      disabled={!isSelectable}
+                      onClick={() => setSelectedSlot(s.id)}
+                      className={cn(
+                        "relative rounded-xl border-2 py-4 px-4 text-center text-sm font-black transition-all",
+                        isSelected 
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-100 scale-105 z-10" 
+                          : isSelectable
+                            ? "bg-white text-slate-600 border-slate-100 hover:border-indigo-200 hover:text-indigo-600 hover:translate-y-[-2px]"
+                            : "bg-slate-50 text-slate-300 border-slate-50 cursor-not-allowed opacity-40 grayscale"
+                      )}
+                    >
+                      {s.startTime.substring(0, 5)}
+                      {s.isBooked && (
+                        <div className="absolute top-1 right-1">
+                          <XCircle className="h-3 w-3 text-red-400" />
+                        </div>
+                      )}
+                      {isPast && !s.isBooked && (
+                        <div className="absolute top-1 right-1">
+                          <Clock className="h-3 w-3 text-slate-300" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+                {slots.length === 0 && (
+                  <div className="col-span-full text-center py-20 px-4">
+                    <Clock className="h-8 w-8 text-slate-200 mx-auto mb-3" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Bác sĩ chưa có lịch hẹn nào trong ngày</p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
-
-      {/* Dịch vụ & Giá tiền */}
-      <div className="lg:col-span-1 space-y-3">
-        <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-indigo-600" />
-          Dịch vụ & Giá tiền
-        </label>
-        <div className="space-y-2">
-          {services.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedService(s)}
-              className={`w-full rounded-xl border p-3 text-left transition-all ${selectedService?.id === s.id ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600/10' : 'border-slate-100 bg-white hover:border-slate-200'}`}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-sm text-slate-900">{s.name}</p>
-                  <p className="text-xs text-slate-500">{s.description}</p>
-                </div>
-                <p className="font-black text-indigo-600">{s.consultationFee.toLocaleString()}đ</p>
-              </div>
-            </button>
-          ))}
         </div>
       </div>
     </div>

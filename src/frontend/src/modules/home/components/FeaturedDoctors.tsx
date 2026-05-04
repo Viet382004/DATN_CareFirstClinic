@@ -16,7 +16,7 @@ export function FeaturedDoctors() {
       try {
         // Không set loading = true nếu đã có dữ liệu (chạy nền)
         if (doctors.length === 0) setLoading(true);
-        const res = await doctorService.getList({ page: 1, pageSize: 8 });
+        const res = await doctorService.getList({ page: 1, pageSize: 8, isClinical: true });
         setDoctors(res.items || []);
       } catch (error) {
         console.error("Failed to fetch doctors:", error);

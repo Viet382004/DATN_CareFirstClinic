@@ -206,52 +206,77 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patientId, on
                                                             </div>
                                                         </div>
 
+                                                    </div>
+
+                                                    {record.serviceResults && record.serviceResults.length > 0 && (
                                                         <div>
                                                             <h5 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                                <Activity size={12} className="text-rose-500" /> Chỉ số sinh tồn
+                                                                <Activity size={12} className="text-emerald-500" /> Kết quả Cận lâm sàng
                                                             </h5>
-                                                            <div className="grid grid-cols-3 gap-2">
-                                                                <VitalSmall label="Huyết áp" value={record.bloodPressure?.toString()} unit="mmHg" />
-                                                                <VitalSmall label="Nhịp tim" value={record.heartRate?.toString()} unit="bpm" />
-                                                                <VitalSmall label="Nhiệt độ" value={record.temperature?.toString()} unit="°C" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Prescription Details */}
-                                                    <div>
-                                                        <h5 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                            <Pill size={12} className="text-emerald-500" /> Đơn thuốc
-                                                        </h5>
-
-                                                        {!record.hasPrescription ? (
-                                                            <div className="bg-slate-50 p-4 rounded-lg text-center font-bold text-slate-400 text-[10px] uppercase">
-                                                                Không kê đơn thuốc
-                                                            </div>
-                                                        ) : loadingPrescription === record.id ? (
-                                                            <div className="py-8 text-center animate-pulse text-indigo-400 text-[10px] font-bold">ĐANG TẢI ĐƠN THUỐC...</div>
-                                                        ) : prescriptions[record.id] ? (
                                                             <div className="space-y-2">
-                                                                {prescriptions[record.id].details.map((med, idx) => (
-                                                                    <div key={idx} className="bg-emerald-50/30 border border-emerald-100 p-2.5 rounded-lg flex justify-between items-start gap-3">
-                                                                        <div className="flex-1">
-                                                                            <h6 className="text-[11px] font-bold text-slate-800">{med.medicineName}</h6>
-                                                                            <p className="text-[10px] text-slate-500 mt-0.5">{med.frequency} · {med.durationDays} ngày</p>
-                                                                            {med.instructions && <p className="text-[10px] text-indigo-600 italic mt-1">{med.instructions}</p>}
-                                                                        </div>
-                                                                        <div className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-100">
-                                                                            SL: {med.quantity}
-                                                                        </div>
+                                                                {record.serviceResults.map((res: any, idx: number) => (
+                                                                    <div key={idx} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                                                                        <h6 className="text-[11px] font-black text-indigo-700 mb-2 border-b border-slate-200 pb-1">{res.serviceName}</h6>
+                                                                        {res.resultData ? (
+                                                                            <ul className="space-y-1">
+                                                                                {(() => {
+                                                                                    try {
+                                                                                        const data = JSON.parse(res.resultData);
+                                                                                        return Object.entries(data).map(([k, v]) => (
+                                                                                            <li key={k} className="flex justify-between items-baseline">
+                                                                                                <span className="text-[10px] font-bold text-slate-500">{k}:</span>
+                                                                                                <span className="text-[10px] font-black text-slate-800 text-right max-w-[60%]">{String(v)}</span>
+                                                                                            </li>
+                                                                                        ));
+                                                                                    } catch {
+                                                                                        return <li className="text-[10px] font-medium text-slate-800">{res.resultData}</li>;
+                                                                                    }
+                                                                                })()}
+                                                                            </ul>
+                                                                        ) : (
+                                                                            <p className="text-[10px] text-slate-400 italic">Đang chờ kết quả...</p>
+                                                                        )}
                                                                     </div>
                                                                 ))}
-                                                                {prescriptions[record.id].notes && (
-                                                                    <p className="text-[10px] text-slate-400 mt-2 px-1 italic">
-                                                                        * {prescriptions[record.id].notes}
-                                                                    </p>
-                                                                )}
                                                             </div>
-                                                        ) : null}
-                                                    </div>
+                                                        </div>
+                                                    )}
+
+                                                </div>
+
+                                                {/* Prescription Details */}
+                                                <div>
+                                                    <h5 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                        <Pill size={12} className="text-emerald-500" /> Đơn thuốc
+                                                    </h5>
+
+                                                    {!record.hasPrescription ? (
+                                                        <div className="bg-slate-50 p-4 rounded-lg text-center font-bold text-slate-400 text-[10px] uppercase">
+                                                            Không kê đơn thuốc
+                                                        </div>
+                                                    ) : loadingPrescription === record.id ? (
+                                                        <div className="py-8 text-center animate-pulse text-indigo-400 text-[10px] font-bold">ĐANG TẢI ĐƠN THUỐC...</div>
+                                                    ) : prescriptions[record.id] ? (
+                                                        <div className="space-y-2">
+                                                            {prescriptions[record.id].details.map((med, idx) => (
+                                                                <div key={idx} className="bg-emerald-50/30 border border-emerald-100 p-2.5 rounded-lg flex justify-between items-start gap-3">
+                                                                    <div className="flex-1">
+                                                                        <h6 className="text-[11px] font-bold text-slate-800">{med.medicineName}</h6>
+                                                                        <p className="text-[10px] text-slate-500 mt-0.5">{med.frequency} · {med.durationDays} ngày</p>
+                                                                        {med.instructions && <p className="text-[10px] text-indigo-600 italic mt-1">{med.instructions}</p>}
+                                                                    </div>
+                                                                    <div className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-100">
+                                                                        SL: {med.quantity}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {prescriptions[record.id].notes && (
+                                                                <p className="text-[10px] text-slate-400 mt-2 px-1 italic">
+                                                                    * {prescriptions[record.id].notes}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         )}
@@ -279,14 +304,5 @@ const InfoItem = ({ icon, label, value }: any) => (
     </div>
 );
 
-const VitalSmall = ({ label, value, unit }: any) => (
-    <div className="bg-white border border-slate-200 p-2 rounded-lg text-center">
-        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">{label}</p>
-        <div className="flex items-baseline justify-center gap-0.5">
-            <span className="text-xs font-black text-slate-800">{value || '--'}</span>
-            <span className="text-[8px] font-bold text-slate-400">{unit}</span>
-        </div>
-    </div>
-);
 
 export default PatientDetailsModal;

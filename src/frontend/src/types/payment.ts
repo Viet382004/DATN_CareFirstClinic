@@ -5,7 +5,7 @@ export interface Payment {
   appointmentId: string;
   orderId: string;
   amount: number;
-  type: 'ConsultationFee' | 'MedicineFee';
+  type: 'ConsultationFee' | 'MedicineFee' | 'FullPayment';
   method: 'Cash' | 'CreditCard' | 'VNPay' | 'BankTransfer';
   status: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
   transactionId?: string;
@@ -18,7 +18,7 @@ export interface Payment {
 export interface CreatePaymentDTO {
   appointmentId: string;
   amount: number;
-  type: 'ConsultationFee' | 'MedicineFee';
+  type: 'ConsultationFee' | 'MedicineFee' | 'FullPayment';
   method: 'Cash' | 'CreditCard' | 'VNPay' | 'BankTransfer';
   notes?: string;
   patientId: string;

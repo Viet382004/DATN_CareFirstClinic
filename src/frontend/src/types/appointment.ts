@@ -8,7 +8,9 @@ export interface Appointment {
   specialtyName: string;
   serviceName?: string;
   consultationFee: number;
+  serviceFee: number;
   medicineFee: number;
+  depositAmount: number;
   isConsultationPaid: boolean;
   isMedicinePaid: boolean;
   // Backward-compatible fields used by older UI components

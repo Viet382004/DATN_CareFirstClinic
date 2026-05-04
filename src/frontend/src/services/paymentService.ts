@@ -93,6 +93,13 @@ export const paymentService = {
   },
 
   /**
+   * Tạo URL thanh toán VNPay cho toàn bộ chi phí (Khám + Dịch vụ + Thuốc)
+   */
+  async createVNPayFullPayment(appointmentId: string, patientId?: string): Promise<VNPayPaymentResponse> {
+    return apiPost('/vnpay/pay-full', { appointmentId, patientId });
+  },
+
+  /**
    * Kiểm tra trạng thái thanh toán theo OrderId
    * @param orderId - Mã đơn hàng VNPay
    */

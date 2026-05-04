@@ -15,6 +15,8 @@ export default function SpecialtyDetailsPage() {
   const [specialty, setSpecialty] = useState<Specialty | null>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
+  const [query, setQuery] = useState({ page: 1, pageSize: 5 });
 
   useEffect(() => {
     const fetchSpecialtyData = async () => {
@@ -23,10 +25,11 @@ export default function SpecialtyDetailsPage() {
         setLoading(true);
         const [specialtyData, doctorsData] = await Promise.all([
           specialtyService.getById(id),
-          doctorService.getBySpecialty(id, { page: 1, pageSize: 12 })
+          doctorService.getBySpecialty(id, { ...query })
         ]);
         setSpecialty(specialtyData);
         setDoctors(doctorsData.items || []);
+        setTotalItems(doctorsData.totalItems || 0);
       } catch (error) {
         console.error("Failed to fetch specialty details:", error);
       } finally {
@@ -34,7 +37,7 @@ export default function SpecialtyDetailsPage() {
       }
     };
     fetchSpecialtyData();
-  }, [id]);
+  }, [id, query]);
 
   if (loading) {
     return (
@@ -157,6 +160,29 @@ export default function SpecialtyDetailsPage() {
             <Users size={48} className="mx-auto text-slate-300 mb-4" />
             <p className="text-slate-500 font-medium text-lg">Hiện chưa có bác sĩ nào trong chuyên khoa này.</p>
             <Link to="/doctors" className="text-teal-600 font-bold mt-4 inline-block">Xem tất cả bác sĩ</Link>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && totalItems > 5 && (
+          <div className="mt-12 flex justify-center items-center gap-4">
+            <button
+              onClick={() => setQuery(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              disabled={query.page === 1}
+              className="px-6 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold disabled:opacity-30 hover:bg-slate-50 transition-all"
+            >
+              Trang trước
+            </button>
+            <span className="text-slate-500 font-bold text-sm">
+              Trang {query.page} / {Math.ceil(totalItems / query.pageSize)}
+            </span>
+            <button
+              onClick={() => setQuery(prev => ({ ...prev, page: prev.page + 1 }))}
+              disabled={query.page >= Math.ceil(totalItems / query.pageSize)}
+              className="px-6 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold disabled:opacity-30 hover:bg-slate-50 transition-all"
+            >
+              Trang sau
+            </button>
           </div>
         )}
       </main>
