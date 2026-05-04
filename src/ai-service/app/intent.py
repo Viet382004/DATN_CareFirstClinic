@@ -29,7 +29,6 @@ INTENTS = {
 def detect_intent(text: str) -> str:
     text_lower = text.lower()
     for intent, keywords in INTENTS.items():
-        # Check exact words or phrases
         if any(re.search(rf"\b{kw}\b", text_lower) for kw in keywords):
             return intent
     return "consultation"
@@ -47,12 +46,12 @@ def extract_booking_info(text: str) -> dict:
     if name_match:
         info["patient_name"] = name_match.group(1).strip()
 
-    # 2. Số điện thoại (giữ nguyên vì regex này khá chuẩn)
+    # 2. Số điện thoại
     phone_match = re.search(r'(0[3-9]\d{8})', text)
     if phone_match:
         info["phone"] = phone_match.group(1)
 
-    # 3. Ngày (xử lý thêm các từ khóa thông dụng)
+    # 3. Ngày
     date_match = re.search(r'(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?', text)
     if date_match:
         d, m = date_match.group(1), date_match.group(2)
@@ -75,14 +74,25 @@ def extract_booking_info(text: str) -> dict:
         if dt:
             info["date"] = dt.strftime("%Y-%m-%d")
 
-    # 4. Giờ (mở rộng để bắt "9h", "9 giờ", "09:00")
-    time_match = re.search(r'(\d{1,2}(?:[:\.]\d{2})?)\s*(?:giờ|h\b)', text_lower)
+    # 4. Giờ (mở rộng để bắt "9h", "9 giờ", "09:00", "9:30")
+    time_match = re.search(r'(\d{1,2})(?:[:\.h](\d{2}))?\s*(?:giờ|h\b)?', text_lower)
     if time_match:
-        time_str = time_match.group(1).replace('.', ':')
-        if ':' not in time_str:
-            time_str += ":00"
-        # Đảm bảo format hh:mm (ví dụ 9:00 -> 09:00)
-        parts = time_str.split(':')
-        info["time"] = f"{int(parts[0]):02d}:{parts[1]}"
-    
-    return info
+        h = int(time_match.group(1))
+        m = int(time_match.group(2) or 0)
+        if 7 <= h <= 19: # Giờ làm việc thông thường
+            info["time"] = f"{h:02d}:{m:02d}"
+
+    # 5. Bác sĩ / Chuyên khoa
+    # Tìm kiếm các từ khóa chuyên khoa phổ biến
+    specialties = ["nội", "ngoại", "nhi", "sản", "da liễu", "mắt", "tai mũi họng", "răng hàm mặt", "tâm thần", "tim mạch"]
+    for sp in specialties:
+        if sp in text_lower:
+            info["specialty"] = sp
+            break
+
+    # Tìm tên bác sĩ (Thường đi sau từ "bác sĩ" hoặc "bs")
+    doc_match = re.search(r'(?:bác sĩ|bs)\s+([A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐƠƯ][a-zàáâãèéêìíòóôõùúýăđơư\s]{1,30})', text)
+    if doc_match:
+        info["doctor_name"] = doc_match.group(1).strip()
+
+    return info

@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from .chat import process_message
-from .rag import build_index
+from chat import process_message
+from rag import build_index
 import os
 
 app = FastAPI(title="CareFirstClinic AI Service", version="1.0")
@@ -23,7 +23,8 @@ class ChatRequest(BaseModel):
 @app.on_event("startup")
 async def startup():
     """Build FAISS index khi khởi động nếu chưa có"""
-    faiss_path = "/app/data/faiss_index"
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    faiss_path = os.path.join(base_dir, "data", "faiss_index")
     if not os.path.exists(faiss_path):
         print("[startup] Building FAISS index...")
         build_index()

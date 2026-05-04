@@ -4,8 +4,9 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import Document
 
-FAISS_PATH = "/app/data/faiss_index"
-KB_PATH = "/app/data/knowledge_base.txt"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FAISS_PATH = os.path.join(BASE_DIR, "data", "faiss_index")
+KB_PATH = os.path.join(BASE_DIR, "data", "knowledge_base.txt")
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 _retriever = None  # cache singleton

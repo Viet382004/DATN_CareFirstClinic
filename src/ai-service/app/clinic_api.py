@@ -2,7 +2,7 @@ import httpx
 import os
 from typing import Optional, List, Dict, Any
 
-CSHARP_API = os.getenv("CSHARP_API_URL", "http://localhost:5000")
+CSHARP_API = os.getenv("CSHARP_API_URL", "http://localhost:5293")
 
 async def get_me(token: str) -> Optional[Dict[str, Any]]:
     """Lấy thông tin profile bệnh nhân từ token"""
