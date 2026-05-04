@@ -125,11 +125,14 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
         {
             ArgumentNullException.ThrowIfNull(doctor);
 
-            // 1. Kiểm tra SpecialtyId
-            var specialtyExists = await _context.Specialties
-                .AnyAsync(s => s.Id == doctor.SpecialtyId);
-            if (!specialtyExists)
-                throw new KeyNotFoundException($"Không tìm thấy chuyên khoa với Id: {doctor.SpecialtyId}");
+            // 1. Kiểm tra SpecialtyId nếu là bác sĩ chuyên khoa
+            if (!doctor.IsClinical && doctor.SpecialtyId.HasValue)
+            {
+                var specialtyExists = await _context.Specialties
+                    .AnyAsync(s => s.Id == doctor.SpecialtyId.Value);
+                if (!specialtyExists)
+                    throw new KeyNotFoundException($"Không tìm thấy chuyên khoa với Id: {doctor.SpecialtyId}");
+            }
 
             // 2. Xử lý User account
             if (doctor.User != null)
@@ -182,13 +185,16 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 throw new KeyNotFoundException(
                     $"Không tìm thấy bác sĩ với Id: {doctor.Id}");
 
-            // Điều kiện: SpecialtyId mới phải tồn tại
-            var specialtyExists = await _context.Specialties
-                .AnyAsync(s => s.Id == doctor.SpecialtyId);
+            // Điều kiện: SpecialtyId mới phải tồn tại (nếu là chuyên khoa)
+            if (!doctor.IsClinical && doctor.SpecialtyId.HasValue)
+            {
+                var specialtyExists = await _context.Specialties
+                    .AnyAsync(s => s.Id == doctor.SpecialtyId.Value);
 
-            if (!specialtyExists)
-                throw new KeyNotFoundException(
-                    $"Không tìm thấy chuyên khoa với Id: {doctor.SpecialtyId}");
+                if (!specialtyExists)
+                    throw new KeyNotFoundException(
+                        $"Không tìm thấy chuyên khoa với Id: {doctor.SpecialtyId}");
+            }
 
             try
             {
@@ -302,6 +308,10 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
             // lọc theo chuyên khoa
             if (query.SpecialtyId.HasValue)
                 q = q.Where(d => d.SpecialtyId == query.SpecialtyId.Value);
+
+            // lọc theo IsClinical
+            if (query.IsClinical.HasValue)
+                q = q.Where(d => d.IsClinical == query.IsClinical.Value);
 
             var total = await q.CountAsync();
 

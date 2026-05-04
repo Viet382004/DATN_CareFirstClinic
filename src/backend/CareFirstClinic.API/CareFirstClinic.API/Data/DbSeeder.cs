@@ -51,6 +51,7 @@ namespace CareFirstClinic.API.Data
                     Id = Guid.NewGuid(),
                     Email = "admin@clinic.com",
                     FullName = "System Admin",
+                    IsEmailVerified = true,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
                     RoleId = adminRole.Id,
                     IsActive = true,

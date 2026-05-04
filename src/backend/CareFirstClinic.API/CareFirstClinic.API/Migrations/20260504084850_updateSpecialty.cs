@@ -5,26 +5,25 @@
 namespace CareFirstClinic.API.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveUserNameInUser : Migration
+    public partial class updateSpecialty : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "UserName",
-                table: "Users");
+                name: "ConsultationFee",
+                table: "Specialties");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "UserName",
-                table: "Users",
-                type: "character varying(50)",
-                maxLength: 50,
+            migrationBuilder.AddColumn<decimal>(
+                name: "ConsultationFee",
+                table: "Specialties",
+                type: "numeric(18,2)",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: 0m);
         }
     }
 }

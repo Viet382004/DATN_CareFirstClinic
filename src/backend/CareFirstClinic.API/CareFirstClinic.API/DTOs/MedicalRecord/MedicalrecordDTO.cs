@@ -1,4 +1,6 @@
-﻿namespace CareFirstClinic.API.DTOs
+using CareFirstClinic.API.DTOs.ClinicalService;
+ 
+namespace CareFirstClinic.API.DTOs
 {
     public class MedicalRecordDTO
     {
@@ -11,11 +13,7 @@
 
         public string Diagnosis { get; set; } = string.Empty;
         public string? Symptoms { get; set; }
-        public float? BloodPressure { get; set; }
-        public float? HeartRate { get; set; }
-        public float? Temperature { get; set; }
-        public float? Weight { get; set; }
-        public float? Height { get; set; }
+
         public string? Notes { get; set; }
         public DateTime? FollowUpDate { get; set; }
 
@@ -24,5 +22,6 @@
 
         // Có đơn thuốc chưa
         public bool HasPrescription { get; set; }
+        public List<ServiceOrderDTO> ServiceResults { get; set; } = new();
     }
 }

@@ -1,6 +1,5 @@
 using CareFirstClinic.API.Models;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace CareFirstClinic.API.Data
 {
@@ -8,43 +7,8 @@ namespace CareFirstClinic.API.Data
     {
         public CareFirstClinicDbContext(DbContextOptions<CareFirstClinicDbContext> options)
             : base(options) { }
+
         public CareFirstClinicDbContext() { }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-
-                if (!string.IsNullOrEmpty(databaseUrl))
-                {
-                    var uri = new Uri(databaseUrl);
-                    var userInfo = uri.UserInfo.Split(':');
-                    var connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
-                    optionsBuilder.UseNpgsql(connectionString);
-                }
-                else
-                {
-                    var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-                    var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-                    var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "CareFirstClinicDb";
-                    var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
-                    var dbPass = Environment.GetEnvironmentVariable("DB_PASS") ?? "";
-
-                    var connectionStringBuilder = new NpgsqlConnectionStringBuilder
-                    {
-                        Host = dbHost,
-                        Port = int.Parse(dbPort),
-                        Database = dbName,
-                        Username = dbUser,
-                        Password = dbPass,
-                        SslMode = SslMode.Require,
-                        TrustServerCertificate = true
-                    };
-
-                    optionsBuilder.UseNpgsql(connectionStringBuilder.ToString());
-                }
-            }
-        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -59,6 +23,9 @@ namespace CareFirstClinic.API.Data
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<TimeSlot> TimeSlots { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<ServiceField> ServiceFields { get; set; }
+        public DbSet<ServiceOrder> ServiceOrders { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -75,7 +42,7 @@ namespace CareFirstClinic.API.Data
                 e.HasOne(x => x.Schedule)
                     .WithMany(s => s.TimeSlots)
                     .HasForeignKey(x => x.ScheduleId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ROLE
@@ -96,7 +63,7 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.OtpCode).HasMaxLength(6);
                 e.Property(x => x.IsEmailVerified).HasDefaultValue(false);
                 e.Property(x => x.FullName).IsRequired().HasMaxLength(100);
-                e.Property(x => x.PasswordHash).IsRequired().HasColumnType("text");
+                e.Property(x => x.PasswordHash).IsRequired();
                 e.Property(x => x.IsActive).HasDefaultValue(true);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -130,6 +97,8 @@ namespace CareFirstClinic.API.Data
                     .WithOne(u => u.Doctor)
                     .HasForeignKey<Doctor>(x => x.UserId)
                     .OnDelete(DeleteBehavior.SetNull);
+
+                e.Property(x => x.IsClinical).HasDefaultValue(true);
             });
 
             // PATIENT
@@ -141,7 +110,7 @@ namespace CareFirstClinic.API.Data
                 e.Property(x => x.Gender).IsRequired().HasMaxLength(10);
                 e.Property(x => x.PhoneNumber).HasMaxLength(20);
                 e.Property(x => x.Address).HasMaxLength(250);
-                e.Property(x => x.MedicalHistory).HasColumnType("text");
+                e.Property(x => x.MedicalHistory);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 // Patient → User (1-1)
@@ -174,7 +143,7 @@ namespace CareFirstClinic.API.Data
                 e.HasOne(x => x.Doctor)
                     .WithMany(d => d.Schedules)
                     .HasForeignKey(x => x.DoctorId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // APPOINTMENT
@@ -204,6 +173,14 @@ namespace CareFirstClinic.API.Data
                     .HasColumnType("numeric(18,2)")
                     .HasDefaultValue(0);
 
+                e.Property(x => x.ServiceFee)
+                    .HasColumnType("numeric(18,2)")
+                    .HasDefaultValue(0);
+
+                e.Property(x => x.DepositAmount)
+                    .HasColumnType("numeric(18,2)")
+                    .HasDefaultValue(100000);
+
                 e.Property(x => x.ServiceName)
                     .HasMaxLength(200);
 
@@ -220,23 +197,23 @@ namespace CareFirstClinic.API.Data
                 e.HasOne(x => x.TimeSlot)
                     .WithOne(t => t.Appointment)
                     .HasForeignKey<Appointment>(x => x.TimeSlotId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // MEDICAL RECORD
             modelBuilder.Entity<MedicalRecord>(e =>
             {
                 e.HasKey(x => x.Id);
-                e.Property(x => x.Diagnosis).IsRequired().HasColumnType("text");
-                e.Property(x => x.Symptoms).HasColumnType("text");
-                e.Property(x => x.Notes).HasColumnType("text");
+                e.Property(x => x.Diagnosis).IsRequired();
+                e.Property(x => x.Symptoms);
+                e.Property(x => x.Notes);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 // MedicalRecord → Appointment (1-1)
                 e.HasOne(x => x.Appointment)
                     .WithOne(a => a.MedicalRecord)
                     .HasForeignKey<MedicalRecord>(x => x.AppointmentId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 // MedicalRecord → Patient (N-1)
                 e.HasOne(x => x.Patient)
@@ -266,7 +243,7 @@ namespace CareFirstClinic.API.Data
                 e.HasOne(x => x.MedicalRecord)
                     .WithOne(m => m.Prescription)
                     .HasForeignKey<Prescription>(x => x.MedicalRecordId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // PRESCRIPTION DETAIL
@@ -280,7 +257,7 @@ namespace CareFirstClinic.API.Data
                 e.HasOne(x => x.Prescription)
                     .WithMany(p => p.Details)
                     .HasForeignKey(x => x.PrescriptionId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 // PrescriptionDetail → Stock (N-1)
                 e.HasOne(x => x.Stock)
@@ -332,7 +309,54 @@ namespace CareFirstClinic.API.Data
                 e.HasOne(p => p.Appointment)
                     .WithMany(a => a.Payments)
                     .HasForeignKey(p => p.AppointmentId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // SERVICE
+            modelBuilder.Entity<Service>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Name).IsRequired().HasMaxLength(200);
+                e.Property(x => x.Price).HasColumnType("numeric(18,2)");
+                e.Property(x => x.IsActive).HasDefaultValue(true);
+            });
+
+            // SERVICE FIELD
+            modelBuilder.Entity<ServiceField>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.FieldName).IsRequired().HasMaxLength(100);
+                e.Property(x => x.Unit).HasMaxLength(50);
+                e.Property(x => x.DataType).HasMaxLength(50);
+
+                e.HasOne(x => x.Service)
+                    .WithMany(s => s.Fields)
+                    .HasForeignKey(x => x.ServiceId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // SERVICE ORDER
+            modelBuilder.Entity<ServiceOrder>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.PriceAtOrder).HasColumnType("numeric(18,2)");
+                e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+                e.Property(x => x.ResultData);
+
+                e.HasOne(x => x.Appointment)
+                    .WithMany(a => a.ServiceOrders)
+                    .HasForeignKey(x => x.AppointmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(x => x.Service)
+                    .WithMany(s => s.ServiceOrders)
+                    .HasForeignKey(x => x.ServiceId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(x => x.LockedByDoctor)
+                    .WithMany()
+                    .HasForeignKey(x => x.LockedByDoctorId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

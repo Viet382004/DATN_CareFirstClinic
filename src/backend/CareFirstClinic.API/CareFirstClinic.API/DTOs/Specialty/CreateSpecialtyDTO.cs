@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CareFirstClinic.API.DTOs.Specialty
 {
@@ -10,5 +10,6 @@ namespace CareFirstClinic.API.DTOs.Specialty
 
         [MaxLength(500, ErrorMessage = "Mô tả tối đa 500 ký tự.")]
         public string? Description { get; set; }
+
     }
 }

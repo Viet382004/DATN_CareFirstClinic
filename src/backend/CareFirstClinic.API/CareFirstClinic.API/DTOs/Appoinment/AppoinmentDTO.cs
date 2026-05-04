@@ -1,4 +1,6 @@
-﻿namespace CareFirstClinic.API.DTOs
+using CareFirstClinic.API.DTOs.ClinicalService;
+
+namespace CareFirstClinic.API.DTOs
 {
     public class AppointmentDTO
     {
@@ -13,7 +15,10 @@
         public string SpecialtyName { get; set; } = string.Empty;
         public string? ServiceName { get; set; }
         public decimal ConsultationFee { get; set; }
+        public decimal ServiceFee { get; set; }
         public decimal MedicineFee { get; set; }
+        public decimal DepositAmount { get; set; }
+        public decimal TotalAmount => ConsultationFee + ServiceFee + MedicineFee;
         public bool IsConsultationPaid { get; set; }
         public bool IsMedicinePaid { get; set; }
         public DateTime WorkDate { get; set; }
@@ -28,5 +33,6 @@
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public List<ServiceOrderDTO> ServiceOrders { get; set; } = new();
     }
 }

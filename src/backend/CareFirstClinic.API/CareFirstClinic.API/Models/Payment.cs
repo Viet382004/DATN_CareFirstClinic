@@ -1,4 +1,4 @@
-﻿namespace CareFirstClinic.API.Models
+namespace CareFirstClinic.API.Models
 {
     public enum PaymentStatus
     {
@@ -19,7 +19,8 @@
     public enum PaymentType
     {
         ConsultationFee,
-        MedicineFee
+        MedicineFee,
+        FullPayment
     }
 
     public class Payment

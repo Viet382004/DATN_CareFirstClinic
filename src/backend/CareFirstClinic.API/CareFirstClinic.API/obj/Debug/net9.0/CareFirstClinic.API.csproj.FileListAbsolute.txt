@@ -50,8 +50,6 @@ D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.SqlServer.Server.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Microsoft.Win32.SystemEvents.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Mono.TextTemplating.dll
-D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Npgsql.dll
-D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -197,3 +195,5 @@ D:\temp\carefirst-build\CareFirstClinic.API.deps.json
 D:\temp\carefirst-build\CareFirstClinic.API.runtimeconfig.json
 D:\temp\carefirst-build\CareFirstClinic.API.dll
 D:\temp\carefirst-build\CareFirstClinic.API.pdb
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Npgsql.dll
+D:\Đồ án chuyên nghành - HTTTT\CareFirstClinic\src\backend\CareFirstClinic.API\CareFirstClinic.API\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

@@ -10,6 +10,7 @@ using CareFirstClinic.API.Repositories.StockRepo;
 using CareFirstClinic.API.Repositories.TimeSlotRepo;
 using CareFirstClinic.API.Repositories.PaymentRepo;
 using CareFirstClinic.API.Repositories.MedicalRecordRepo;
+using CareFirstClinic.API.Repositories.ClinicalServiceRepo;
 using CareFirstClinic.API.Services;
 using CareFirstClinic.API.Services.Background;
 using CareFirstClinic.API.Services.ScheduleSeeder;
@@ -19,7 +20,6 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Npgsql;
 using System.Text;
 using VNPAY.Extensions;
 
@@ -33,7 +33,6 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cấu hình Forwarded Headers (Bắt buộc để Swagger/Auth chạy đúng trên Render)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -56,56 +55,13 @@ builder.Services.AddCors(options =>
         .AllowCredentials();
     });
 });
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string not found.");
 
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-string connectionString;
-
-if (!string.IsNullOrEmpty(databaseUrl))
-{
-    connectionString = databaseUrl;
-    Console.WriteLine(" Using DATABASE_URL from environment ");
-    Console.WriteLine($"DATABASE_URL found: {databaseUrl.Substring(0, Math.Min(50, databaseUrl.Length))}...");
-}
-else
-{
-    Console.WriteLine(" DATABASE_URL not found, using individual variables");
-
-    var dbHost = builder.Configuration["DB_HOST"];
-    var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
-    var dbName = builder.Configuration["DB_NAME"];
-    var dbUser = builder.Configuration["DB_USER"];
-    var dbPass = builder.Configuration["DB_PASS"];
-
-    Console.WriteLine(" DATABASE CONFIG DEBUG ");
-    Console.WriteLine($"DB_HOST: {dbHost}");
-    Console.WriteLine($"DB_PORT: {dbPort}");
-    Console.WriteLine($"DB_NAME: {dbName}");
-    Console.WriteLine($"DB_USER: {dbUser}");
-    Console.WriteLine($"DB_PASS: {(string.IsNullOrEmpty(dbPass) ? "NULL" : "******")}");
-
-    if (string.IsNullOrEmpty(dbHost) || string.IsNullOrEmpty(dbName) ||
-        string.IsNullOrEmpty(dbUser) || string.IsNullOrEmpty(dbPass))
-    {
-        Console.WriteLine("LỖI: Thiếu biến môi trường database!");
-        throw new Exception("Database configuration is incomplete");
-    }
-
-    var connectionStringBuilder = new NpgsqlConnectionStringBuilder
-    {
-        Host = dbHost,
-        Port = int.Parse(dbPort),
-        Database = dbName,
-        Username = dbUser,
-        Password = dbPass,
-        SslMode = SslMode.Require,
-        TrustServerCertificate = true
-    };
-    connectionString = connectionStringBuilder.ToString();
-}
-
-Console.WriteLine($" Connection string configured (password hidden)");
 builder.Services.AddDbContext<CareFirstClinicDbContext>(options =>
     options.UseNpgsql(connectionString));
+
 
 var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
              ?? builder.Configuration["Jwt:Key"]
@@ -126,6 +82,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
@@ -143,6 +106,8 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 
 
 builder.Services.AddScoped<JwtService>();
@@ -156,6 +121,7 @@ builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
 builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
 builder.Services.AddHttpClient<EmailService>();
 builder.Services.AddHttpClient<ImageService>();
@@ -219,22 +185,27 @@ builder.Services.AddControllers()
     });
 var app = builder.Build();
 
+var mutex = new Mutex(true, "CareFirstClinic.API", out bool isNewInstance);
+
+if (!isNewInstance)
+{
+    Console.WriteLine("App already running!");
+    return;
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<CareFirstClinicDbContext>();
     try
     {
-        context.Database.OpenConnection();
-        Console.WriteLine("DB CONNECT OK - Database connection successful! ");
+        // Kiểm tra kết nối
+        context.Database.CanConnect();
+        context.Database.Migrate();
+        Console.WriteLine("DB CONNECT OK - Database connection and migration successful!");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"DB CONNECT FAIL: {ex.Message} ");
-        Console.WriteLine($"Exception type: {ex.GetType().Name}");
-        if (ex.InnerException != null)
-        {
-            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-        }
     }
 }
 
@@ -259,14 +230,13 @@ app.UseCors("AllowFrontend");
 
 // Bật Swagger cho cả môi trường Production trên Render
 app.UseSwagger();
-app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CareFirst Clinic API v1");
     c.RoutePrefix = "swagger";
     c.DocumentTitle = "CareFirst Clinic API Documentation";
 });
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+// 
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();

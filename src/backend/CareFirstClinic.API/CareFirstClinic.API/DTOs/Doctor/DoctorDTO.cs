@@ -9,7 +9,7 @@ namespace CareFirstClinic.API.DTOs
         public string FullName { get; set; } = string.Empty;
 
         public string SpecialtyName { get; set; } = string.Empty;
-        public Guid SpecialtyId { get; set; }
+        public Guid? SpecialtyId { get; set; }
         public string AcademicTitle { get; set; } = string.Empty;
         public string Position { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -19,6 +19,7 @@ namespace CareFirstClinic.API.DTOs
         public string PhoneNumber { get; set; } = string.Empty;
 
         public bool IsActive { get; set; }
+        public bool IsClinical { get; set; }
         public bool IsEmailVerified { get; set; }
 
         public Guid? UserId { get; set; }

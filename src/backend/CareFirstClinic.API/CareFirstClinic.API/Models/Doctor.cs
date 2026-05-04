@@ -6,6 +6,7 @@ namespace CareFirstClinic.API.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string? AvatarUrl { get; set; }
+        public bool IsClinical { get; set; } = true;
 
         [Required]
         [MaxLength(100)]
@@ -28,7 +29,7 @@ namespace CareFirstClinic.API.Models
         public string PhoneNumber { get; set; } = string.Empty;
 
         
-        public Guid SpecialtyId { get; set; }
+        public Guid? SpecialtyId { get; set; }
 
         public Guid? UserId { get; set; }
 

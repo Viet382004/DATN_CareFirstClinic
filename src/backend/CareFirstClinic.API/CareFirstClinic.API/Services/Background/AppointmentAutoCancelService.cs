@@ -18,20 +18,33 @@ namespace CareFirstClinic.API.Services.Background
         {
             _logger.LogInformation("AppointmentAutoCancelService đã khởi động.");
 
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    using var scope = _scopeFactory.CreateScope();
-                    var appointmentService = scope.ServiceProvider.GetRequiredService<IAppointmentService>();
-                    await appointmentService.AutoCancelExpiredPendingAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Lỗi khi auto-cancel lịch hẹn pending quá hạn.");
-                }
+                    try
+                    {
+                        using var scope = _scopeFactory.CreateScope();
+                        var appointmentService = scope.ServiceProvider
+                            .GetRequiredService<IAppointmentService>();
 
-                await Task.Delay(Interval, stoppingToken);
+                        await appointmentService.AutoCancelExpiredPendingAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi khi auto-cancel lịch hẹn pending quá hạn.");
+                    }
+
+                    await Task.Delay(Interval, stoppingToken);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation("AppointmentAutoCancelService đang dừng (shutdown bình thường).");
+            }
+            finally
+            {
+                _logger.LogInformation("AppointmentAutoCancelService đã dừng.");
             }
         }
     }

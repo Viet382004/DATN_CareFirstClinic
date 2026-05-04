@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CareFirstClinic.API.Migrations
 {
     [DbContext(typeof(CareFirstClinicDbContext))]
-    [Migration("20260415082019_addAppoinment")]
-    partial class addAppoinment
+    [Migration("20260504032516_InitPostgres")]
+    partial class InitPostgres
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,6 +48,11 @@ namespace CareFirstClinic.API.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<decimal>("DepositAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(100000m);
+
                     b.Property<bool>("IsConsultationPaid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -73,6 +78,11 @@ namespace CareFirstClinic.API.Migrations
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<decimal>("ServiceFee")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<string>("ServiceName")
                         .HasMaxLength(200)
@@ -123,6 +133,11 @@ namespace CareFirstClinic.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("IsClinical")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -133,7 +148,7 @@ namespace CareFirstClinic.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid>("SpecialtyId")
+                    b.Property<Guid?>("SpecialtyId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("UserId")
@@ -161,9 +176,6 @@ namespace CareFirstClinic.API.Migrations
                     b.Property<Guid>("AppointmentId")
                         .HasColumnType("uuid");
 
-                    b.Property<float?>("BloodPressure")
-                        .HasColumnType("real");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -179,12 +191,6 @@ namespace CareFirstClinic.API.Migrations
                     b.Property<DateTime?>("FollowUpDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<float?>("HeartRate")
-                        .HasColumnType("real");
-
-                    b.Property<float?>("Height")
-                        .HasColumnType("real");
-
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -194,14 +200,8 @@ namespace CareFirstClinic.API.Migrations
                     b.Property<string>("Symptoms")
                         .HasColumnType("text");
 
-                    b.Property<float?>("Temperature")
-                        .HasColumnType("real");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<float?>("Weight")
-                        .HasColumnType("real");
 
                     b.HasKey("Id");
 
@@ -424,11 +424,119 @@ namespace CareFirstClinic.API.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("CareFirstClinic.API.Models.Service", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("SpecialtyId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpecialtyId");
+
+                    b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("CareFirstClinic.API.Models.ServiceField", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ServiceFields");
+                });
+
+            modelBuilder.Entity("CareFirstClinic.API.Models.ServiceOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("LockedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LockedByDoctorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PriceAtOrder")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("ResultData")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("LockedByDoctorId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ServiceOrders");
+                });
+
             modelBuilder.Entity("CareFirstClinic.API.Models.Specialty", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("ConsultationFee")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -630,7 +738,7 @@ namespace CareFirstClinic.API.Migrations
                     b.HasOne("CareFirstClinic.API.Models.TimeSlot", "TimeSlot")
                         .WithOne("Appointment")
                         .HasForeignKey("CareFirstClinic.API.Models.Appointment", "TimeSlotId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Patient");
@@ -643,8 +751,7 @@ namespace CareFirstClinic.API.Migrations
                     b.HasOne("CareFirstClinic.API.Models.Specialty", "Specialty")
                         .WithMany("Doctors")
                         .HasForeignKey("SpecialtyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CareFirstClinic.API.Models.User", "User")
                         .WithOne("Doctor")
@@ -661,7 +768,7 @@ namespace CareFirstClinic.API.Migrations
                     b.HasOne("CareFirstClinic.API.Models.Appointment", "Appointment")
                         .WithOne("MedicalRecord")
                         .HasForeignKey("CareFirstClinic.API.Models.MedicalRecord", "AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CareFirstClinic.API.Models.Doctor", "Doctor")
@@ -698,7 +805,7 @@ namespace CareFirstClinic.API.Migrations
                     b.HasOne("CareFirstClinic.API.Models.Appointment", "Appointment")
                         .WithMany("Payments")
                         .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CareFirstClinic.API.Models.Patient", "Patient")
@@ -717,7 +824,7 @@ namespace CareFirstClinic.API.Migrations
                     b.HasOne("CareFirstClinic.API.Models.MedicalRecord", "MedicalRecord")
                         .WithOne("Prescription")
                         .HasForeignKey("CareFirstClinic.API.Models.Prescription", "MedicalRecordId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("MedicalRecord");
@@ -728,7 +835,7 @@ namespace CareFirstClinic.API.Migrations
                     b.HasOne("CareFirstClinic.API.Models.Prescription", "Prescription")
                         .WithMany("Details")
                         .HasForeignKey("PrescriptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CareFirstClinic.API.Models.Stock", "Stock")
@@ -742,12 +849,58 @@ namespace CareFirstClinic.API.Migrations
                     b.Navigation("Stock");
                 });
 
+            modelBuilder.Entity("CareFirstClinic.API.Models.Service", b =>
+                {
+                    b.HasOne("CareFirstClinic.API.Models.Specialty", "Specialty")
+                        .WithMany()
+                        .HasForeignKey("SpecialtyId");
+
+                    b.Navigation("Specialty");
+                });
+
+            modelBuilder.Entity("CareFirstClinic.API.Models.ServiceField", b =>
+                {
+                    b.HasOne("CareFirstClinic.API.Models.Service", "Service")
+                        .WithMany("Fields")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("CareFirstClinic.API.Models.ServiceOrder", b =>
+                {
+                    b.HasOne("CareFirstClinic.API.Models.Appointment", "Appointment")
+                        .WithMany("ServiceOrders")
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CareFirstClinic.API.Models.Doctor", "LockedByDoctor")
+                        .WithMany()
+                        .HasForeignKey("LockedByDoctorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CareFirstClinic.API.Models.Service", "Service")
+                        .WithMany("ServiceOrders")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("LockedByDoctor");
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("CareFirstClinic.API.Models.TimeSlot", b =>
                 {
                     b.HasOne("Schedule", "Schedule")
                         .WithMany("TimeSlots")
                         .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Schedule");
@@ -769,7 +922,7 @@ namespace CareFirstClinic.API.Migrations
                     b.HasOne("CareFirstClinic.API.Models.Doctor", "Doctor")
                         .WithMany("Schedules")
                         .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Doctor");
@@ -780,6 +933,8 @@ namespace CareFirstClinic.API.Migrations
                     b.Navigation("MedicalRecord");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("ServiceOrders");
                 });
 
             modelBuilder.Entity("CareFirstClinic.API.Models.Doctor", b =>
@@ -811,6 +966,13 @@ namespace CareFirstClinic.API.Migrations
             modelBuilder.Entity("CareFirstClinic.API.Models.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("CareFirstClinic.API.Models.Service", b =>
+                {
+                    b.Navigation("Fields");
+
+                    b.Navigation("ServiceOrders");
                 });
 
             modelBuilder.Entity("CareFirstClinic.API.Models.Specialty", b =>

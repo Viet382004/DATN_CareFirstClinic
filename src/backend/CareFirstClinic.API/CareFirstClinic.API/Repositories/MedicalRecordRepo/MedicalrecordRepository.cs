@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Data;
+using CareFirstClinic.API.Data;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories.MedicalRecordRepo;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +22,8 @@ namespace CareFirstClinic.API.Repositories.MedicalRecordRepo
                 .Include(m => m.Patient)
                 .Include(m => m.Doctor)
                 .Include(m => m.Appointment)
+                    .ThenInclude(a => a!.ServiceOrders)
+                        .ThenInclude(so => so.Service)
                 .Include(m => m.Prescription);
 
         public async Task<List<MedicalRecord>> GetAllAsync()

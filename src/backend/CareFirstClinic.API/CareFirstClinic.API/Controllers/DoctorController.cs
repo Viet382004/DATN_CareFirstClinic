@@ -113,7 +113,6 @@ namespace CareFirstClinic.API.Controllers
         }
 
         // POST /api/doctor
-        // Chỉ Admin mới được tạo hồ sơ bác sĩ
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateDoctorDTO dto)

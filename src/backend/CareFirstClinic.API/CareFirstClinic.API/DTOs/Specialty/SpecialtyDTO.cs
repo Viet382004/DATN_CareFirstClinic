@@ -1,4 +1,4 @@
-﻿namespace CareFirstClinic.API.DTOs.Specialty
+namespace CareFirstClinic.API.DTOs.Specialty
 {
     public class SpecialtyDTO
     {
@@ -9,6 +9,7 @@
         public string? Description { get; set; }
 
         public bool IsActive { get; set; }
+        
 
         // Thống kê nhanh
         public int TotalDoctors { get; set; } // Số bác sĩ thuộc chuyên khoa này

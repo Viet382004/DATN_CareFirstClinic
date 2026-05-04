@@ -8,8 +8,9 @@ namespace CareFirstClinic.API.DTOs
         [MaxLength(100, ErrorMessage = "Họ tên tối đa 100 ký tự.")]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Chuyên khoa không được để trống.")]
-        public Guid SpecialtyId { get; set; }
+        public Guid? SpecialtyId { get; set; }
+        
+        public bool IsClinical { get; set; } = false;
 
         [Required(ErrorMessage = "Trình độ không được để trống.")]
         public string AcademicTitle { get; set; }
@@ -32,10 +33,6 @@ namespace CareFirstClinic.API.DTOs
         [Required(ErrorMessage = "Email không được để trống.")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
         public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Tên đăng nhập không được để trống.")]
-        [MaxLength(50)]
-        public string UserName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Mật khẩu không được để trống.")]
         public string Password { get; set; } = string.Empty;

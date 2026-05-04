@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CareFirstClinic.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitDB : Migration
+    public partial class InitialPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,7 +32,8 @@ namespace CareFirstClinic.API.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    ConsultationFee = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 0m)
                 },
                 constraints: table =>
                 {
@@ -63,10 +64,12 @@ namespace CareFirstClinic.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    IsEmailVerified = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    OtpCode = table.Column<string>(type: "character varying(6)", maxLength: 6, nullable: true),
+                    OtpExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
@@ -83,14 +86,40 @@ namespace CareFirstClinic.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Services",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    SpecialtyId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Services", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Services_Specialties_SpecialtyId",
+                        column: x => x.SpecialtyId,
+                        principalTable: "Specialties",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Doctors",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AvatarUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsClinical = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    AcademicTitle = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Position = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     YearsOfExperience = table.Column<int>(type: "integer", nullable: false),
                     PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    SpecialtyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SpecialtyId = table.Column<Guid>(type: "uuid", nullable: true),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -115,8 +144,9 @@ namespace CareFirstClinic.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AvatarUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "date", nullable: false),
                     Gender = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Address = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
@@ -133,6 +163,27 @@ namespace CareFirstClinic.API.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServiceFields",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ServiceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    FieldName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    DataType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceFields", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ServiceFields_Services_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "Services",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,7 +209,7 @@ namespace CareFirstClinic.API.Migrations
                         column: x => x.DoctorId,
                         principalTable: "Doctors",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -180,7 +231,7 @@ namespace CareFirstClinic.API.Migrations
                         column: x => x.ScheduleId,
                         principalTable: "Schedules",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -191,6 +242,13 @@ namespace CareFirstClinic.API.Migrations
                     PatientId = table.Column<Guid>(type: "uuid", nullable: false),
                     TimeSlotId = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    IsConsultationPaid = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    IsMedicinePaid = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    ConsultationFee = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 0m),
+                    ServiceFee = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 0m),
+                    MedicineFee = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 0m),
+                    DepositAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 100000m),
+                    ServiceName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     CancelReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     CancelledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -212,7 +270,7 @@ namespace CareFirstClinic.API.Migrations
                         column: x => x.TimeSlotId,
                         principalTable: "TimeSlots",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -225,11 +283,6 @@ namespace CareFirstClinic.API.Migrations
                     AppointmentId = table.Column<Guid>(type: "uuid", nullable: false),
                     Diagnosis = table.Column<string>(type: "text", nullable: false),
                     Symptoms = table.Column<string>(type: "text", nullable: true),
-                    BloodPressure = table.Column<float>(type: "real", nullable: true),
-                    HeartRate = table.Column<float>(type: "real", nullable: true),
-                    Temperature = table.Column<float>(type: "real", nullable: true),
-                    Weight = table.Column<float>(type: "real", nullable: true),
-                    Height = table.Column<float>(type: "real", nullable: true),
                     Notes = table.Column<string>(type: "text", nullable: true),
                     FollowUpDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
@@ -243,7 +296,7 @@ namespace CareFirstClinic.API.Migrations
                         column: x => x.AppointmentId,
                         principalTable: "Appointments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_MedicalRecords_Doctors_DoctorId",
                         column: x => x.DoctorId,
@@ -265,10 +318,13 @@ namespace CareFirstClinic.API.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     PatientId = table.Column<Guid>(type: "uuid", nullable: false),
                     AppointmentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrderId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Method = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     TransactionId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    BankCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PaidAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
@@ -281,11 +337,47 @@ namespace CareFirstClinic.API.Migrations
                         column: x => x.AppointmentId,
                         principalTable: "Appointments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Payments_Patients_PatientId",
                         column: x => x.PatientId,
                         principalTable: "Patients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServiceOrders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AppointmentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ServiceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PriceAtOrder = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    LockedByDoctorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LockedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ResultData = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceOrders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_Appointments_AppointmentId",
+                        column: x => x.AppointmentId,
+                        principalTable: "Appointments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_Doctors_LockedByDoctorId",
+                        column: x => x.LockedByDoctorId,
+                        principalTable: "Doctors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_Services_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "Services",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -308,7 +400,7 @@ namespace CareFirstClinic.API.Migrations
                         column: x => x.MedicalRecordId,
                         principalTable: "MedicalRecords",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -331,7 +423,7 @@ namespace CareFirstClinic.API.Migrations
                         column: x => x.PrescriptionId,
                         principalTable: "Prescriptions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_PrescriptionDetails_Stocks_StockId",
                         column: x => x.StockId,
@@ -387,7 +479,12 @@ namespace CareFirstClinic.API.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_AppointmentId",
                 table: "Payments",
-                column: "AppointmentId",
+                column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_OrderId",
+                table: "Payments",
+                column: "OrderId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -417,6 +514,31 @@ namespace CareFirstClinic.API.Migrations
                 column: "DoctorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServiceFields_ServiceId",
+                table: "ServiceFields",
+                column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceOrders_AppointmentId",
+                table: "ServiceOrders",
+                column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceOrders_LockedByDoctorId",
+                table: "ServiceOrders",
+                column: "LockedByDoctorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceOrders_ServiceId",
+                table: "ServiceOrders",
+                column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Services_SpecialtyId",
+                table: "Services",
+                column: "SpecialtyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TimeSlots_ScheduleId",
                 table: "TimeSlots",
                 column: "ScheduleId");
@@ -443,10 +565,19 @@ namespace CareFirstClinic.API.Migrations
                 name: "PrescriptionDetails");
 
             migrationBuilder.DropTable(
+                name: "ServiceFields");
+
+            migrationBuilder.DropTable(
+                name: "ServiceOrders");
+
+            migrationBuilder.DropTable(
                 name: "Prescriptions");
 
             migrationBuilder.DropTable(
                 name: "Stocks");
+
+            migrationBuilder.DropTable(
+                name: "Services");
 
             migrationBuilder.DropTable(
                 name: "MedicalRecords");

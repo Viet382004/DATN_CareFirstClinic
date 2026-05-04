@@ -1,4 +1,4 @@
-﻿namespace CareFirstClinic.API.Models
+namespace CareFirstClinic.API.Models
 {
     public enum AppointmentStatus
     {
@@ -22,7 +22,9 @@
         public bool IsMedicinePaid { get; set; } = false;
 
         public decimal ConsultationFee { get; set; } = 0;
+        public decimal ServiceFee { get; set; } = 0;
         public decimal MedicineFee { get; set; } = 0;
+        public decimal DepositAmount { get; set; } = 100000;
 
         public string? ServiceName { get; set; }
 
@@ -39,5 +41,6 @@
         public TimeSlot? TimeSlot { get; set; }
         public MedicalRecord? MedicalRecord { get; set; }
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public ICollection<ServiceOrder> ServiceOrders { get; set; } = new List<ServiceOrder>();
     }
 }

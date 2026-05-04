@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CareFirstClinic.API.DTOs.Specialty
 {
@@ -12,5 +12,6 @@ namespace CareFirstClinic.API.DTOs.Specialty
         public string? Description { get; set; }
 
         public bool IsActive { get; set; } = true;
+        
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace CareFirstClinic.API.Models
+namespace CareFirstClinic.API.Models
 {
     public class MedicalRecord
     {
@@ -10,12 +10,6 @@
 
         public string Diagnosis { get; set; } = string.Empty;  // Chẩn đoán
         public string? Symptoms { get; set; }                   // Triệu chứng
-        public float? BloodPressure { get; set; }           // Huyết áp 
-        public float? HeartRate { get; set; }               // Nhịp tim
-        public float? Temperature { get; set; }             // Nhiệt độ
-        public float? Weight { get; set; }                  // Cân nặng
-        public float? Height { get; set; }                  // Chiều cao
-
         public string? Notes { get; set; }
         public DateTime? FollowUpDate { get; set; }         // Ngày tái khám
 

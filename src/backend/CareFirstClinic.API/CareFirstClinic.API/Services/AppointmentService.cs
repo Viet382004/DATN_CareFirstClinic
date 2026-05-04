@@ -1,6 +1,7 @@
 using CareFirstClinic.API.Common;
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
+using CareFirstClinic.API.DTOs.ClinicalService;
 using CareFirstClinic.API.Models;
 using CareFirstClinic.API.Repositories;
 using CareFirstClinic.API.Repositories.AppoinmentRepo;
@@ -531,8 +532,10 @@ namespace CareFirstClinic.API.Services
             DoctorName = a.TimeSlot?.Schedule?.Doctor?.FullName ?? string.Empty,
             SpecialtyName = a.TimeSlot?.Schedule?.Doctor?.Specialty?.Name ?? string.Empty,
             ServiceName = a.ServiceName,
-            ConsultationFee = a.ConsultationFee > 0 ? a.ConsultationFee : 200000,
+            ConsultationFee = a.ConsultationFee,
+            ServiceFee = a.ServiceFee,
             MedicineFee = a.MedicineFee,
+            DepositAmount = a.DepositAmount,
             IsConsultationPaid = a.IsConsultationPaid,
             IsMedicinePaid = a.IsMedicinePaid,
             WorkDate = a.TimeSlot?.Schedule?.WorkDate ?? default,
@@ -544,7 +547,20 @@ namespace CareFirstClinic.API.Services
             CancelledAt = a.CancelledAt,
             Notes = a.Notes,
             CreatedAt = a.CreatedAt,
-            UpdatedAt = a.UpdatedAt
+            UpdatedAt = a.UpdatedAt,
+            ServiceOrders = a.ServiceOrders?.Select(so => new ServiceOrderDTO
+            {
+                Id = so.Id,
+                AppointmentId = so.AppointmentId,
+                ServiceId = so.ServiceId,
+                ServiceName = so.Service?.Name ?? "N/A",
+                PriceAtOrder = so.PriceAtOrder,
+                Status = so.Status.ToString(),
+                LockedByDoctorId = so.LockedByDoctorId,
+                LockedByDoctorName = so.LockedByDoctor?.FullName,
+                LockedAt = so.LockedAt,
+                ResultData = so.ResultData
+            }).ToList() ?? new List<ServiceOrderDTO>()
         };
     }
 }

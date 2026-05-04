@@ -1,4 +1,5 @@
 using CareFirstClinic.API.Common;
+using CareFirstClinic.API.DTOs.ClinicalService;
 using CareFirstClinic.API.Data;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Models;
@@ -142,11 +143,11 @@ namespace CareFirstClinic.API.Services
                     DoctorId = doctorId,
                     Diagnosis = string.IsNullOrWhiteSpace(dto.Diagnosis) ? "Chẩn đoán tạm thời" : dto.Diagnosis.Trim(),
                     Symptoms = dto.Symptoms?.Trim(),
-                    BloodPressure = dto.BloodPressure,
-                    HeartRate = dto.HeartRate,
-                    Temperature = dto.Temperature,
-                    Weight = dto.Weight,
-                    Height = dto.Height,
+
+
+
+
+
                     Notes = dto.Notes?.Trim(),
 
                     FollowUpDate = dto.FollowUpDate.HasValue
@@ -193,11 +194,11 @@ namespace CareFirstClinic.API.Services
 
                 record.Diagnosis = dto.Diagnosis.Trim();
                 record.Symptoms = dto.Symptoms?.Trim();
-                record.BloodPressure = dto.BloodPressure;
-                record.HeartRate = dto.HeartRate;
-                record.Temperature = dto.Temperature;
-                record.Weight = dto.Weight;
-                record.Height = dto.Height;
+
+
+
+
+
                 record.Notes = dto.Notes?.Trim();
                 record.FollowUpDate = dto.FollowUpDate;
                 record.UpdatedAt = DateTime.UtcNow;
@@ -247,16 +248,24 @@ namespace CareFirstClinic.API.Services
             AppointmentId = m.AppointmentId,
             Diagnosis = m.Diagnosis,
             Symptoms = m.Symptoms,
-            BloodPressure = m.BloodPressure,
-            HeartRate = m.HeartRate,
-            Temperature = m.Temperature,
-            Weight = m.Weight,
-            Height = m.Height,
+
+
+
+
+
             Notes = m.Notes,
             FollowUpDate = m.FollowUpDate,
             CreatedAt = m.CreatedAt,
             UpdatedAt = m.UpdatedAt,
-            HasPrescription = m.Prescription is not null
+            HasPrescription = m.Prescription is not null,
+            ServiceResults = m.Appointment?.ServiceOrders.Select(so => new ServiceOrderDTO
+            {
+                Id = so.Id,
+                ServiceName = so.Service?.Name ?? "N/A",
+                Status = so.Status.ToString(),
+                ResultData = so.ResultData,
+                PriceAtOrder = so.PriceAtOrder
+            }).ToList() ?? new List<ServiceOrderDTO>()
         };
     }
 }

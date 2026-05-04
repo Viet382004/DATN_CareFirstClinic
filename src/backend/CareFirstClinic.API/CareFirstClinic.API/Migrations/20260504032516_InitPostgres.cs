@@ -5,7 +5,7 @@
 namespace CareFirstClinic.API.Migrations
 {
     /// <inheritdoc />
-    public partial class UploadVNpay : Migration
+    public partial class InitPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

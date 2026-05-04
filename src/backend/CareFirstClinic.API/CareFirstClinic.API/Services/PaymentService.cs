@@ -157,7 +157,7 @@ namespace CareFirstClinic.API.Services
                 // Fallback if fee is 0 due to previous bug
                 if (appointment.ConsultationFee <= 0)
                 {
-                    appointment.ConsultationFee = 200000;
+                    appointment.ConsultationFee = 100000;
                     _context.Appointments.Update(appointment);
                     await _context.SaveChangesAsync();
                 }
@@ -179,6 +179,21 @@ namespace CareFirstClinic.API.Services
                     throw new InvalidOperationException("Không có phí thuốc cần thanh toán.");
                 if (dto.Amount != appointment.MedicineFee)
                     throw new InvalidOperationException("Số tiền phí thuốc không khớp với lịch hẹn.");
+            }
+            else if (dto.Type == PaymentType.FullPayment)
+            {
+                if (appointment.Status != AppointmentStatus.Completed)
+                    throw new InvalidOperationException("Chỉ được thanh toán tổng phí sau khi bác sĩ hoàn tất khám.");
+                
+                var totalAmount = appointment.ConsultationFee + appointment.ServiceFee + appointment.MedicineFee;
+                if (totalAmount <= 0)
+                    throw new InvalidOperationException("Không có phí cần thanh toán.");
+                
+                if (dto.Amount != totalAmount)
+                {
+                    // Allow small deviation or just set it
+                    dto.Amount = totalAmount;
+                }
             }
 
             // Parse PaymentMethod
@@ -236,10 +251,9 @@ namespace CareFirstClinic.API.Services
 
                 payment.Status = PaymentStatus.Completed;
                 payment.TransactionId = transactionId?.Trim();
-                payment.BankCode = bankCode;  // ⭐ Lưu bankCode
+                payment.BankCode = bankCode;
                 payment.PaidAt = DateTime.UtcNow;
 
-                // ⭐ Cập nhật Appointment nếu cần
                 var appointment = await _context.Appointments.FindAsync(payment.AppointmentId);
                 if (appointment != null)
                 {
@@ -253,6 +267,11 @@ namespace CareFirstClinic.API.Services
                     }
                     else if (payment.Type == PaymentType.MedicineFee)
                     {
+                        appointment.IsMedicinePaid = true;
+                    }
+                    else if (payment.Type == PaymentType.FullPayment)
+                    {
+                        appointment.IsConsultationPaid = true;
                         appointment.IsMedicinePaid = true;
                     }
                     appointment.UpdatedAt = DateTime.UtcNow;

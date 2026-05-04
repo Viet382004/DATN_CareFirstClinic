@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CareFirstClinic.API.DTOs
 {
@@ -14,11 +14,6 @@ namespace CareFirstClinic.API.DTOs
         [MaxLength(500)]
         public string? Symptoms { get; set; }
 
-        public float? BloodPressure { get; set; }
-        public float? HeartRate { get; set; }
-        public float? Temperature { get; set; }
-        public float? Weight { get; set; }
-        public float? Height { get; set; }
 
         [MaxLength(500)]
         public string? Notes { get; set; }

@@ -105,7 +105,7 @@ namespace CareFirstClinic.API.Controllers
                 // Fallback if fee is 0 due to previous bug
                 if (appointment.ConsultationFee <= 0)
                 {
-                    appointment.ConsultationFee = 200000;
+                    appointment.ConsultationFee = 100000;
                     _context.Appointments.Update(appointment);
                     await _context.SaveChangesAsync();
                 }
@@ -308,6 +308,89 @@ namespace CareFirstClinic.API.Controllers
                     Success = false,
                     Message = "Có lỗi xảy ra khi tạo thanh toán"
                 });
+            }
+        }
+        // ═══════════════════════════════════════════════════════════════════════
+        // 3. THANH TOÁN TỔNG (KHÁM + DỊCH VỤ + THUỐC)
+        // POST: /api/vnpay/pay-full
+        // ═══════════════════════════════════════════════════════════════════════
+        [HttpPost("pay-full")]
+        [Authorize(Roles = "Patient,Admin")]
+        public async Task<IActionResult> PayFullFee([FromBody] PayFullRequest request)
+        {
+            if (request == null || request.AppointmentId == Guid.Empty)
+            {
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Thông tin không hợp lệ" });
+            }
+
+            try
+            {
+                Guid patientId;
+                if (User.IsInRole("Admin"))
+                {
+                    if (!request.PatientId.HasValue) return BadRequest(new ApiResponse<object> { Success = false, Message = "Admin cần PatientId" });
+                    patientId = request.PatientId.Value;
+                }
+                else
+                {
+                    var userId = User.GetUserId();
+                    var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
+                    if (patient == null) return NotFound(new ApiResponse<object> { Success = false, Message = "Không tìm thấy bệnh nhân" });
+                    patientId = patient.Id;
+                }
+
+                var appointment = await _context.Appointments
+                    .FirstOrDefaultAsync(a => a.Id == request.AppointmentId && a.PatientId == patientId);
+
+                if (appointment == null) return NotFound(new ApiResponse<object> { Success = false, Message = "Không tìm thấy lịch hẹn" });
+
+                if (appointment.Status != AppointmentStatus.Completed)
+                {
+                    return BadRequest(new ApiResponse<object> { Success = false, Message = "Chỉ có thể thanh toán tổng sau khi hoàn tất khám" });
+                }
+
+                var totalAmount = appointment.ConsultationFee + appointment.ServiceFee + appointment.MedicineFee;
+                if (totalAmount <= 0) return BadRequest(new ApiResponse<object> { Success = false, Message = "Không có phí cần thanh toán" });
+
+                var createPaymentDto = new CreatePaymentDTO
+                {
+                    AppointmentId = request.AppointmentId,
+                    PatientId = patientId,
+                    Amount = totalAmount,
+                    Method = "VNPay",
+                    Type = PaymentType.FullPayment,
+                    Notes = $"Thanh toán tổng chi phí khám - {appointment.ServiceName}"
+                };
+
+                var payment = await _paymentService.CreateAsync(patientId, createPaymentDto);
+                var ipAddress = GetClientIpAddress();
+                var vnpayRequest = new VNPayPaymentRequest
+                {
+                    OrderId = payment.OrderId,
+                    Amount = totalAmount,
+                    Description = "Thanh toán tổng chi phí khám"
+                };
+
+                var paymentUrl = _vnpayService.CreatePaymentUrl(vnpayRequest, ipAddress);
+
+                return Ok(new ApiResponse<CreatePaymentResponse>
+                {
+                    Success = true,
+                    Message = "Tạo link thanh toán tổng thành công",
+                    Data = new CreatePaymentResponse
+                    {
+                        PaymentUrl = paymentUrl,
+                        OrderId = payment.OrderId,
+                        PaymentId = payment.Id,
+                        Amount = totalAmount,
+                        ExpiresInMinutes = 15
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi pay-full Appointment {Id}", request.AppointmentId);
+                return StatusCode(500, new ApiResponse<object> { Success = false, Message = "Lỗi hệ thống" });
             }
         }
 
@@ -532,6 +615,12 @@ namespace CareFirstClinic.API.Controllers
     }
 
     public class PayMedicineRequest
+    {
+        public Guid AppointmentId { get; set; }
+        public Guid? PatientId { get; set; }
+    }
+
+    public class PayFullRequest
     {
         public Guid AppointmentId { get; set; }
         public Guid? PatientId { get; set; }

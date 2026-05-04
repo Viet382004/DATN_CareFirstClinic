@@ -20,10 +20,15 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
         private IQueryable<Appointment> BaseQuery() =>
             _context.Appointments
                 .Include(a => a.Patient)
+                    .ThenInclude(p => p!.User)
                 .Include(a => a.TimeSlot)
-                    .ThenInclude(ts => ts.Schedule)
-                        .ThenInclude(s => s.Doctor)
-                            .ThenInclude(d => d.Specialty);
+                    .ThenInclude(ts => ts!.Schedule)
+                        .ThenInclude(s => s!.Doctor)
+                            .ThenInclude(d => d!.Specialty)
+                .Include(a => a.ServiceOrders)
+                    .ThenInclude(so => so.Service)
+                .Include(a => a.ServiceOrders)
+                    .ThenInclude(so => so.LockedByDoctor);
 
         public async Task<List<Appointment>> GetAllAsync()
         {

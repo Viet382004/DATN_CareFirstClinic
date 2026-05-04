@@ -128,6 +128,9 @@ namespace CareFirstClinic.API.Services
 
             try
             {
+                if (!dto.IsClinical && !dto.SpecialtyId.HasValue)
+                    throw new ArgumentException("Bác sĩ chuyên khoa phải thuộc một chuyên khoa cụ thể.");
+
                 var doctor = new Doctor
                 {
                     Id = Guid.NewGuid(),
@@ -135,7 +138,8 @@ namespace CareFirstClinic.API.Services
                     AcademicTitle = dto.AcademicTitle,
                     Description = dto.Description,
                     Position = dto.Position,
-                    SpecialtyId = dto.SpecialtyId,
+                    SpecialtyId = dto.IsClinical ? null : dto.SpecialtyId,
+                    IsClinical = dto.IsClinical,
                     YearsOfExperience = dto.YearsOfExperience,
                     PhoneNumber = dto.PhoneNumber?.Trim() ?? string.Empty,
                 };
@@ -189,13 +193,21 @@ namespace CareFirstClinic.API.Services
 
                 if (doctor is null) return null;
 
+                if (!dto.IsClinical && !dto.SpecialtyId.HasValue)
+                    throw new ArgumentException("Bác sĩ chuyên khoa phải thuộc một chuyên khoa cụ thể.");
+
                 doctor.FullName = dto.FullName.Trim();
-                doctor.AcademicTitle = dto.AcademicTitle.ToString();
-                doctor.Position = dto.Position.ToString();
-                doctor.SpecialtyId = dto.SpecialtyId;
+                doctor.AcademicTitle = dto.AcademicTitle;
+                if (doctor.User != null)
+                {
+                    doctor.User.Email = dto.Email.Trim();
+                }
+                doctor.Position = dto.Position;
+                doctor.SpecialtyId = dto.IsClinical ? null : dto.SpecialtyId;
+                doctor.IsClinical = dto.IsClinical;
                 doctor.YearsOfExperience = dto.YearsOfExperience;
                 doctor.PhoneNumber = dto.PhoneNumber.Trim();
-                doctor.Description = dto.Description.ToString();
+                doctor.Description = dto.Description;
 
                 var updated = await _doctorRepository.UpdateAsync(doctor);
                 return MapToDTO(updated);
@@ -305,6 +317,7 @@ namespace CareFirstClinic.API.Services
             UserId = d.UserId,
             Email = d.User?.Email,
             IsActive = d.User?.IsActive ?? false,
+            IsClinical = d.IsClinical,
             IsEmailVerified = d.User?.IsEmailVerified ?? false,
             TotalAppointments = d.Schedules.Count(s => s.IsAvailable) 
         };

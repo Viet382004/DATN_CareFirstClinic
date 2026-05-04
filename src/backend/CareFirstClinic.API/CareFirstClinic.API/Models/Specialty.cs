@@ -15,6 +15,7 @@ namespace CareFirstClinic.API.Models
 
         public bool IsActive { get; set; } = true;
 
+
         // Navigation
         public ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
     }

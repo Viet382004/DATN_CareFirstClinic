@@ -4,10 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareFirstClinic.API.Services.Background
 {
-    /// <summary>
     /// Chạy ngầm mỗi ngày lúc 8:00 sáng
     /// Tìm tất cả lịch hẹn ngày mai và gửi email nhắc nhở
-    /// </summary>
     public class AppointmentReminderService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
@@ -28,21 +26,43 @@ namespace CareFirstClinic.API.Services.Background
         {
             _logger.LogInformation("AppointmentReminderService đã khởi động.");
 
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                // Tính thời gian delay đến 8:00 sáng hôm sau
-                var now       = DateTime.Now;
-                var nextRun   = DateTime.Today.Add(_runAt);
-                if (now > nextRun)
-                    nextRun = nextRun.AddDays(1);
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    var now = DateTime.Now;
+                    var nextRun = DateTime.Today.Add(_runAt);
 
-                var delay = nextRun - now;
-                _logger.LogInformation("Nhắc lịch sẽ chạy lúc {Time}", nextRun);
+                    if (now > nextRun)
+                        nextRun = nextRun.AddDays(1);
 
-                await Task.Delay(delay, stoppingToken);
+                    var delay = nextRun - now;
 
-                if (!stoppingToken.IsCancellationRequested)
-                    await SendRemindersAsync(stoppingToken);
+                    _logger.LogInformation("Nhắc lịch sẽ chạy lúc {Time}", nextRun);
+
+                    try
+                    {
+                        await Task.Delay(delay, stoppingToken);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        _logger.LogInformation("Reminder service đang dừng...");
+                        break;
+                    }
+
+                    if (!stoppingToken.IsCancellationRequested)
+                    {
+                        await SendRemindersAsync(stoppingToken);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Reminder service bị lỗi!");
+            }
+            finally
+            {
+                _logger.LogInformation("AppointmentReminderService đã dừng.");
             }
         }
 
@@ -50,7 +70,6 @@ namespace CareFirstClinic.API.Services.Background
         {
             _logger.LogInformation("Đang gửi email nhắc lịch khám...");
 
-            // Dùng scope vì DbContext và IEmailService là Scoped
             using var scope       = _scopeFactory.CreateScope();
             var context           = scope.ServiceProvider.GetRequiredService<CareFirstClinicDbContext>();
             var emailService      = scope.ServiceProvider.GetRequiredService<IEmailService>();
