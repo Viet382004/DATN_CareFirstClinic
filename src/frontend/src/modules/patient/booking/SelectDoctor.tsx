@@ -18,6 +18,7 @@ import styles from './SelectDoctor.module.css';
 import { doctorService } from '../../../services/doctorService';
 import { specialtyService } from '../../../services/specialtyService';
 import Header from '../../home/components/Header';
+import { getAvatarUrl } from '../../../utils/format';
 
 
 const DEFAULT_AVATAR_URL = '/assets/avatar-default.svg';
@@ -29,6 +30,8 @@ const SelectDoctor = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
+  const [specialties, setSpecialties] = useState([]);
+  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState("");
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,28 +47,45 @@ const SelectDoctor = () => {
     if (doctorId) {
       setSelectedId(doctorId);
     }
+
+    // Lấy specialty từ localStorage nếu có
+    const savedSpecialty = localStorage.getItem("selectedSpecialty");
+    if (savedSpecialty) {
+      setSelectedSpecialtyId(savedSpecialty);
+    }
+
+    // Load danh sách chuyên khoa lâm sàng
+    const fetchSpecialties = async () => {
+      try {
+        const data = await specialtyService.getAll();
+        // Chỉ lấy các chuyên khoa lâm sàng
+        setSpecialties(data.filter(s => s.isActive));
+      } catch (err) {
+        console.error("Lỗi fetchSpecialties:", err);
+      }
+    };
+    fetchSpecialties();
   }, [location]);
 
-  const loadDoctors = async (search = "", page = 1) => {
+  const loadDoctors = async (search = "", page = 1, specialtyId = "") => {
     try {
       setLoading(true);
       setError(null);
 
-      const selectedSpecialtyId = localStorage.getItem("selectedSpecialty");
-      
-      console.log(`Đang tải tất cả bác sĩ lâm sàng với search: ${search}, page: ${page}`);
+      console.log(`Đang tải bác sĩ lâm sàng với search: ${search}, page: ${page}, specialtyId: ${specialtyId}`);
       let result = await doctorService.getList({
         page,
         pageSize,
         search: search,
-        isClinical: true
+        isClinical: true,
+        specialtyId: specialtyId || undefined
       });
 
       // Backend returns PagedResult
       const doctorData = result.items || [];
       setTotalPages(result.totalPages || 1);
       setTotalCount(result.totalItems || 0);
-      setCurrentPage(result.totalPages || 1);
+      setCurrentPage(page);
 
       if (doctorData.length === 0 && !search) {
         setError(`Hiện chưa có bác sĩ nào thuộc chuyên khoa này.`);
@@ -84,7 +104,7 @@ const SelectDoctor = () => {
         available: true,
         isActive: doc.isActive,
         tags: [doc.position || "Tận tâm", "Chuyên môn cao"],
-        avatar: doc.avatarUrl || DEFAULT_AVATAR_URL,
+        avatar: getAvatarUrl(doc.avatarUrl),
       }));
 
       setDoctors(formatted);
@@ -99,13 +119,23 @@ const SelectDoctor = () => {
   };
 
   useEffect(() => {
-    loadDoctors("", 1);
-  }, []);
+    loadDoctors(searchTerm, 1, selectedSpecialtyId);
+    if (selectedSpecialtyId) {
+      localStorage.setItem("selectedSpecialty", selectedSpecialtyId);
+      const spec = specialties.find(s => s.id === selectedSpecialtyId);
+      if (spec) {
+        localStorage.setItem("selectedSpecialtyName", spec.name);
+      }
+    } else {
+      localStorage.removeItem("selectedSpecialty");
+      localStorage.removeItem("selectedSpecialtyName");
+    }
+  }, [selectedSpecialtyId]);
 
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadDoctors(searchTerm, 1);
+      loadDoctors(searchTerm, 1, selectedSpecialtyId);
     }, 500);
 
     return () => clearTimeout(timer);
@@ -113,7 +143,7 @@ const SelectDoctor = () => {
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      loadDoctors(searchTerm, newPage);
+      loadDoctors(searchTerm, newPage, selectedSpecialtyId);
     }
   };
 
@@ -215,6 +245,19 @@ const SelectDoctor = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+
+              <div className={styles.specialtyFilterWrapper}>
+                <select 
+                  className={styles.specialtySelect}
+                  value={selectedSpecialtyId}
+                  onChange={(e) => setSelectedSpecialtyId(e.target.value)}
+                >
+                  <option value="">Tất cả chuyên khoa</option>
+                  {specialties.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -313,8 +356,8 @@ const SelectDoctor = () => {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className={styles.pagination}>
-                  <button 
-                    className={styles.pageBtn} 
+                  <button
+                    className={styles.pageBtn}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -323,8 +366,8 @@ const SelectDoctor = () => {
                   <span className={styles.pageInfo}>
                     Trang <strong>{currentPage}</strong> / {totalPages}
                   </span>
-                  <button 
-                    className={styles.pageBtn} 
+                  <button
+                    className={styles.pageBtn}
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >

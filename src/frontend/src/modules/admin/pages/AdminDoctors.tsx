@@ -132,7 +132,7 @@ const AdminDoctors: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      if (!formData.fullName || (!formData.isClinical && !formData.specialtyId) || !formData.phoneNumber || !formData.academicTitle || !formData.position || !formData.email) {
+      if (!formData.fullName || !formData.specialtyId || !formData.phoneNumber || !formData.academicTitle || !formData.position || !formData.email) {
         toast.error("Vui lòng điền đầy đủ các trường bắt buộc có dấu *");
         return;
       }
@@ -521,7 +521,7 @@ const AdminDoctors: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setFormData({ ...formData, isClinical: true, specialtyId: undefined })}
+                        onClick={() => setFormData({ ...formData, isClinical: true })}
                         className={cn(
                           "px-3 py-1.5 rounded-md text-xs font-bold transition-all",
                           formData.isClinical ? "bg-indigo-600 text-white" : "bg-white text-slate-500 border border-slate-200"
@@ -543,21 +543,19 @@ const AdminDoctors: React.FC = () => {
                   </div>
                 </div>
 
-                {!formData.isClinical && (
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chuyên khoa <span className="text-rose-500">*</span></label>
-                    <select
-                      value={formData.specialtyId || ''}
-                      onChange={(e) => setFormData({ ...formData, specialtyId: e.target.value })}
-                      className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                    >
-                      <option value="" disabled>Chọn chuyên khoa</option>
-                      {specialties.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chuyên khoa <span className="text-rose-500">*</span></label>
+                  <select
+                    value={formData.specialtyId || ''}
+                    onChange={(e) => setFormData({ ...formData, specialtyId: e.target.value })}
+                    className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  >
+                    <option value="" disabled>Chọn chuyên khoa</option>
+                    {specialties.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Email <span className="text-rose-500">*</span></label>

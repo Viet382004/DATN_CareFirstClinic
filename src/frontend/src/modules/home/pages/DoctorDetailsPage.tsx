@@ -163,13 +163,15 @@ export default function DoctorDetailsPage() {
                 </div>
               </div>
 
-              <button 
-                onClick={handleBookNow}
-                className="w-full bg-amber-500 text-white py-4 rounded-2xl font-black text-lg hover:bg-amber-600 shadow-xl shadow-amber-200 hover:shadow-2xl transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3"
-              >
-                <Calendar size={22} />
-                Đặt lịch khám ngay
-              </button>
+              {doctor.isClinical && (
+                <button 
+                  onClick={handleBookNow}
+                  className="w-full bg-amber-500 text-white py-4 rounded-2xl font-black text-lg hover:bg-amber-600 shadow-xl shadow-amber-200 hover:shadow-2xl transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3"
+                >
+                  <Calendar size={22} />
+                  Đặt lịch khám ngay
+                </button>
+              )}
               
               <div className="mt-6 space-y-4">
                 <div className="flex items-center gap-3 text-sm font-bold text-slate-600">

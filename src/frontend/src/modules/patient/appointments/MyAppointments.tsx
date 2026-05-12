@@ -35,7 +35,7 @@ import type { ServiceOrder } from '../../../types/serviceOrder';
 import { formatDate as formatGlobalDate } from '../../../utils/format';
 import Header from '../../home/components/Header';
 import styles from './MyAppointments.module.css';
-import { exportElementToPDF } from '../../../utils/exportUtils';
+import { exportElementToPDF, printElement } from '../../../utils/exportUtils';
 
 const TABS = [
   { id: 'ALL', label: 'Tất cả' },
@@ -602,10 +602,10 @@ const MyAppointments = () => {
                 <button
                   className={styles.printBtn}
                   style={{ backgroundColor: '#0d9488', color: 'white', borderColor: '#0d9488' }}
-                  onClick={() => exportElementToPDF('medical-record-detail', `Ket-Qua-Kham-${selectedAppt.id.substring(0, 8)}`)}
+                  onClick={() => printElement('medical-record-detail')}
                 >
                   <Download size={16} />
-                  Tải PDF
+                  In / Tải PDF
                 </button>
                 <button className={styles.closeModalBtn} onClick={() => setDetailModalOpen(false)}>
                   Đóng

@@ -25,7 +25,7 @@ export default function SpecialtyDetailsPage() {
         setLoading(true);
         const [specialtyData, doctorsData] = await Promise.all([
           specialtyService.getById(id),
-          doctorService.getBySpecialty(id, { ...query })
+          doctorService.getBySpecialty(id, { ...query, isClinical: true })
         ]);
         setSpecialty(specialtyData);
         setDoctors(doctorsData.items || []);

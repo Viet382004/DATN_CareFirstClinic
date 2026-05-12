@@ -13,19 +13,26 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRoles = [],
   fallbackPath = '/login',
 }) => {
-  const { isAuthenticated, user, isLoading, token } = useAuth();   // thêm token để kiểm tra
+  const { isAuthenticated, user, isLoading, token } = useAuth();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Đợi Context ổn định sau navigate
-    const timer = setTimeout(() => setIsReady(true), 150);
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, user, token]);
+    // Chỉ chạy timer này 1 lần khi isLoading chuyển sang false
+    if (!isLoading) {
+      const timer = setTimeout(() => setIsReady(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
-  if (isLoading || !isReady) {
+  if (isLoading || (!isReady && !isAuthenticated)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        Đang kiểm tra quyền truy cập...
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+           <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+           <p className="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">
+             Đang xác thực quyền...
+           </p>
+        </div>
       </div>
     );
   }

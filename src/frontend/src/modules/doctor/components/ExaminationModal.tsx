@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   X, User, History, Clipboard, Plus, Trash2, Activity, Search, Pill, Clock,
   ArrowRight, Info, Stethoscope, CreditCard, Save, Calendar, AlertTriangle,
-  ChevronRight, ArrowLeft
+  ChevronRight, ArrowLeft,
+  Microscope
 } from 'lucide-react';
 import { appointmentService } from '../../../services/appointmentService';
 import { medicalRecordService } from '../../../services/medicalRecordService';
@@ -17,7 +18,7 @@ import { toast } from 'sonner';
 import type { Appointment } from '../../../types/appointment';
 import { formatDate } from '../../../utils/format';
 import { cn } from '../../../lib/utils';
-import { exportElementToPDF } from '../../../utils/exportUtils';
+import { exportElementToPDF, printElement } from '../../../utils/exportUtils';
 import { Download as DownloadIcon } from 'lucide-react';
 
 interface ExaminationModalProps {
@@ -68,7 +69,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
     return existingServiceOrders.reduce((sum, order) => sum + (order.priceAtOrder || 0), 0);
   }, [existingServiceOrders]);
 
-  const totalAmount = useMemo(() => medicineTotal + (appointment.consultationFee || 0) + serviceTotal, [medicineTotal, appointment.consultationFee, serviceTotal]);
+  const totalAmount = useMemo(() => medicineTotal + serviceTotal, [medicineTotal, serviceTotal]);
 
   // Check if editable (within 24h)
   const isEditable = useMemo(() => {
@@ -152,7 +153,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
 
       const orders = await serviceOrderService.getOrdersByAppointmentId(appointment.id);
       setExistingServiceOrders(orders);
-      
+
       // Select orders that are pending
       setSelectedServices(orders.map(o => o.serviceId));
     } catch (error) {
@@ -227,7 +228,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
   const handleSaveServices = async () => {
     if (!isEditable) return;
     const newServiceIds = selectedServices.filter(id => !existingServiceOrders.some(o => o.serviceId === id));
-    
+
     if (newServiceIds.length === 0) {
       return toast.info("Không có dịch vụ mới nào được chọn.");
     }
@@ -247,7 +248,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
 
   const handleSubmit = async () => {
     if (!isEditable) return;
-    
+
     if (!recordForm.diagnosis?.trim()) {
       return toast.error("Vui lòng nhập chẩn đoán bệnh.");
     }
@@ -467,7 +468,7 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
                         />
                       </div>
                       {isEditable && (
-                        <button 
+                        <button
                           onClick={handleSaveServices}
                           disabled={submitting}
                           className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase rounded-sm shadow-sm transition-all whitespace-nowrap disabled:opacity-50"
@@ -490,87 +491,99 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
                         {availableServices
                           .filter(s => s.name.toLowerCase().includes(serviceSearch.toLowerCase()))
                           .map(service => {
-                          const order = existingServiceOrders.find(o => o.serviceId === service.id);
-                          const isOrdered = !!order;
-                          const isSelected = selectedServices.includes(service.id);
-                          return (
-                            <div key={service.id} className="flex flex-col gap-2">
-                              <label 
-                                className={cn(
-                                  "flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-all",
-                                  isSelected ? "bg-indigo-50 border-indigo-200" : "bg-slate-50 border-slate-200 hover:border-indigo-300",
-                                  isOrdered ? "opacity-75" : ""
-                                )}
-                              >
-                                <input
-                                  type="checkbox"
-                                  className="mt-1"
-                                  checked={isSelected}
-                                  disabled={isOrdered || !isEditable}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedServices(prev => [...prev, service.id]);
-                                    } else {
-                                      setSelectedServices(prev => prev.filter(id => id !== service.id));
-                                    }
-                                  }}
-                                />
-                                <div className="flex-1">
-                                  <p className="text-[11px] font-black text-slate-800">{service.name}</p>
-                                  <p className="text-[10px] font-bold text-slate-500">{service.price.toLocaleString('vi-VN')}đ</p>
-                                  {isOrdered && (
-                                    <span className={cn(
-                                      "text-[9px] font-black mt-1 uppercase block",
-                                      order.status === 'Completed' ? "text-emerald-600" : "text-amber-600"
-                                    )}>
-                                      {order.status === 'Completed' ? 'Đã có kết quả' : 'Đang xử lý / Chờ'}
-                                    </span>
+                            const order = existingServiceOrders.find(o => o.serviceId === service.id);
+                            const isOrdered = !!order;
+                            const isSelected = selectedServices.includes(service.id);
+                            return (
+                              <div key={service.id} className="flex flex-col gap-2">
+                                <label
+                                  className={cn(
+                                    "flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-all",
+                                    isSelected ? "bg-indigo-50 border-indigo-200" : "bg-slate-50 border-slate-200 hover:border-indigo-300",
+                                    isOrdered ? "opacity-75" : ""
                                   )}
-                                </div>
-                              </label>
-
-                              {isOrdered && order.status === 'Completed' && order.resultData && (
-                                <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-md text-[10px]">
-                                  <p className="font-black text-emerald-800 mb-2 uppercase flex items-center gap-1">
-                                    <Activity size={12} /> Kết quả xét nghiệm
-                                  </p>
-                                  <div className="space-y-3">
-                                    {(() => {
-                                      try {
-                                        const data = JSON.parse(order.resultData);
-                                        const conclusion = data.specialistConclusion;
-                                        const fields = Object.entries(data).filter(([k]) => k !== 'specialistConclusion');
-
-                                        return (
-                                          <>
-                                            {fields.length > 0 && (
-                                              <ul className="space-y-1">
-                                                {fields.map(([k, v]) => (
-                                                  <li key={k} className="flex justify-between border-b border-emerald-100/30 pb-0.5 items-end">
-                                                    <span className="text-emerald-700 font-bold">{k}:</span>
-                                                    <span className="text-emerald-900 font-black ml-2 text-right">{String(v)}</span>
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            )}
-                                            {conclusion && (
-                                              <div className="mt-2 p-2 bg-emerald-100/50 rounded border border-emerald-200">
-                                                <span className="text-[9px] font-black text-emerald-800 uppercase block mb-0.5">Kết luận chuyên môn:</span>
-                                                <p className="text-emerald-900 font-bold leading-tight">{conclusion}</p>
-                                              </div>
-                                            )}
-                                          </>
-                                        );
-                                      } catch (e) {
-                                        return <p className="text-emerald-900 font-black">{order.resultData}</p>;
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="mt-1"
+                                    checked={isSelected}
+                                    disabled={isOrdered || !isEditable}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedServices(prev => [...prev, service.id]);
+                                      } else {
+                                        setSelectedServices(prev => prev.filter(id => id !== service.id));
                                       }
-                                    })()}
+                                    }}
+                                  />
+                                  <div className="flex-1">
+                                    <p className="text-[11px] font-black text-slate-800">{service.name}</p>
+                                    <p className="text-[10px] font-bold text-slate-500">{service.price.toLocaleString('vi-VN')}đ</p>
+                                    {isOrdered && (
+                                      <span className={cn(
+                                        "text-[9px] font-black mt-1 uppercase block",
+                                        order.status === 'Completed' ? "text-emerald-600" : "text-amber-600"
+                                      )}>
+                                        {order.status === 'Completed' ? 'Đã có kết quả' : 'Đang xử lý / Chờ'}
+                                      </span>
+                                    )}
                                   </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                                </label>
+
+                                {isOrdered && order.status === 'Completed' && order.resultData && (
+                                  <div className="mt-4 p-4 bg-emerald-50/40 border border-emerald-100 rounded-xl">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <h5 className="text-[10px] font-black text-emerald-800 uppercase tracking-widest flex items-center gap-2">
+                                        <Activity size={12} className="text-emerald-500" />
+                                        Kết quả chi tiết
+                                      </h5>
+                                      <span className="text-[8px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                        Đã xác thực
+                                      </span>
+                                    </div>
+                                    <div className="space-y-2.5">
+                                      {(() => {
+                                        try {
+                                          const data = JSON.parse(order.resultData);
+                                          const conclusion = data.specialistConclusion;
+                                          const fields = Object.entries(data).filter(([k]) => k !== 'specialistConclusion');
+
+                                          return (
+                                            <>
+                                              {fields.length > 0 && (
+                                                <div className="grid grid-cols-1 gap-1.5">
+                                                  {fields.map(([k, v]) => (
+                                                    <div key={k} className="flex justify-between items-center py-1 border-b border-emerald-100/30 last:border-0">
+                                                      <span className="text-[10px] font-bold text-emerald-700/70">{k}</span>
+                                                      <span className="text-[11px] font-black text-emerald-900">{String(v)}</span>
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              )}
+                                              {conclusion && (
+                                                <div className="mt-3 pt-3 border-t border-emerald-100/50">
+                                                  <span className="text-[9px] font-black text-emerald-800 uppercase block mb-1.5 opacity-60">Kết luận bác sĩ:</span>
+                                                  <div className="p-2.5 bg-white/60 rounded-lg border border-emerald-100/50">
+                                                    <p className="text-[11px] text-emerald-900 font-bold leading-relaxed">{conclusion}</p>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </>
+                                          );
+                                        } catch (e) {
+                                          return (
+                                            <div className="p-3 bg-white/60 rounded-lg border border-emerald-100/50">
+                                              <p className="text-[11px] text-emerald-900 font-black">{order.resultData}</p>
+                                            </div>
+                                          );
+                                        }
+                                      })()}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                       </div>
                     )}
                   </div>
@@ -713,7 +726,10 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
                     </h3>
 
                     <div className="space-y-4">
-                      <BillingItem label="Phí khám bệnh" value={appointment.consultationFee || 0} />
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-slate-500 font-bold tracking-tight">Phí khám bệnh</span>
+                        <span className="text-emerald-600 font-black uppercase tracking-tighter text-[9px] italic">Đã thanh toán (Online)</span>
+                      </div>
                       <BillingItem label={`Hạng mục thuốc (${prescriptionDetails.length})`} value={medicineTotal} />
                       <BillingItem label={`Dịch vụ cận lâm sàng (${existingServiceOrders.length})`} value={serviceTotal} />
 
@@ -766,10 +782,10 @@ const ExaminationModal: React.FC<ExaminationModalProps> = ({ appointment, onClos
 
                   {existingRecord && (
                     <button
-                      onClick={() => exportElementToPDF('clinical-work-area', `Ket-Qua-Kham-${appointment.id.substring(0,8)}`)}
+                      onClick={() => printElement('clinical-work-area')}
                       className="w-full py-3 text-[11px] font-black text-emerald-600 hover:bg-emerald-50 border border-emerald-200 rounded-sm transition-all uppercase tracking-widest flex items-center justify-center gap-2"
                     >
-                      <DownloadIcon size={14} /> Tải hồ sơ PDF
+                      <DownloadIcon size={14} /> In / Tải hồ sơ PDF
                     </button>
                   )}
                 </div>
@@ -934,18 +950,32 @@ const HistoryRecordItem = ({ record }: { record: MedicalRecord }) => {
                       let parsedData = {};
                       try { parsedData = JSON.parse(res.resultData || '{}'); } catch { parsedData = { 'Kết quả': res.resultData }; }
                       return (
-                        <div key={idx} className="bg-white p-3 border border-slate-100 rounded-sm">
-                          <p className="text-[10px] font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 flex justify-between">
-                            {res.serviceName}
-                            <span className="text-[8px] text-slate-400 uppercase italic">Hoàn tất</span>
-                          </p>
-                          <div className="grid grid-cols-1 gap-2">
-                            {Object.entries(parsedData).map(([key, val]: any) => (
-                              <div key={key} className="flex justify-between items-start text-[10px]">
-                                <span className="text-slate-500 font-bold">{key}:</span>
-                                <span className="text-slate-800 font-black text-right">{val}</span>
+                        <div key={idx} className="bg-white p-4 border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all">
+                          <div className="flex items-center justify-between mb-3 border-b border-slate-50 pb-2">
+                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                              <Microscope size={14} /> {res.serviceName}
+                            </p>
+                            <span className="text-[8px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-black uppercase italic">Hoàn tất</span>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-1 gap-1.5">
+                              {Object.entries(parsedData).filter(([k]) => k !== 'specialistConclusion').map(([key, val]: any) => (
+                                <div key={key} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                                  <span className="text-[10px] font-bold text-slate-500">{key}:</span>
+                                  <span className="text-[11px] font-black text-slate-800">{val}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {(parsedData as any).specialistConclusion && (
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                <span className="text-[8px] font-black text-slate-400 uppercase block mb-1">Kết luận chuyên môn:</span>
+                                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100/50">
+                                  <p className="text-[10px] text-slate-700 font-bold leading-relaxed">{(parsedData as any).specialistConclusion}</p>
+                                </div>
                               </div>
-                            ))}
+                            )}
                           </div>
                         </div>
                       );

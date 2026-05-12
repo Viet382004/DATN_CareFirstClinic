@@ -26,7 +26,7 @@ function resolveChargeKind(appointment: Appointment): ChargeKind {
 
 function resolveChargeAmount(appointment: Appointment, kind: ChargeKind): number {
   if (kind === 'FullPayment') {
-    return appointment.consultationFee + appointment.serviceFee + appointment.medicineFee;
+    return appointment.serviceFee + appointment.medicineFee;
   }
   return kind === 'ConsultationFee' ? appointment.consultationFee : appointment.medicineFee;
 }
@@ -112,7 +112,7 @@ const AdminBilling: React.FC = () => {
         // và chưa thanh toán đầy đủ (check isMedicinePaid hoặc isConsultationPaid tùy logic backend)
         const isCompleted = appointment.status === 'Completed';
         const isUnpaid = !appointment.isConsultationPaid || !appointment.isMedicinePaid;
-        const hasCharges = (appointment.consultationFee + appointment.serviceFee + appointment.medicineFee) > 0;
+        const hasCharges = (appointment.serviceFee + appointment.medicineFee) > 0;
 
         if (!isCompleted || !isUnpaid || !hasCharges) return false;
 

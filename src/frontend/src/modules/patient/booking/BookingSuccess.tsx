@@ -19,7 +19,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../../contexts/useAuth';
 import styles from './Bookingsuccess.module.css';
 import Header from '../../home/components/Header';
-import { exportElementToPDF } from '../../../utils/exportUtils';
+import { exportElementToPDF, printElement } from '../../../utils/exportUtils';
 
 const getBookingData = () => {
   let patientName = '';
@@ -68,8 +68,8 @@ const BookingSuccess = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadTicket = async () => {
-    await exportElementToPDF('appointment-ticket', `Phieu-Hen-${BOOKING.code}`);
+  const handleDownloadTicket = () => {
+    printElement('appointment-ticket');
   };
 
   return (
@@ -218,9 +218,20 @@ const BookingSuccess = () => {
               </h3>
               <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${BOOKING.code}-CAREFIRST-CLINIC`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                    `MÃ ĐẶT LỊCH: ${BOOKING.code}\n` +
+                    `--------------------------\n` +
+                    `BỆNH NHÂN: ${BOOKING.patient}\n` +
+                    `SĐT: ${BOOKING.phone}\n` +
+                    `BÁC SĨ: ${BOOKING.doctor}\n` +
+                    `CHUYÊN KHOA: ${BOOKING.specialty}\n` +
+                    `THỜI GIAN: ${BOOKING.time} - ${BOOKING.date}\n` +
+                    `ĐỊA ĐIỂM: ${BOOKING.location}\n` +
+                    `--------------------------\n` +
+                    `CAREFIRST CLINIC - Tận tâm vì sức khỏe của bạn`
+                  )}`}
                   alt="Patient QR Code"
-                  style={{ display: 'inline-block', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '8px', background: 'white' }}
+                  style={{ display: 'inline-block', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '12px', background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                 />
               </div>
               <p className={styles.qrDesc}>
@@ -230,7 +241,19 @@ const BookingSuccess = () => {
                 className={styles.outlineButton}
                 style={{ width: '100%' }}
                 onClick={() => {
-                  const url = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${BOOKING.code}-CAREFIRST-CLINIC`;
+                  const qrData = encodeURIComponent(
+                    `MÃ ĐẶT LỊCH: ${BOOKING.code}\n` +
+                    `--------------------------\n` +
+                    `BỆNH NHÂN: ${BOOKING.patient}\n` +
+                    `SĐT: ${BOOKING.phone}\n` +
+                    `BÁC SĨ: ${BOOKING.doctor}\n` +
+                    `CHUYÊN KHOA: ${BOOKING.specialty}\n` +
+                    `THỜI GIAN: ${BOOKING.time} - ${BOOKING.date}\n` +
+                    `ĐỊA ĐIỂM: ${BOOKING.location}\n` +
+                    `--------------------------\n` +
+                    `CAREFIRST CLINIC - Tận tâm vì sức khỏe của bạn`
+                  );
+                  const url = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${qrData}`;
                   window.open(url, '_blank');
                 }}
               >
