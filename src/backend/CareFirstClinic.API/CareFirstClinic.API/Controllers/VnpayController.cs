@@ -349,8 +349,8 @@ namespace CareFirstClinic.API.Controllers
                     return BadRequest(new ApiResponse<object> { Success = false, Message = "Chỉ có thể thanh toán tổng sau khi hoàn tất khám" });
                 }
 
-                var totalAmount = appointment.ConsultationFee + appointment.ServiceFee + appointment.MedicineFee;
-                if (totalAmount <= 0) return BadRequest(new ApiResponse<object> { Success = false, Message = "Không có phí cần thanh toán" });
+                var totalAmount = appointment.ServiceFee + appointment.MedicineFee;
+                if (totalAmount <= 0) return BadRequest(new ApiResponse<object> { Success = false, Message = "Không có phí cần thanh toán (Tiền thuốc và dịch vụ)" });
 
                 var createPaymentDto = new CreatePaymentDTO
                 {

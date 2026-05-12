@@ -27,6 +27,7 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                     .Include(d => d.User)
                     .Where(d => d.User.IsActive)
                     .OrderBy(d => d.FullName)
+                    .AsNoTracking()
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -48,6 +49,7 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 return await _context.Doctors
                     .Include(d => d.Specialty)
                     .Include(d => d.User)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(d => d.Id == id && d.User.IsActive);
             }
             catch (ArgumentException)
@@ -72,6 +74,7 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 return await _context.Doctors
                     .Include(d => d.Specialty)
                     .Include(d => d.User)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(d => d.UserId == userId && d.User.IsActive);
             }
             catch (ArgumentException)
@@ -106,6 +109,7 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
 
                 return await q
                     .OrderBy(d => d.FullName)
+                    .AsNoTracking()
                     .ToListAsync();
             }
             catch (ArgumentException)
@@ -125,13 +129,17 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
         {
             ArgumentNullException.ThrowIfNull(doctor);
 
-            // 1. Kiểm tra SpecialtyId nếu là bác sĩ chuyên khoa
-            if (!doctor.IsClinical && doctor.SpecialtyId.HasValue)
+            // 1. Kiểm tra SpecialtyId
+            if (doctor.SpecialtyId.HasValue)
             {
                 var specialtyExists = await _context.Specialties
                     .AnyAsync(s => s.Id == doctor.SpecialtyId.Value);
                 if (!specialtyExists)
                     throw new KeyNotFoundException($"Không tìm thấy chuyên khoa với Id: {doctor.SpecialtyId}");
+            }
+            else
+            {
+                throw new ArgumentException("Bác sĩ phải thuộc một chuyên khoa.");
             }
 
             // 2. Xử lý User account
@@ -185,8 +193,8 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 throw new KeyNotFoundException(
                     $"Không tìm thấy bác sĩ với Id: {doctor.Id}");
 
-            // Điều kiện: SpecialtyId mới phải tồn tại (nếu là chuyên khoa)
-            if (!doctor.IsClinical && doctor.SpecialtyId.HasValue)
+            // Điều kiện: SpecialtyId mới phải tồn tại
+            if (doctor.SpecialtyId.HasValue)
             {
                 var specialtyExists = await _context.Specialties
                     .AnyAsync(s => s.Id == doctor.SpecialtyId.Value);
@@ -194,6 +202,10 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
                 if (!specialtyExists)
                     throw new KeyNotFoundException(
                         $"Không tìm thấy chuyên khoa với Id: {doctor.SpecialtyId}");
+            }
+            else
+            {
+                throw new ArgumentException("Bác sĩ phải thuộc một chuyên khoa.");
             }
 
             try
@@ -315,21 +327,22 @@ namespace CareFirstClinic.API.Repositories.DoctorRepo
 
             var total = await q.CountAsync();
 
-            // sort
+            // sort: Prioritize clinical doctors if requested or as default, then apply other sorts
             q = query.SortBy switch
             {
                 "yearsOfExperience" => query.IsAscending
-                    ? q.OrderBy(d => d.YearsOfExperience)
-                    : q.OrderByDescending(d => d.YearsOfExperience),
+                    ? q.OrderByDescending(d => d.IsClinical).ThenBy(d => d.YearsOfExperience)
+                    : q.OrderByDescending(d => d.IsClinical).ThenByDescending(d => d.YearsOfExperience),
                 _ => query.IsAscending  
-                    ? q.OrderBy(d => d.FullName)
-                    : q.OrderByDescending(d => d.FullName)
+                    ? q.OrderByDescending(d => d.IsClinical).ThenBy(d => d.FullName)
+                    : q.OrderByDescending(d => d.IsClinical).ThenByDescending(d => d.FullName)
             };
 
             // paging: Skip = bỏ qua N item đầu, Take = lấy PageSize item
             var items = await q
                 .Skip((query.Page - 1) * query.PageSize)
                 .Take(query.PageSize)
+                .AsNoTracking()
                 .ToListAsync();
 
             return (items, total);

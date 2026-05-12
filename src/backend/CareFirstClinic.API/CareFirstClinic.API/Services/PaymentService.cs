@@ -185,9 +185,9 @@ namespace CareFirstClinic.API.Services
                 if (appointment.Status != AppointmentStatus.Completed)
                     throw new InvalidOperationException("Chỉ được thanh toán tổng phí sau khi bác sĩ hoàn tất khám.");
                 
-                var totalAmount = appointment.ConsultationFee + appointment.ServiceFee + appointment.MedicineFee;
+                var totalAmount = appointment.ServiceFee + appointment.MedicineFee;
                 if (totalAmount <= 0)
-                    throw new InvalidOperationException("Không có phí cần thanh toán.");
+                    throw new InvalidOperationException("Không có phí cần thanh toán (Tiền thuốc và dịch vụ).");
                 
                 if (dto.Amount != totalAmount)
                 {

@@ -3,6 +3,7 @@ using CareFirstClinic.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CareFirstClinic.API.DTOs.Dashboard;
 
 namespace CareFirstClinic.API.Controllers
 {
@@ -129,6 +130,93 @@ namespace CareFirstClinic.API.Controllers
                 }
 
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message, detail = ex.InnerException?.Message });
+            }
+        }
+
+        [HttpGet("revenue-report")]
+        public async Task<IActionResult> GetRevenueReport([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            try
+            {
+                var end = endDate ?? DateTime.UtcNow;
+                var start = startDate ?? end.AddDays(-30);
+                
+                // Đảm bảo UTC
+                start = DateTime.SpecifyKind(start.Date, DateTimeKind.Utc);
+                end = DateTime.SpecifyKind(end.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+
+                var periodDuration = end - start;
+                var previousStart = start.Add(-periodDuration);
+                var previousEnd = start.AddTicks(-1);
+
+                // 1. Lấy tất cả payment trong kỳ và kỳ trước
+                var allPayments = await _context.Payments
+                    .Where(p => p.Status == PaymentStatus.Completed && p.PaidAt >= previousStart && p.PaidAt <= end)
+                    .ToListAsync();
+
+                var currentPayments = allPayments.Where(p => p.PaidAt >= start && p.PaidAt <= end).ToList();
+                var previousPayments = allPayments.Where(p => p.PaidAt >= previousStart && p.PaidAt <= previousEnd).ToList();
+
+                var totalRevenue = currentPayments.Sum(p => p.Amount);
+                var previousRevenue = previousPayments.Sum(p => p.Amount);
+                var growthRate = previousRevenue > 0 ? (double)((totalRevenue - previousRevenue) / previousRevenue * 100) : 0;
+
+                // 2. Thống kê theo ngày
+                var revenueByDay = currentPayments
+                    .GroupBy(p => p.PaidAt!.Value.Date)
+                    .Select(g => new RevenueByDayDTO
+                    {
+                        Date = g.Key.ToString("yyyy-MM-dd"),
+                        Amount = g.Sum(p => p.Amount),
+                        Count = g.Count()
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+
+                // 3. Thống kê theo loại (Type)
+                var revenueByType = currentPayments
+                    .GroupBy(p => p.Type)
+                    .Select(g => new RevenueByTypeDTO
+                    {
+                        Type = g.Key.ToString(),
+                        Amount = g.Sum(p => p.Amount),
+                        Percentage = totalRevenue > 0 ? (double)(g.Sum(p => p.Amount) / totalRevenue * 100) : 0
+                    })
+                    .ToList();
+
+                // 4. Thống kê theo phương thức (Method)
+                var revenueByMethod = currentPayments
+                    .GroupBy(p => p.Method)
+                    .Select(g => new RevenueByMethodDTO
+                    {
+                        Method = g.Key.ToString(),
+                        Amount = g.Sum(p => p.Amount),
+                        Percentage = totalRevenue > 0 ? (double)(g.Sum(p => p.Amount) / totalRevenue * 100) : 0
+                    })
+                    .ToList();
+
+                // 5. Thống kê lịch hẹn trong kỳ
+                var appointments = await _context.Appointments
+                    .Include(a => a.TimeSlot)
+                        .ThenInclude(ts => ts.Schedule)
+                    .Where(a => a.CreatedAt >= start && a.CreatedAt <= end)
+                    .ToListAsync();
+
+                return Ok(new RevenueReportDTO
+                {
+                    TotalRevenue = totalRevenue,
+                    PreviousPeriodRevenue = previousRevenue,
+                    GrowthRate = Math.Round(growthRate, 2),
+                    RevenueByDay = revenueByDay,
+                    RevenueByType = revenueByType,
+                    RevenueByMethod = revenueByMethod,
+                    TotalAppointments = appointments.Count,
+                    SuccessfulAppointments = appointments.Count(a => a.Status == AppointmentStatus.Completed)
+                });
             }
             catch (Exception ex)
             {

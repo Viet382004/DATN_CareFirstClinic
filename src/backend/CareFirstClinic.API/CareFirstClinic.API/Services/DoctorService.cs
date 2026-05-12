@@ -128,8 +128,8 @@ namespace CareFirstClinic.API.Services
 
             try
             {
-                if (!dto.IsClinical && !dto.SpecialtyId.HasValue)
-                    throw new ArgumentException("Bác sĩ chuyên khoa phải thuộc một chuyên khoa cụ thể.");
+                if (!dto.SpecialtyId.HasValue)
+                    throw new ArgumentException("Bác sĩ phải thuộc một chuyên khoa cụ thể.");
 
                 var doctor = new Doctor
                 {
@@ -138,7 +138,7 @@ namespace CareFirstClinic.API.Services
                     AcademicTitle = dto.AcademicTitle,
                     Description = dto.Description,
                     Position = dto.Position,
-                    SpecialtyId = dto.IsClinical ? null : dto.SpecialtyId,
+                    SpecialtyId = dto.SpecialtyId,
                     IsClinical = dto.IsClinical,
                     YearsOfExperience = dto.YearsOfExperience,
                     PhoneNumber = dto.PhoneNumber?.Trim() ?? string.Empty,
@@ -193,8 +193,8 @@ namespace CareFirstClinic.API.Services
 
                 if (doctor is null) return null;
 
-                if (!dto.IsClinical && !dto.SpecialtyId.HasValue)
-                    throw new ArgumentException("Bác sĩ chuyên khoa phải thuộc một chuyên khoa cụ thể.");
+                if (!dto.SpecialtyId.HasValue)
+                    throw new ArgumentException("Bác sĩ phải thuộc một chuyên khoa cụ thể.");
 
                 doctor.FullName = dto.FullName.Trim();
                 doctor.AcademicTitle = dto.AcademicTitle;
@@ -203,7 +203,7 @@ namespace CareFirstClinic.API.Services
                     doctor.User.Email = dto.Email.Trim();
                 }
                 doctor.Position = dto.Position;
-                doctor.SpecialtyId = dto.IsClinical ? null : dto.SpecialtyId;
+                doctor.SpecialtyId = dto.SpecialtyId;
                 doctor.IsClinical = dto.IsClinical;
                 doctor.YearsOfExperience = dto.YearsOfExperience;
                 doctor.PhoneNumber = dto.PhoneNumber.Trim();
@@ -319,7 +319,8 @@ namespace CareFirstClinic.API.Services
             IsActive = d.User?.IsActive ?? false,
             IsClinical = d.IsClinical,
             IsEmailVerified = d.User?.IsEmailVerified ?? false,
-            TotalAppointments = d.Schedules.Count(s => s.IsAvailable) 
+            TotalAppointments = d.Schedules.Count(s => s.IsAvailable),
+            AverageRating = 5.0 // Mặc định 5 sao vì chưa có hệ thống đánh giá
         };
     }
 }

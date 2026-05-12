@@ -17,8 +17,10 @@ namespace CareFirstClinic.API.Repositories.ClinicalServiceRepo
         {
             return await _context.ServiceOrders
                 .Include(so => so.Service)
+                    .ThenInclude(s => s!.Fields)
                 .Include(so => so.LockedByDoctor)
                 .Where(so => so.AppointmentId == appointmentId)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -26,6 +28,7 @@ namespace CareFirstClinic.API.Repositories.ClinicalServiceRepo
         {
             return await _context.ServiceOrders
                 .Include(so => so.Service)
+                    .ThenInclude(s => s!.Fields)
                 .Include(so => so.LockedByDoctor)
                 .Include(so => so.Appointment)
                 .FirstOrDefaultAsync(so => so.Id == id);
@@ -35,14 +38,17 @@ namespace CareFirstClinic.API.Repositories.ClinicalServiceRepo
         {
             var query = _context.ServiceOrders
                 .Include(so => so.Service)
+                    .ThenInclude(s => s!.Fields)
                 .Include(so => so.Appointment)
                     .ThenInclude(a => a!.Patient)
                 .Include(so => so.LockedByDoctor)
-                .Where(so => so.Status != ServiceOrderStatus.Completed && so.Status != ServiceOrderStatus.Cancelled);
+                .Where(so => so.Status != ServiceOrderStatus.Completed && so.Status != ServiceOrderStatus.Cancelled)
+                .AsNoTracking();
 
             if (specialtyId.HasValue)
             {
-                query = query.Where(so => so.Service!.SpecialtyId == specialtyId.Value);
+                // Explicitly check SpecialtyId from the Service table to avoid ambiguity in complex joins
+                query = query.Where(so => so.Service != null && so.Service.SpecialtyId == specialtyId.Value);
             }
 
             return await query

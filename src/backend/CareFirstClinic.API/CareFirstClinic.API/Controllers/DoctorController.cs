@@ -132,11 +132,11 @@ namespace CareFirstClinic.API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message); // 404 — SpecialtyId không tồn tại
+                return NotFound(ex.Message); 
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message); // 409 — UserId đã có hồ sơ
+                return Conflict(ex.Message); 
             }
             catch (Exception ex)
             {
