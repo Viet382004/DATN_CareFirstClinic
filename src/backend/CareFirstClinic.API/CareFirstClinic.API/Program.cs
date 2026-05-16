@@ -82,11 +82,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Configure Controllers and JSON options
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler =
+        // Handle circular references
+        options.JsonSerializerOptions.ReferenceHandler = 
             System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        
+        // Convert Enums to Strings in JSON
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
 builder.Services.AddAuthorization(options =>
@@ -96,6 +102,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("PatientOnly", p => p.RequireRole("Patient"));
 });
 
+// Repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
@@ -109,7 +116,7 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 
-
+// Services
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<ISpecialtyService, SpecialtyService>();
@@ -123,10 +130,14 @@ builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<IScheduleSeeder, ScheduleSeeder>();
+
+// External Services
 builder.Services.AddHttpClient<EmailService>();
 builder.Services.AddHttpClient<ImageService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); 
 builder.Services.AddScoped<IImageService, ImageService>();
+
+// VNPay
 builder.Services.AddVnpayClient(config =>
 {
     config.TmnCode = Environment.GetEnvironmentVariable("VNPAY_TMN_CODE")
@@ -146,15 +157,19 @@ builder.Services.AddVnpayClient(config =>
         ?? "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 });
 builder.Services.AddScoped<IVNPayService, VNPayService>();
+
+// Background Services
 builder.Services.AddHostedService<AppointmentReminderService>();
 builder.Services.AddHostedService<AppointmentAutoCancelService>();
-//builder.Services.AddHostedService<ScheduleBackgroundService>();
+//builder.Services.AddHostedService<ScheduleSeeder>();
 
-builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "CareFirstClinic API", Version = "v1" });
+
+    c.OperationFilter<FileUploadOperationFilter>();
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -177,12 +192,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
+
 var app = builder.Build();
 
 var mutex = new Mutex(true, "CareFirstClinic.API", out bool isNewInstance);
@@ -236,7 +246,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
     c.DocumentTitle = "CareFirst Clinic API Documentation";
 });
-// 
+
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();

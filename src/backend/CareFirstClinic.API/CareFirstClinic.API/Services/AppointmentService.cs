@@ -454,6 +454,30 @@ namespace CareFirstClinic.API.Services
                 appointment.UpdatedAt = DateTime.UtcNow;
 
                 var updated = await _appointmentRepo.CancelAsync(appointment, appointment.TimeSlot!);
+
+                // Gửi email thông báo hủy lịch
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var email = updated.Patient?.User?.Email;
+                        var patientName = updated.Patient?.FullName;
+                        var doctorName = updated.TimeSlot?.Schedule?.Doctor?.FullName;
+                        var workDate = updated.TimeSlot!.Schedule!.WorkDate;
+                        var startTime = updated.TimeSlot.StartTime;
+
+                        if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            await _emailService.SendAppointmentCancelledAsync(
+                                email, patientName!, doctorName!, workDate, startTime, updated.CancelReason!);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi gửi email hủy lịch AppointmentId: {Id}", id);
+                    }
+                });
+
                 return MapToDTO(updated);
             }
             catch (ArgumentException) { throw; }
@@ -519,6 +543,80 @@ namespace CareFirstClinic.API.Services
                 _logger.LogInformation("Đã tự động hủy {Count} lịch hẹn pending quá hạn.", cancelledCount);
 
             return cancelledCount;
+        }
+
+        public async Task<AppointmentDTO?> AdminUpdateAppointmentAsync(Guid id, AdminUpdateAppointmentDTO dto)
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id không được để trống.", nameof(id));
+            ArgumentNullException.ThrowIfNull(dto);
+
+            try
+            {
+                var appointment = await _appointmentRepo.GetByIdAsync(id);
+                if (appointment is null) return null;
+
+                if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
+                    throw new InvalidOperationException($"Không thể cập nhật lịch hẹn đang ở trạng thái '{appointment.Status}'.");
+
+                var oldTimeSlot = appointment.TimeSlot;
+                if (oldTimeSlot == null)
+                    throw new InvalidOperationException("Lịch hẹn không có TimeSlot hợp lệ.");
+
+                var newTimeSlot = await _context.TimeSlots
+                    .Include(t => t.Schedule)
+                        .ThenInclude(s => s!.Doctor)
+                            .ThenInclude(d => d!.Specialty)
+                    .FirstOrDefaultAsync(t => t.Id == dto.TimeSlotId);
+
+                if (newTimeSlot == null)
+                    throw new ArgumentException("TimeSlot mới không tồn tại.", nameof(dto.TimeSlotId));
+
+                if (newTimeSlot.IsBooked && newTimeSlot.Id != oldTimeSlot.Id)
+                    throw new InvalidOperationException("TimeSlot mới đã được đặt bởi người khác.");
+
+                // Cập nhật thông tin
+                appointment.TimeSlotId = dto.TimeSlotId;
+                appointment.Notes = dto.Notes?.Trim();
+                appointment.UpdatedAt = DateTime.UtcNow;
+
+                var updated = await _appointmentRepo.AdminUpdateAppointmentAsync(appointment, oldTimeSlot, newTimeSlot);
+
+                // Gửi email thông báo thay đổi cho bệnh nhân (nếu cần)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var email = updated.Patient?.User?.Email;
+                        if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            await _emailService.SendAppointmentBookedAsync(
+                                email,
+                                updated.Patient?.FullName ?? "Bệnh nhân",
+                                updated.TimeSlot?.Schedule?.Doctor?.FullName ?? "Bác sĩ",
+                                updated.TimeSlot?.Schedule?.Doctor?.Specialty?.Name ?? "Chuyên khoa",
+                                updated.TimeSlot!.Schedule!.WorkDate,
+                                updated.TimeSlot.StartTime,
+                                updated.TimeSlot.EndTime,
+                                "Lịch hẹn của bạn đã được Admin điều chỉnh thông tin."
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi gửi email thông báo cập nhật lịch hẹn cho Admin.");
+                    }
+                });
+
+                return MapToDTO(updated);
+            }
+            catch (ArgumentException) { throw; }
+            catch (InvalidOperationException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi AdminUpdateAppointment Id: {Id}", id);
+                throw new ApplicationException("Không thể cập nhật lịch hẹn.", ex);
+            }
         }
 
         // MAP

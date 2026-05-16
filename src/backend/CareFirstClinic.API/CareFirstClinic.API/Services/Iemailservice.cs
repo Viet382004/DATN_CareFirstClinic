@@ -37,7 +37,17 @@ namespace CareFirstClinic.API.Services
             DateTime issuedAt,
             List<PrescriptionEmailItem> details,
             string? notes);
+
+        // Gửi email khi hủy lịch hẹn
+        Task SendAppointmentCancelledAsync(
+            string toEmail,
+            string patientName,
+            string doctorName,
+            DateTime workDate,
+            TimeSpan startTime,
+            string cancelReason);
     }
+
 
     // DTO nhỏ dùng cho email đơn thuốc
     public class PrescriptionEmailItem

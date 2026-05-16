@@ -12,6 +12,7 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
         Task<Appointment> AddAsync(Appointment appointment, TimeSlot timeSlot);
         Task<Appointment> UpdateAsync(Appointment appointment);
         Task<Appointment> CancelAsync(Appointment appointment, TimeSlot timeSlot);
+        Task<Appointment> AdminUpdateAppointmentAsync(Appointment appointment, TimeSlot oldSlot, TimeSlot newSlot);
         Task<(List<Appointment> Items, int Total)> GetPagedAsync(AppointmentQueryParams query);
     }
 }

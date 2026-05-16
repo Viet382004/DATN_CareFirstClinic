@@ -275,6 +275,39 @@ namespace CareFirstClinic.API.Services
                         appointment.IsMedicinePaid = true;
                     }
                     appointment.UpdatedAt = DateTime.UtcNow;
+
+                    if (payment.Type == PaymentType.MedicineFee || payment.Type == PaymentType.FullPayment)
+                    {
+                        var medicalRecord = await _context.MedicalRecords
+                            .Include(m => m.Prescription)
+                                .ThenInclude(p => p!.Details)
+                                    .ThenInclude(d => d.Stock)
+                            .FirstOrDefaultAsync(m => m.AppointmentId == payment.AppointmentId);
+
+                        if (medicalRecord?.Prescription != null && medicalRecord.Prescription.Status == PrescriptionStatus.Issued)
+                        {
+                            Console.WriteLine("\n" + new string('=', 60));
+                            Console.WriteLine($"[PAYMENT SUCCESS] Đã thanh toán tiền thuốc cho lịch hẹn: {payment.AppointmentId}");
+                            Console.WriteLine($"[PROCESSING] Đang trừ tồn kho cho đơn thuốc: {medicalRecord.Prescription.Id}");
+                            
+                            foreach (var detail in medicalRecord.Prescription.Details)
+                            {
+                                if (detail.Stock != null)
+                                {
+                                    var oldQty = detail.Stock.Quantity;
+                                    detail.Stock.Quantity -= detail.Quantity;
+                                    
+                                    Console.WriteLine($"- Thuốc: {detail.Stock.MedicineName} | Số lượng: {detail.Quantity} | Tồn kho: {oldQty} -> {detail.Stock.Quantity}");
+                                    _logger.LogInformation("Đã trừ tồn kho thuốc {Medicine} số lượng {Qty} sau khi thanh toán.", detail.Stock.MedicineName, detail.Quantity);
+                                }
+                            }
+                            
+                            medicalRecord.Prescription.Status = PrescriptionStatus.Dispensed;
+                            Console.WriteLine($"[STATUS] Đơn thuốc đã chuyển sang trạng thái: DISPENSED");
+                            Console.WriteLine(new string('=', 60) + "\n");
+                        }
+                    }
+
                     await _context.SaveChangesAsync();
                 }
 

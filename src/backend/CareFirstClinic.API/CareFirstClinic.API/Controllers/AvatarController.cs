@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.DTOs;
+using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +30,9 @@ namespace CareFirstClinic.API.Controllers
 
         // POST /api/avatar/doctor
         [HttpPost("doctor")]
+        [Consumes("multipart/form-data")]
         [Authorize(Roles = "Doctor,Admin")]
-        public async Task<IActionResult> UploadDoctorAvatar([FromForm] IFormFile file)
+        public async Task<IActionResult> UploadDoctorAvatar(IFormFile file)
         {
             try
             {
@@ -73,8 +74,9 @@ namespace CareFirstClinic.API.Controllers
         // Admin upload avatar cho bác sĩ cụ thể
         // POST /api/avatar/doctor/{doctorId}
         [HttpPost("doctor/{doctorId:guid}")]
+        [Consumes("multipart/form-data")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UploadDoctorAvatarById(Guid doctorId, [FromForm] IFormFile file)
+        public async Task<IActionResult> UploadDoctorAvatarById(Guid doctorId, IFormFile file)
         {
             try
             {
@@ -101,8 +103,9 @@ namespace CareFirstClinic.API.Controllers
 
         // POST /api/avatar/patient
         [HttpPost("patient")]
+        [Consumes("multipart/form-data")]
         [Authorize(Roles = "Patient,Admin")]
-        public async Task<IActionResult> UploadPatientAvatar([FromForm] IFormFile file)
+        public async Task<IActionResult> UploadPatientAvatar(IFormFile file)
         {
             try
             {
@@ -138,8 +141,9 @@ namespace CareFirstClinic.API.Controllers
         // Admin upload avatar cho bệnh nhân cụ thể
         // POST /api/avatar/patient/{patientId}
         [HttpPost("patient/{patientId:guid}")]
+        [Consumes("multipart/form-data")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UploadPatientAvatarById(Guid patientId, [FromForm] IFormFile file)
+        public async Task<IActionResult> UploadPatientAvatarById(Guid patientId, IFormFile file)
         {
             try
             {

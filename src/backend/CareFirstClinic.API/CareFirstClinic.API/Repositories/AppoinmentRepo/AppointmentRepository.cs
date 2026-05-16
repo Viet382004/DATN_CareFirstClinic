@@ -244,6 +244,64 @@ namespace CareFirstClinic.API.Repositories.AppoinmentRepo
             }
         }
 
+        public async Task<Appointment> AdminUpdateAppointmentAsync(Appointment appointment, TimeSlot oldSlot, TimeSlot newSlot)
+        {
+            ArgumentNullException.ThrowIfNull(appointment, nameof(appointment));
+            ArgumentNullException.ThrowIfNull(oldSlot, nameof(oldSlot));
+            ArgumentNullException.ThrowIfNull(newSlot, nameof(newSlot));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Release old slot
+                var slotToRelease = await _context.TimeSlots.FindAsync(oldSlot.Id);
+                if (slotToRelease != null)
+                {
+                    slotToRelease.IsBooked = false;
+                    _context.TimeSlots.Update(slotToRelease);
+
+                    var oldSchedule = await _context.Schedules.FindAsync(slotToRelease.ScheduleId);
+                    if (oldSchedule != null)
+                    {
+                        oldSchedule.AvailableSlots += 1;
+                        oldSchedule.IsAvailable = true;
+                        _context.Schedules.Update(oldSchedule);
+                    }
+                }
+
+                // 2. Book new slot
+                var slotToBook = await _context.TimeSlots.FindAsync(newSlot.Id);
+                if (slotToBook == null)
+                    throw new KeyNotFoundException("Không tìm thấy TimeSlot mới.");
+                
+                if (slotToBook.IsBooked && slotToBook.Id != oldSlot.Id)
+                    throw new InvalidOperationException("TimeSlot mới đã được đặt.");
+
+                slotToBook.IsBooked = true;
+                _context.TimeSlots.Update(slotToBook);
+
+                var newSchedule = await _context.Schedules.FindAsync(slotToBook.ScheduleId);
+                if (newSchedule != null)
+                {
+                    newSchedule.AvailableSlots = Math.Max(0, newSchedule.AvailableSlots - 1);
+                    _context.Schedules.Update(newSchedule);
+                }
+
+                // 3. Update Appointment
+                _context.Appointments.Update(appointment);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return appointment;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Lỗi khi admin cập nhật lịch hẹn Id: {Id}", appointment.Id);
+                throw;
+            }
+        }
+
         public async Task<(List<Appointment> Items, int Total)> GetPagedAsync(AppointmentQueryParams query)
         {
             var q = BaseQuery();

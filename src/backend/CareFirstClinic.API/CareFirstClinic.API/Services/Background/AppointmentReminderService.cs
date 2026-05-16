@@ -76,7 +76,7 @@ namespace CareFirstClinic.API.Services.Background
 
             try
             {
-                var tomorrow = DateTime.UtcNow.Date.AddDays(1);
+                var tomorrow = DateTime.Today.AddDays(1);
 
                 // Lấy tất cả lịch hẹn ngày mai đã Confirmed
                 var appointments = await context.Appointments

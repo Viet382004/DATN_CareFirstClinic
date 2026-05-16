@@ -323,5 +323,46 @@ public async Task SendOtpAsync(string toEmail, string userName, string otpCode)
 
             await SendAsync(toEmail, subject, html);
         }
-    }
-}
+
+        // 5. HỦY LỊCH HẸN
+        public async Task SendAppointmentCancelledAsync(string toEmail, string patientName, string doctorName,
+            DateTime workDate, TimeSpan startTime, string cancelReason)
+        {
+            var subject = "CareFirst Clinic - Thông báo hủy lịch hẹn";
+
+            var html = $@"
+<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'></head>
+<body style='margin:0; padding:0; background:#f8f9fa; font-family:Arial, Helvetica, sans-serif;'>
+  <table width='100%' cellpadding='0' cellspacing='0'>
+    <tr><td align='center' style='padding:40px 20px;'>
+      <table width='600' cellpadding='0' cellspacing='0' style='background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05);'>
+        <tr><td style='background:#dc3545; padding:30px; text-align:center;'>
+          <h1 style='color:#ffffff; margin:0; font-size:26px;'>CareFirst Clinic</h1>
+        </td></tr>
+        <tr><td style='padding:40px 30px;'>
+          <p style='font-size:16px; color:#333333;'>Xin chào <strong>{patientName}</strong>,</p>
+          <p style='font-size:16px; color:#555555;'>Lịch hẹn của bạn tại CareFirst Clinic đã bị hủy. Dưới đây là thông tin chi tiết:</p>
+          
+          <table width='100%' cellpadding='0' cellspacing='0' style='background:#fff5f5; border-radius:8px; padding:20px; margin:20px 0; border:1px solid #feb2b2;'>
+            <tr><td style='padding:10px 0; color:#555555; width:40%;'>Bác sĩ</td><td style='padding:10px 0; font-weight:600;'>{doctorName}</td></tr>
+            <tr><td style='padding:10px 0; color:#555555;'>Thời gian</td><td style='padding:10px 0; font-weight:600;'>{startTime:hh\\:mm} - {workDate:dd/MM/yyyy}</td></tr>
+            <tr><td style='padding:10px 0; color:#555555;'>Lý do hủy</td><td style='padding:10px 0; color:#dc3545; font-weight:600;'>{cancelReason}</td></tr>
+          </table>
+
+          <p style='font-size:14px; color:#666666;'>Chúng tôi rất tiếc vì sự bất tiện này. Bạn có thể đặt lại lịch hẹn mới trên website của chúng tôi.</p>
+        </td></tr>
+        <tr><td style='background:#f8f9fa; padding:25px; text-align:center; border-top:1px solid #eeeeee;'>
+          <p style='font-size:13px; color:#888888; margin:0;'>© 2026 CareFirst Clinic - Phòng khám chăm sóc sức khỏe</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>";
+
+            await SendAsync(toEmail, subject, html);
+        }
+     }
+ }

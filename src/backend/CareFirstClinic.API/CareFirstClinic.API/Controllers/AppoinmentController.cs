@@ -1,4 +1,4 @@
-﻿using CareFirstClinic.API.Common;
+using CareFirstClinic.API.Common;
 using CareFirstClinic.API.DTOs;
 using CareFirstClinic.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -188,6 +188,26 @@ namespace CareFirstClinic.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi Admin Create appointment.");
+                return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // PUT /api/appointment/admin/{id} — Admin sửa bác sĩ/timeslot
+        [HttpPut("admin/{id:guid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminUpdate(Guid id, AdminUpdateAppointmentDTO dto)
+        {
+            try
+            {
+                var updated = await _appointmentService.AdminUpdateAppointmentAsync(id, dto);
+                if (updated is null) return NotFound($"Không tìm thấy lịch hẹn với Id: {id}");
+                return Ok(new { message = "Điều chỉnh lịch hẹn thành công.", data = updated });
+            }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
+            catch (InvalidOperationException ex) { return Conflict(ex.Message); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi AdminUpdate appointment Id: {Id}", id);
                 return StatusCode(500, "Lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }

@@ -19,6 +19,7 @@ namespace CareFirstClinic.API.Services
         Task<AppointmentDTO?> UpdateMedicineFeeAsync(Guid id, Guid doctorId, decimal medicineFee);
         Task<AppointmentDTO?> CancelAsync(Guid id, Guid requesterId, string requesterRole, CancelAppointmentDTO dto);
         Task<int> AutoCancelExpiredPendingAsync();
+        Task<AppointmentDTO?> AdminUpdateAppointmentAsync(Guid id, AdminUpdateAppointmentDTO dto);
         Task<PagedResult<AppointmentDTO>> GetPagedAsync(AppointmentQueryParams query);
     }
 }
