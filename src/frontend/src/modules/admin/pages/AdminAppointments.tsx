@@ -3,30 +3,13 @@ import { appointmentService } from '../../../services/appointmentService';
 import { paymentService } from '../../../services/paymentService';
 import type { Appointment, AppointmentQueryParams } from '../../../types/appointment';
 import type { Payment } from '../../../types/payment';
-import {
-  Search,
-  Filter,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
-  UserCheck,
-  Calendar,
-  FileText,
-  User,
-  Activity,
-  UserPlus,
-  CreditCard,
-  Wallet,
-  Loader2
-} from 'lucide-react';
+import { Search, Filter, CheckCircle2, XCircle, Clock, MoreVertical, ChevronLeft, ChevronRight, UserCheck, Calendar, FileText, User, Activity, UserPlus, CreditCard, Wallet, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
 import { formatDate } from '../../../utils/format';
 import { exportToExcel } from '../../../utils/exportUtils';
 import { Download as DownloadIcon } from 'lucide-react';
+import ReassignAppointmentModal from '../components/ReassignAppointmentModal';
 
 // ⭐ Modal thanh toán
 interface PaymentModalProps {
@@ -203,8 +186,9 @@ const AdminAppointments: React.FC = () => {
   const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ⭐ State cho modal thanh toán
+  // ⭐ State cho modal thanh toán & điều chỉnh
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReassignModal, setShowReassignModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   const [query, setQuery] = useState<AppointmentQueryParams>({
@@ -273,8 +257,8 @@ const AdminAppointments: React.FC = () => {
     setShowPaymentModal(true);
   };
 
-  // ⭐ Sau khi thanh toán thành công
-  const handlePaymentSuccess = () => {
+  // ⭐ Sau khi thanh toán/điều chỉnh thành công
+  const handleActionSuccess = () => {
     fetchAppointments();
   };
 
@@ -500,6 +484,18 @@ const AdminAppointments: React.FC = () => {
                       )}
                       {['Pending', 'Confirmed'].includes(a.status) && (
                         <button
+                          onClick={() => {
+                            setSelectedAppointment(a);
+                            setShowReassignModal(true);
+                          }}
+                          className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-md transition-all"
+                          title="Đổi bác sĩ/giờ khám"
+                        >
+                          <RefreshCw size={18} />
+                        </button>
+                      )}
+                      {['Pending', 'Confirmed'].includes(a.status) && (
+                        <button
                           onClick={() => handleCancelByAdmin(a.id)}
                           className="p-2 text-rose-500 hover:bg-rose-50 rounded-md transition-all"
                           title="Hủy lịch"
@@ -569,7 +565,18 @@ const AdminAppointments: React.FC = () => {
           setShowPaymentModal(false);
           setSelectedAppointment(null);
         }}
-        onPaymentSuccess={handlePaymentSuccess}
+        onPaymentSuccess={handleActionSuccess}
+      />
+
+      {/* ⭐ Modal điều chỉnh bác sĩ/giờ khám */}
+      <ReassignAppointmentModal
+        isOpen={showReassignModal}
+        appointment={selectedAppointment}
+        onClose={() => {
+          setShowReassignModal(false);
+          setSelectedAppointment(null);
+        }}
+        onSuccess={handleActionSuccess}
       />
     </div>
   );

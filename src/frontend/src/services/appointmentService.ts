@@ -5,7 +5,8 @@ import type {
   CreateAppointmentDTO,
   UpdateAppointmentDTO,
   CancelAppointmentDTO,
-  AppointmentQueryParams
+  AppointmentQueryParams,
+  AdminUpdateAppointmentDTO
 } from '../types/appointment';
 import type { PagedResult } from '../types/common';
 
@@ -64,6 +65,13 @@ export const appointmentService = {
    */
   async update(id: string, data: UpdateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
     return apiPut(`/appointment/${id}`, data);
+  },
+  
+  /**
+   * Admin điều chỉnh bác sĩ/timeslot (Requires: Admin role)
+   */
+  async adminUpdate(id: string, data: AdminUpdateAppointmentDTO): Promise<{ message: string; data: Appointment }> {
+    return apiPut(`/appointment/admin/${id}`, data);
   },
 
   /**

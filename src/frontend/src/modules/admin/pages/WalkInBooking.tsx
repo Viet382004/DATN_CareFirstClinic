@@ -513,11 +513,6 @@ const WalkInBooking: React.FC = () => {
                   onClick={() => setSelectedDoctor(d.id)}
                   className={`group relative flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all ${selectedDoctor === d.id ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-600/5' : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'}`}
                 >
-                  {selectedDoctor === d.id && (
-                    <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-sm">
-                      <Check className="h-3 w-3" />
-                    </div>
-                  )}
                   <div className="h-14 w-14 rounded-2xl bg-slate-100 flex-shrink-0 flex items-center justify-center border border-slate-200 group-hover:scale-105 transition-transform">
                     {d.avatarUrl ? (
                       <img src={d.avatarUrl} alt={d.fullName} className="h-full w-full object-cover rounded-2xl" />
@@ -525,6 +520,11 @@ const WalkInBooking: React.FC = () => {
                       <User className="h-7 w-7 text-slate-300" />
                     )}
                   </div>
+                  {selectedDoctor === d.id && (
+                    <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+                      <Check className="h-3 w-3" />
+                    </div>
+                  )}
                   <div>
                     <p className="font-black text-slate-900 text-sm leading-tight">{d.fullName}</p>
                     <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">

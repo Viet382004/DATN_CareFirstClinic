@@ -118,7 +118,7 @@ const PatientInfo: React.FC = () => {
   const validate = (): FormErrors => {
     const nextErrors: FormErrors = {};
     if (!form.reason.trim()) {
-      nextErrors.reason = 'Vui long mo ta ly do kham';
+      nextErrors.reason = 'Vui lòng mô tả lý do khám.';
     }
     return nextErrors;
   };
@@ -135,7 +135,7 @@ const PatientInfo: React.FC = () => {
     try {
       const timeSlotId = localStorage.getItem('selectedTimeSlotId');
       if (!timeSlotId || timeSlotId === 'null' || timeSlotId === 'undefined') {
-        throw new Error('Khong tim thay khung gio da chon.');
+        throw new Error('Không tìm thấy khung giờ đã chọn.');
       }
 
       const normalizedGender = form.gender
@@ -173,7 +173,7 @@ const PatientInfo: React.FC = () => {
 
       const payment = await paymentService.createVNPayPayment(appointment.id);
       if (!payment.success || !payment.data?.paymentUrl) {
-        throw new Error(payment.message || 'Khong the tao thanh toan VNPay.');
+        throw new Error(payment.message || 'Không thể tạo thanh toán VNPay.');
       }
 
       sessionStorage.setItem('pendingOrderId', payment.data.orderId);
@@ -185,7 +185,7 @@ const PatientInfo: React.FC = () => {
         error?.response?.data?.message ||
         error?.data?.message ||
         error?.message ||
-        'Da co loi xay ra khi dat lich.';
+        'Đã có lỗi xảy ra khi tạo lịch hẹn.';
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -227,7 +227,7 @@ const PatientInfo: React.FC = () => {
 
           <div className={styles.heroSection}>
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={styles.heroTitle}>
-              Hoan tat <span className={styles.heroHighlight}>thong tin</span> dat lich
+              Hoàn tất <span className={styles.heroHighlight}>thông tin</span> đặt lịch
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -235,7 +235,7 @@ const PatientInfo: React.FC = () => {
               transition={{ delay: 0.1 }}
               className={styles.heroDescription}
             >
-              Ban can thanh toan phi kham truoc khi lich hen duoc xac nhan.
+              Bạn cần thanh toán phí khám trước khi lịch hẹn được xác nhận.
             </motion.p>
           </div>
 
@@ -245,31 +245,31 @@ const PatientInfo: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 className={styles.sectionTitle} style={{ margin: 0 }}>
                     <span className={styles.sectionIcon}><UserRound size={18} /></span>
-                    Thong tin benh nhan
+                    Thông tin bệnh nhân
                   </h3>
                   <Link to="/patient/profile" className={styles.editLink} style={{ fontSize: '0.85rem', color: '#3b82f6', textDecoration: 'none' }}>
-                    Chinh sua ho so
+                    Chỉnh sửa hồ sơ
                   </Link>
                 </div>
 
                 {loadingProfile ? (
-                  <div className={styles.loadingProfile}>Dang lay thong tin...</div>
+                  <div className={styles.loadingProfile}>Đang lấy thông tin...</div>
                 ) : (
                   <div className={styles.profileSummaryGrid}>
                     <div className={styles.summaryInfoItem}>
-                      <label>Ho va ten</label>
+                      <label>Họ và tên</label>
                       <div>{form.fullName}</div>
                     </div>
                     <div className={styles.summaryInfoItem}>
-                      <label>So dien thoai</label>
+                      <label>Số điện thoại</label>
                       <div>{form.phone}</div>
                     </div>
                     <div className={styles.summaryInfoItem}>
-                      <label>Ngay sinh</label>
+                      <label>Ngày sinh</label>
                       <div>{form.dob ? formatDate(form.dob) : '---'}</div>
                     </div>
                     <div className={styles.summaryInfoItem}>
-                      <label>Gioi tinh</label>
+                      <label>Giới tính</label>
                       <div>{form.gender || '---'}</div>
                     </div>
                   </div>
@@ -284,7 +284,7 @@ const PatientInfo: React.FC = () => {
               >
                 <h3 className={styles.sectionTitle}>
                   <span className={styles.sectionIcon}><CreditCard size={18} /></span>
-                  Dich vu va thanh toan
+                  Dịch vụ và thanh toán
                 </h3>
 
                 <div style={{ display: 'grid', gap: '0.75rem' }}>
@@ -350,7 +350,7 @@ const PatientInfo: React.FC = () => {
                     }}
                   >
                     <Wallet size={18} />
-                    Dat lich online chi ho tro VNPay
+                    Đặt lịch online chỉ hỗ trợ VNPay
                   </div>
                 </div>
               </motion.div>
@@ -363,15 +363,15 @@ const PatientInfo: React.FC = () => {
               >
                 <h3 className={styles.sectionTitle}>
                   <span className={styles.sectionIcon}><FileText size={18} /></span>
-                  Chi tiet cuoc hen
+                  Chi tiết cuộc hẹn
                 </h3>
                 <div className={styles.formGrid}>
                   <div className={`${styles.fieldGroup} ${styles.fieldFull}`}>
                     <label className={styles.fieldLabel}>
-                      Ly do / trieu chung<span className={styles.fieldRequired}>*</span>
+                      Lý do / triệu chứng<span className={styles.fieldRequired}>*</span>
                     </label>
                     <textarea
-                      placeholder="Mo ta ngan trieu chung hoac ly do ban muon kham..."
+                      placeholder="Mô tả ngắn triệu chứng hoặc lý do bạn muốn khám..."
                       className={`${styles.fieldTextarea} ${errors.reason ? styles.fieldInputError : ''}`}
                       value={form.reason}
                       onChange={(event) => update('reason', event.target.value)}
@@ -380,9 +380,9 @@ const PatientInfo: React.FC = () => {
                   </div>
 
                   <div className={`${styles.fieldGroup} ${styles.fieldFull}`}>
-                    <label className={styles.fieldLabel}>Ghi chu them</label>
+                    <label className={styles.fieldLabel}>Ghi chú thêm</label>
                     <textarea
-                      placeholder="Di ung thuoc, tien su benh hoac yeu cau dac biet..."
+                      placeholder="Dị ứng thuốc, tiền sử bệnh hoặc yêu cầu đặc biệt..."
                       className={styles.fieldTextarea}
                       value={form.notes}
                       onChange={(event) => update('notes', event.target.value)}
@@ -398,16 +398,16 @@ const PatientInfo: React.FC = () => {
               transition={{ delay: 0.2 }}
               className={styles.summaryCard}
             >
-              <h4 className={styles.summaryTitle}>Tom tat lich hen</h4>
+              <h4 className={styles.summaryTitle}>Tóm tắt lịch hẹn</h4>
 
               {[
-                { icon: <CreditCard size={16} />, label: 'Dich vu', value: selectedService.name },
-                { icon: <CheckCircle2 size={16} />, label: 'Phi kham', value: `${selectedService.consultationFee.toLocaleString('vi-VN')}d` },
-                { icon: <Stethoscope size={16} />, label: 'Chuyen khoa', value: bookingSummary.specialty },
-                { icon: <User size={16} />, label: 'Bac si', value: bookingSummary.doctor },
-                { icon: <CalendarDays size={16} />, label: 'Ngay kham', value: bookingSummary.date },
-                { icon: <Clock size={16} />, label: 'Gio kham', value: bookingSummary.time },
-                { icon: <CheckCircle2 size={16} />, label: 'Dia diem', value: bookingSummary.location },
+                { icon: <CreditCard size={16} />, label: 'Dịch vụ', value: selectedService.name },
+                { icon: <CheckCircle2 size={16} />, label: 'Phí khám', value: `${selectedService.consultationFee.toLocaleString('vi-VN')}d` },
+                { icon: <Stethoscope size={16} />, label: 'Chuyên khoa', value: bookingSummary.specialty },
+                { icon: <User size={16} />, label: 'Bác sĩ', value: bookingSummary.doctor },
+                { icon: <CalendarDays size={16} />, label: 'Ngày khám', value: bookingSummary.date },
+                { icon: <Clock size={16} />, label: 'Giờ khám', value: bookingSummary.time },
+                { icon: <CheckCircle2 size={16} />, label: 'Địa điểm', value: bookingSummary.location },
               ].map((item) => (
                 <div key={item.label} className={styles.summaryItem}>
                   <div className={styles.summaryItemIcon}>{item.icon}</div>
@@ -419,7 +419,7 @@ const PatientInfo: React.FC = () => {
               ))}
 
               <div className={styles.summaryNote}>
-                Can thanh toan truoc de he thong giu slot va xac nhan lich hen.
+                Cần thanh toán trước để hệ thống giữ slot và xác nhận lịch hẹn.
               </div>
             </motion.div>
           </div>
@@ -427,7 +427,7 @@ const PatientInfo: React.FC = () => {
           <div className={styles.actionButtons}>
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleBack} className={styles.backButton}>
               <ArrowLeft size={18} />
-              Quay lai
+              Quay lại
             </motion.button>
 
             <motion.button
@@ -437,7 +437,7 @@ const PatientInfo: React.FC = () => {
               disabled={!isFormValid || loading}
               className={`${styles.continueButton} ${(!isFormValid || loading) ? styles.continueButtonDisabled : ''}`}
             >
-              {loading ? 'Dang xu ly...' : `Thanh toan ${selectedService.consultationFee.toLocaleString('vi-VN')}d`}
+              {loading ? 'Đang xử lý...' : `Thanh toán ${selectedService.consultationFee.toLocaleString('vi-VN')}d`}
               <ArrowRight size={18} />
             </motion.button>
           </div>
@@ -445,9 +445,9 @@ const PatientInfo: React.FC = () => {
           <div className={styles.helpSection}>
             <div className={styles.helpIcon}><Headphones size={24} /></div>
             <div className={styles.helpContent}>
-              <h4 className={styles.helpTitle}>Can ho tro tu van?</h4>
+              <h4 className={styles.helpTitle}>Cần hỗ trợ tư vấn?</h4>
               <p className={styles.helpText}>
-                Hay goi Hotline <span className={styles.helpPhone}>1900 1234</span> de duoc ho tro.
+                Gọi Hotline <span className={styles.helpPhone}>1900 1234</span> để được hỗ trợ.
               </p>
             </div>
           </div>
@@ -455,7 +455,7 @@ const PatientInfo: React.FC = () => {
 
         <footer className={styles.footer}>
           <div className={styles.footerContent}>
-            <p className={styles.copyright}>� 2024 MediCare+ Hospital System. All rights reserved.</p>
+            <p className={styles.copyright}>© 2024 CareFirst Clinic. All rights reserved.</p>
           </div>
         </footer>
       </div>

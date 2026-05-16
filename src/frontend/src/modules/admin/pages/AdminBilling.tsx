@@ -32,10 +32,10 @@ function resolveChargeAmount(appointment: Appointment, kind: ChargeKind): number
 }
 
 const methodLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  Cash: { label: 'Tien mat', icon: <Banknote className="h-3 w-3" />, color: 'text-emerald-600' },
-  BankTransfer: { label: 'Chuyen khoan', icon: <Landmark className="h-3 w-3" />, color: 'text-blue-600' },
+  Cash: { label: 'Tiền mặt', icon: <Banknote className="h-3 w-3" />, color: 'text-emerald-600' },
+  BankTransfer: { label: 'Chuyển khoản', icon: <Landmark className="h-3 w-3" />, color: 'text-blue-600' },
   VNPay: { label: 'VNPay', icon: <CreditCard className="h-3 w-3" />, color: 'text-indigo-600' },
-  CreditCard: { label: 'The tin dung', icon: <CreditCard className="h-3 w-3" />, color: 'text-purple-600' },
+  CreditCard: { label: 'Thẻ tín dụng', icon: <CreditCard className="h-3 w-3" />, color: 'text-purple-600' },
 };
 
 const statusStyles: Record<string, string> = {
@@ -127,7 +127,7 @@ const AdminBilling: React.FC = () => {
       setPendingCharges(outstandingCharges);
     } catch (error) {
       console.error(error);
-      toast.error('Khong the tai du lieu hoa don');
+      toast.error('Không thể tải dữ liệu hóa đơn');
     } finally {
       setLoading(false);
     }
@@ -149,39 +149,39 @@ const AdminBilling: React.FC = () => {
   const handleCompletePayment = async (payment: Payment) => {
     let transactionId = payment.transactionId;
     if (payment.method !== 'Cash' && payment.method !== 'VNPay') {
-      transactionId = window.prompt('Nhap ma giao dich') || undefined;
+      transactionId = window.prompt('Nhập mã giao dịch') || undefined;
     }
 
     try {
       await paymentService.complete(payment.id, transactionId);
-      toast.success('Xac nhan thanh toan thanh cong');
+      toast.success('Xác nhận thanh toán thành công');
       void fetchData();
     } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || 'Khong the xac nhan thanh toan');
+      toast.error(error?.data?.message || error?.message || 'Không thể xác nhận thanh toán');
     }
   };
 
   const handleRefund = async (paymentId: string) => {
-    if (!window.confirm('Ban co chac muon hoan tien giao dich nay?')) {
+    if (!window.confirm('Bạn có chắc muốn hoàn tiền giao dịch này?')) {
       return;
     }
 
     try {
       await paymentService.refund(paymentId);
-      toast.success('Hoan tien thanh cong');
+      toast.success('Hoàn tiền thành công');
       void fetchData();
     } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || 'Khong the hoan tien');
+      toast.error(error?.data?.message || error?.message || 'Không thể hoàn tiền');
     }
   };
 
   const handleCheckVNPayStatus = async (orderId: string) => {
     try {
       const status = await paymentService.getPaymentStatus(orderId);
-      toast.success(`Trang thai: ${status.status}${status.transactionId ? ` | GD: ${status.transactionId}` : ''}`);
+      toast.success(`Trạng thái: ${status.status}${status.transactionId ? ` | GD: ${status.transactionId}` : ''}`);
       void fetchData();
     } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || 'Khong the kiem tra giao dich');
+      toast.error(error?.data?.message || error?.message || 'Không thể kiểm tra giao dịch');
     }
   };
 
@@ -203,10 +203,10 @@ const AdminBilling: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         {[
-          { label: 'Tong thu hom nay', value: `${totals.todayRevenue.toLocaleString('vi-VN')}d` },
-          { label: 'Khoan can thu', value: totals.pendingCount.toString() },
-          { label: 'Hoa don hoan thanh', value: totals.completedCount.toString() },
-          { label: 'Hoan tien', value: totals.refundedCount.toString() },
+          { label: 'Tổng thu hôm nay', value: `${totals.todayRevenue.toLocaleString('vi-VN')}d` },
+          { label: 'Khoản cần thu', value: totals.pendingCount.toString() },
+          { label: 'Hóa đơn hoàn thành', value: totals.completedCount.toString() },
+          { label: 'Hoàn tiền', value: totals.refundedCount.toString() },
         ].map((item) => (
           <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</p>
@@ -224,18 +224,18 @@ const AdminBilling: React.FC = () => {
               value={filters.status}
               onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
             >
-              <option value="">Tat ca trang thai</option>
-              <option value="Pending">Cho thanh toan</option>
-              <option value="Completed">Da thanh toan</option>
-              <option value="Refunded">Da hoan tien</option>
+              <option value="">Tất cả trạng thái</option>
+              <option value="Pending">Chờ thanh toán</option>
+              <option value="Completed">Đã thanh toán</option>
+              <option value="Refunded">Đã hoàn tiền</option>
             </select>
             <select
               className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-600"
               value={filters.method}
               onChange={(event) => setFilters((prev) => ({ ...prev, method: event.target.value }))}
             >
-              <option value="">Tat ca phuong thuc</option>
-              <option value="Cash">Tien mat</option>
+              <option value="">Tất cả phương thức</option>
+              <option value="Cash">Tiền mặt</option>
               <option value="VNPay">VNPay</option>
             </select>
           </div>
@@ -245,12 +245,12 @@ const AdminBilling: React.FC = () => {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
               <tr>
-                <th className="px-6 py-4">Benh nhan</th>
-                <th className="px-6 py-4">Lich kham</th>
-                <th className="px-6 py-4">Khoan thu</th>
-                <th className="px-6 py-4">So tien</th>
-                <th className="px-6 py-4">Trang thai lich</th>
-                <th className="px-6 py-4 text-center">Thao tac</th>
+                <th className="px-6 py-4">Bệnh nhân</th>
+                <th className="px-6 py-4">Lịch khám</th>
+                <th className="px-6 py-4">Khoản thu</th>
+                <th className="px-6 py-4">Số tiền</th>
+                <th className="px-6 py-4">Trạng thái</th>
+                <th className="px-6 py-4 text-center">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -274,7 +274,7 @@ const AdminBilling: React.FC = () => {
                           'inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest border',
                           'bg-indigo-100 text-indigo-700 border-indigo-200'
                         )}>
-                          Tong thanh toan
+                          Tổng thanh toán
                         </span>
                       </td>
                       <td className="px-6 py-4 font-black text-slate-900">{amount.toLocaleString('vi-VN')}d</td>
@@ -286,7 +286,7 @@ const AdminBilling: React.FC = () => {
                             setShowChargeModal(true);
                           }}
                           className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-700 transition-colors"
-                          title="Thu tien"
+                          title="Thu tiền"
                         >
                           <Wallet className="h-4 w-4" />
                         </button>
@@ -309,13 +309,13 @@ const AdminBilling: React.FC = () => {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
               <tr>
-                <th className="px-6 py-4">Ma don hang</th>
-                <th className="px-6 py-4">Benh nhan / Lich</th>
-                <th className="px-6 py-4">Loai phi</th>
-                <th className="px-6 py-4">So tien</th>
-                <th className="px-6 py-4">Hinh thuc</th>
-                <th className="px-6 py-4">Trang thai</th>
-                <th className="px-6 py-4 text-center">Thao tac</th>
+                <th className="px-6 py-4">Mã đơn hàng</th>
+                <th className="px-6 py-4">Bệnh nhân / Lịch</th>
+                <th className="px-6 py-4">Loại phí</th>
+                <th className="px-6 py-4">Số tiền</th>
+                <th className="px-6 py-4">Hình thức</th>
+                <th className="px-6 py-4">Trạng thái</th>
+                <th className="px-6 py-4 text-center">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -343,12 +343,12 @@ const AdminBilling: React.FC = () => {
                       <td className="px-6 py-4">
                         <span className={cn(
                           'inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest border',
-                          payment.type === 'ConsultationFee' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
-                          payment.type === 'MedicineFee' ? 'bg-purple-100 text-purple-700 border-purple-200' :
-                          'bg-indigo-100 text-indigo-700 border-indigo-200'
+                          payment.type === 'ConsultationFee' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                            payment.type === 'MedicineFee' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                              'bg-indigo-100 text-indigo-700 border-indigo-200'
                         )}>
-                          {payment.type === 'ConsultationFee' ? 'Phi kham' : 
-                           payment.type === 'MedicineFee' ? 'Tien thuoc' : 'Tong thanh toan'}
+                          {payment.type === 'ConsultationFee' ? 'Phí khám' :
+                            payment.type === 'MedicineFee' ? 'Tiền thuốc' : 'Tổng thanh toán'}
                         </span>
                       </td>
                       <td className="px-6 py-4 font-black text-slate-900">{payment.amount.toLocaleString('vi-VN')}d</td>
@@ -379,7 +379,7 @@ const AdminBilling: React.FC = () => {
                             <button
                               onClick={() => void handleCompletePayment(payment)}
                               className="rounded-lg bg-indigo-600 p-2 text-white hover:bg-indigo-700 transition-colors"
-                              title="Xac nhan thanh toan"
+                              title="Xác nhận thanh toán"
                             >
                               <CheckCircle2 className="h-4 w-4" />
                             </button>
@@ -388,7 +388,7 @@ const AdminBilling: React.FC = () => {
                             <button
                               onClick={() => void handleCheckVNPayStatus(payment.orderId)}
                               className="rounded-lg p-2 text-indigo-600 hover:bg-indigo-50 transition-colors"
-                              title="Kiem tra VNPay"
+                              title="Kiểm tra VNPay"
                             >
                               <RefreshCw className="h-4 w-4" />
                             </button>
@@ -397,7 +397,7 @@ const AdminBilling: React.FC = () => {
                             <button
                               onClick={() => void handleRefund(payment.id)}
                               className="rounded-lg p-2 text-rose-500 hover:bg-rose-50 transition-colors"
-                              title="Hoan tien"
+                              title="Hoàn tiền"
                             >
                               <XCircle className="h-4 w-4" />
                             </button>
@@ -413,7 +413,7 @@ const AdminBilling: React.FC = () => {
         </div>
 
         <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hien thi {payments.length} giao dich</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hiển thị {payments.length} giao dịch</p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setQuery((prev) => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
@@ -479,30 +479,30 @@ const PaymentDetailModal: React.FC<{
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
       <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
-          <h3 className="text-lg font-bold text-white">Chi tiet thanh toan</h3>
-          <p className="text-indigo-100 text-sm mt-1">Ma don: {payment.orderId}</p>
+          <h3 className="text-lg font-bold text-white">Chi tiết thanh toán</h3>
+          <p className="text-indigo-100 text-sm mt-1">Mã đơn: {payment.orderId}</p>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <Info label="Benh nhan" value={payment.patientName} />
-          <Info label="Loai phi" value={payment.type === 'ConsultationFee' ? 'Phi kham' : 'Tien thuoc'} />
-          <Info label="So tien" value={`${payment.amount.toLocaleString('vi-VN')}d`} />
-          <Info label="Phuong thuc" value={methodLabels[payment.method]?.label || payment.method} />
-          <Info label="Trang thai" value={payment.status} />
-          <Info label="Ma giao dich" value={payment.transactionId || '-'} />
-          <Info label="Ngan hang" value={payment.bankCode || '-'} />
-          <Info label="Ngay tao" value={new Date(payment.createdAt).toLocaleString('vi-VN')} />
-          <Info label="Ngay thanh toan" value={payment.paidAt ? new Date(payment.paidAt).toLocaleString('vi-VN') : '-'} />
-          <Info label="Lich kham" value={appointment ? `${appointment.serviceName || appointment.specialtyName} | BS. ${appointment.doctorName}` : payment.appointmentId} />
+          <Info label="Bệnh nhân" value={payment.patientName} />
+          <Info label="Loại phí" value={payment.type === 'ConsultationFee' ? 'Phí khám' : 'Tiền thuốc'} />
+          <Info label="Số tiền" value={`${payment.amount.toLocaleString('vi-VN')}d`} />
+          <Info label="Phương thức" value={methodLabels[payment.method]?.label || payment.method} />
+          <Info label="Trạng thái" value={payment.status} />
+          <Info label="Mã giao dịch" value={payment.transactionId || '-'} />
+          <Info label="Ngân hàng" value={payment.bankCode || '-'} />
+          <Info label="Ngày tạo" value={new Date(payment.createdAt).toLocaleString('vi-VN')} />
+          <Info label="Ngày thanh toán" value={payment.paidAt ? new Date(payment.paidAt).toLocaleString('vi-VN') : '-'} />
+          <Info label="Lịch khám" value={appointment ? `${appointment.serviceName || appointment.specialtyName} | BS. ${appointment.doctorName}` : payment.appointmentId} />
         </div>
         <div className="bg-slate-50 px-6 py-4 flex gap-3">
-          <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 px-4 py-2 font-bold text-slate-600 hover:bg-slate-100">Dong</button>
+          <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 px-4 py-2 font-bold text-slate-600 hover:bg-slate-100">Đóng</button>
           {payment.status === 'Pending' && (
             <button
               onClick={() => void handleComplete()}
               disabled={loading}
               className="flex-1 rounded-xl bg-indigo-600 px-4 py-2 font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
             >
-              {loading ? 'Dang xu ly...' : 'Xac nhan thanh toan'}
+              {loading ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
             </button>
           )}
         </div>
@@ -531,12 +531,12 @@ const ChargeCollectionModal: React.FC<{
           amount,
           type: chargeKind,
           method: 'Cash',
-          notes: chargeKind === 'FullPayment' ? 'Thu tong chi phi kham tai quay' : 'Thu phi tai quay'
+          notes: chargeKind === 'FullPayment' ? 'Thu tổng chi phí khám tại quầy' : 'Thu phí tại quầy'
         });
 
         const payment = (paymentResponse as any)?.data ?? paymentResponse;
         await paymentService.complete(payment.id);
-        toast.success('Thu tien thanh cong');
+        toast.success('Thu tiền thành công');
         onCompleted();
         return;
       }
@@ -544,7 +544,7 @@ const ChargeCollectionModal: React.FC<{
       const result = await paymentService.createVNPayFullPayment(appointment.id, appointment.patientId);
 
       if (!result.success || !result.data?.paymentUrl) {
-        throw new Error(result.message || 'Khong the tao giao dich VNPay.');
+        throw new Error(result.message || 'Không thể tạo giao dịch VNPay.');
       }
 
       sessionStorage.setItem('pendingOrderId', result.data.orderId);
@@ -555,7 +555,7 @@ const ChargeCollectionModal: React.FC<{
       }
       window.location.href = result.data.paymentUrl;
     } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || 'Khong the thu tien');
+      toast.error(error?.data?.message || error?.message || 'Không thể thu tiền');
     } finally {
       setLoading(false);
     }
@@ -565,17 +565,17 @@ const ChargeCollectionModal: React.FC<{
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
-          <h3 className="text-lg font-bold text-white">Thu tien benh nhan</h3>
+          <h3 className="text-lg font-bold text-white">Thu tiền bệnh nhân</h3>
           <p className="text-indigo-100 text-sm mt-1">{appointment.patientName} | {appointment.serviceName || appointment.specialtyName}</p>
         </div>
         <div className="p-6 space-y-5">
           <div className="rounded-xl bg-slate-50 p-4">
             <div className="flex items-center justify-between">
-              <span className="text-slate-500 font-medium">Khoan thu</span>
-              <span className="font-black text-slate-900">{chargeKind === 'ConsultationFee' ? 'Phi kham' : 'Tien thuoc'}</span>
+              <span className="text-slate-500 font-medium">Khoản thu</span>
+              <span className="font-black text-slate-900">{chargeKind === 'ConsultationFee' ? 'Phí khám' : 'Tiền thuốc'}</span>
             </div>
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-slate-500 font-medium">So tien</span>
+              <span className="text-slate-500 font-medium">Số tiền</span>
               <span className="text-2xl font-black text-indigo-600">{amount.toLocaleString('vi-VN')}d</span>
             </div>
           </div>
@@ -589,7 +589,7 @@ const ChargeCollectionModal: React.FC<{
               )}
             >
               <Banknote className="h-4 w-4" />
-              Tien mat
+              Tiền mặt
             </button>
             <button
               onClick={() => setMethod('VNPay')}
@@ -604,13 +604,13 @@ const ChargeCollectionModal: React.FC<{
           </div>
         </div>
         <div className="bg-slate-50 px-6 py-4 flex gap-3">
-          <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 px-4 py-2 font-bold text-slate-600 hover:bg-slate-100">Huy</button>
+          <button onClick={onClose} className="flex-1 rounded-xl border border-slate-200 px-4 py-2 font-bold text-slate-600 hover:bg-slate-100">Hủy</button>
           <button
             onClick={() => void handleSubmit()}
             disabled={loading}
             className="flex-1 rounded-xl bg-indigo-600 px-4 py-2 font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {loading ? 'Dang xu ly...' : 'Thu tien'}
+            {loading ? 'Đang xử lý...' : 'Thu tiền'}
           </button>
         </div>
       </div>

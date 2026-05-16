@@ -52,6 +52,11 @@ export interface CancelAppointmentDTO {
   cancelReason: string;
 }
 
+export interface AdminUpdateAppointmentDTO {
+  timeSlotId: string;
+  notes?: string;
+}
+
 export interface AppointmentQueryParams {
   patientId?: string;
   doctorId?: string;
